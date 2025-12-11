@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Console Admin — CV Viktor Morel</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .admin-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .admin-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .admin-header h1 {
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+    .admin-section {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .admin-section h2 {
+      color: #1f2430;
+      margin: 0 0 20px;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #6a11cb;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      color: #5a6376;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dfe3eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #1f2430;
+      box-sizing: border-box;
+    }
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #6a11cb;
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.2);
+    }
+    .item-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+    }
+    .item-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f8f9fc;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .item-list li span {
+      color: #1f2430;
+    }
+    .btn-small {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-edit {
+      background: #2575fc;
+      color: white;
+    }
+    .btn-delete {
+      background: #ff4757;
+      color: white;
+      margin-left: 8px;
+    }
+    .btn-add {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .btn-save {
+      background: linear-gradient(135deg, #3ddc97, #00b894);
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .btn-add:hover, .btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+    .back-link {
+      display: inline-block;
+      color: #ffffff;
+      text-decoration: none;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .back-link:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: white;
+      color: #6a11cb;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="centered-layout">
+  <div class="admin-container">
+    <a href="/download-cv" class="back-link">Retour au telechargement</a>
+
+    <div class="admin-header">
+      <h1>Console Administration</h1>
+      <p style="color: rgba(255,255,255,0.8);">Modifier le contenu du CV en ligne</p>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('skills')">Competences</button>
+      <button class="tab-btn" onclick="showTab('interests')">Centres d'interet</button>
+      <button class="tab-btn" onclick="showTab('experience')">Experiences</button>
+      <button class="tab-btn" onclick="showTab('contact')">Contact</button>
+    </div>
+
+    <!-- Competences -->
+    <div id="tab-skills" class="tab-content active">
+      <div class="admin-section">
+        <h2>Gerer les Competences</h2>
+        <ul class="item-list" id="skills-list"></ul>
+        <div class="form-group">
+          <label>Nouvelle competence</label>
+          <input type="text" id="new-skill" placeholder="Ex: Python, Reseaux, etc.">
+        </div>
+        <button class="btn-add" onclick="addSkill()">Ajouter une competence</button>
+      </div>
+    </div>
+
+    <!-- Centres d'interet -->
+    <div id="tab-interests" class="tab-content">
+      <div class="admin-section">
+        <h2>Gerer les Centres d'interet</h2>
+        <ul class="item-list" id="interests-list"></ul>
+        <div class="form-group">
+          <label>Nouveau centre d'interet</label>
+          <input type="text" id="new-interest" placeholder="Ex: Sport, Musique, etc.">
+        </div>
+        <button class="btn-add" onclick="addInterest()">Ajouter un centre d'interet</button>
+      </div>
+    </div>
+
+    <!-- Experiences -->
+    <div id="tab-experience" class="tab-content">
+      <div class="admin-section">
+        <h2>Gerer les Experiences</h2>
+        <ul class="item-list" id="experience-list"></ul>
+        <div class="form-group">
+          <label>Titre du poste/stage</label>
+          <input type="text" id="exp-title" placeholder="Ex: Stage developpeur">
+        </div>
+        <div class="form-group">
+          <label>Entreprise</label>
+          <input type="text" id="exp-company" placeholder="Ex: France Televisions">
+        </div>
+        <div class="form-group">
+          <label>Tag/Categorie</label>
+          <input type="text" id="exp-tag" placeholder="Ex: Audiovisuel">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="text" id="exp-date" placeholder="Ex: Janvier 2025">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="exp-description" placeholder="Description du poste..."></textarea>
+        </div>
+        <button class="btn-add" onclick="addExperience()">Ajouter une experience</button>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div id="tab-contact" class="tab-content">
+      <div class="admin-section">
+        <h2>Informations de Contact</h2>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="contact-email" placeholder="votre@email.com">
+        </div>
+        <div class="form-group">
+          <label>Telephone</label>
+          <input type="tel" id="contact-phone" placeholder="06.XX.XX.XX.XX">
+        </div>
+        <div class="form-group">
+          <label>LinkedIn</label>
+          <input type="text" id="contact-linkedin" placeholder="Votre profil LinkedIn">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="saveAll()">Sauvegarder toutes les modifications</button>
+  </div>
+
+  <script>
+    // Donnees du site (chargees depuis le serveur)
+    let siteData = {
+      skills: [],
+      interests: [],
+      experiences: [],
+      contact: {
+        email: '',
+        phone: '',
+        linkedin: ''
+      }
+    };
+
+    // Charger les donnees au demarrage
+    async function loadData() {
+      try {
+        const response = await fetch('/api/admin/data');
+        if (response.ok) {
+          siteData = await response.json();
+          renderAll();
+        }
+      } catch (err) {
+        console.error('Erreur chargement:', err);
+      }
+    }
+
+    // Afficher les donnees
+    function renderAll() {
+      renderSkills();
+      renderInterests();
+      renderExperiences();
+      renderContact();
+    }
+
+    function renderSkills() {
+      const list = document.getElementById('skills-list');
+      list.innerHTML = siteData.skills.map((skill, i) => `
+        <li>
+          <span>${skill}</span>
+          <div>
+            <button class="btn-small btn-delete" onclick="deleteSkill(${i})">Supprimer</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderInterests() {
+      const list = document.getElementById('interests-list');
+      list.innerHTML = siteData.interests.map((interest, i) => `
+        <li>
+          <span>${interest}</span>
+          <div>
+            <button class="btn-small btn-delete" onclick="deleteInterest(${i})">Supprimer</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderExperiences() {
+      const list = document.getElementById('experience-list');
+      list.innerHTML = siteData.experiences.map((exp, i) => `
+        <li>
+          <span><strong>${exp.title}</strong> - ${exp.company}</span>
+          <div>
+            <button class="btn-small btn-delete" onclick="deleteExperience(${i})">Supprimer</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderContact() {
+      document.getElementById('contact-email').value = siteData.contact.email || '';
+      document.getElementById('contact-phone').value = siteData.contact.phone || '';
+      document.getElementById('contact-linkedin').value = siteData.contact.linkedin || '';
+    }
+
+    // Ajouter des elements
+    function addSkill() {
+      const input = document.getElementById('new-skill');
+      if (input.value.trim()) {
+        siteData.skills.push(input.value.trim());
+        input.value = '';
+        renderSkills();
+      }
+    }
+
+    function addInterest() {
+      const input = document.getElementById('new-interest');
+      if (input.value.trim()) {
+        siteData.interests.push(input.value.trim());
+        input.value = '';
+        renderInterests();
+      }
+    }
+
+    function addExperience() {
+      const title = document.getElementById('exp-title').value.trim();
+      const company = document.getElementById('exp-company').value.trim();
+      const tag = document.getElementById('exp-tag').value.trim();
+      const date = document.getElementById('exp-date').value.trim();
+      const description = document.getElementById('exp-description').value.trim();
+
+      if (title && company) {
+        siteData.experiences.push({ title, company, tag, date, description });
+        document.getElementById('exp-title').value = '';
+        document.getElementById('exp-company').value = '';
+        document.getElementById('exp-tag').value = '';
+        document.getElementById('exp-date').value = '';
+        document.getElementById('exp-description').value = '';
+        renderExperiences();
+      }
+    }
+
+    // Supprimer des elements
+    function deleteSkill(index) {
+      siteData.skills.splice(index, 1);
+      renderSkills();
+    }
+
+    function deleteInterest(index) {
+      siteData.interests.splice(index, 1);
+      renderInterests();
+    }
+
+    function deleteExperience(index) {
+      siteData.experiences.splice(index, 1);
+      renderExperiences();
+    }
+
+    // Sauvegarder
+    async function saveAll() {
+      // Recuperer les infos de contact
+      siteData.contact.email = document.getElementById('contact-email').value.trim();
+      siteData.contact.phone = document.getElementById('contact-phone').value.trim();
+      siteData.contact.linkedin = document.getElementById('contact-linkedin').value.trim();
+
+      try {
+        const response = await fetch('/api/admin/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(siteData)
+        });
+
+        const messageEl = document.getElementById('message');
+        if (response.ok) {
+          messageEl.textContent = 'Modifications sauvegardees avec succes !';
+          messageEl.className = 'message success';
+        } else {
+          messageEl.textContent = 'Erreur lors de la sauvegarde.';
+          messageEl.className = 'message error';
+        }
+
+        setTimeout(() => {
+          messageEl.className = 'message';
+        }, 3000);
+      } catch (err) {
+        console.error('Erreur sauvegarde:', err);
+      }
+    }
+
+    // Gestion des onglets
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Charger au demarrage
+    loadData();
+  </script>
+</body>
+</html>

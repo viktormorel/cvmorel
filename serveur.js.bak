@@ -1,0 +1,106 @@
+const express = require('express');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const speakeasy = require('speakeasy');
+const session = require('express-session');
+const path = require('path');
+require('dotenv').config();
+
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));
+
+// Config Google OAuth
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/auth/google/callback"
+}, (accessToken, refreshToken, profile, done) => {
+  return done(null, profile);
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Servir les fichiers statiques (CSS, JS, images, etc.)
+app.use(express.static(path.join(__dirname)));
+
+// Autoriser les requêtes cross-origin pour les vérifications health (dev)
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+// Endpoint health pour permettre au client de vérifier que l'auth est disponible
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
+
+// Middleware de sécurité
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated() && req.session.twoFA === true) return next();
+  res.redirect('/auth/google');
+}
+
+// Étape 1 : Connexion Google
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    // Après Google → demander le code 2FA
+    res.redirect('/login-2fa');
+  }
+);
+
+// Étape 2 : Page 2FA
+app.get('/login-2fa', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login-2fa.html'));
+});
+
+// Vérification du code 2FA
+app.post('/verify-2fa', (req, res) => {
+  const verified = speakeasy.totp.verify({
+    secret: process.env.TWOFA_SECRET, // clé secrète partagée
+    encoding: 'base32',
+    token: req.body.token
+  });
+
+  if (verified) {
+    req.session.twoFA = true;
+    res.redirect('/download-cv');
+  } else {
+    res.send('<h2>❌ Code invalide, réessaie.</h2><a href="/login-2fa">Retour</a>');
+  }
+});
+
+// Étape 3 : Page protégée pour télécharger le CV
+app.get('/download-cv', ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'download.html'));
+});
+
+// Endpoint pour télécharger réellement le fichier (protégé)
+app.get('/download-cv/file', ensureAuthenticated, (req, res) => {
+  const filePath = path.join(__dirname, 'cv.pdf');
+  res.download(filePath, 'Viktor_Morel_CV.pdf', (err) => {
+    if (err) {
+      console.error('Erreur lors du téléchargement :', err);
+      res.status(500).send('Erreur lors du téléchargement.');
+    }
+  });
+});
+
+// Page d’accueil
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Lancement serveur
+app.listen(3000, () => {
+  console.log("✅ Serveur lancé sur http://localhost:3000");
+});

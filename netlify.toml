@@ -1,0 +1,52 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirects pour les API
+[[redirects]]
+  from = "/auth/google"
+  to = "/.netlify/functions/api/auth/google"
+  status = 200
+
+[[redirects]]
+  from = "/auth/google/callback"
+  to = "/.netlify/functions/api/auth/google/callback"
+  status = 200
+
+[[redirects]]
+  from = "/verify-2fa"
+  to = "/.netlify/functions/api/verify-2fa"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+
+[[redirects]]
+  from = "/login-2fa"
+  to = "/login-2fa.html"
+  status = 200
+
+[[redirects]]
+  from = "/download-cv"
+  to = "/download.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/setup-2fa"
+  to = "/setup-2fa.html"
+  status = 200

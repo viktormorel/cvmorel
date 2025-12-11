@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CV Studio V2 – Viktor Morel</title>
+  <meta name="description" content="Portfolio CV premium : stages, compétences et contact." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    // Initialise EmailJS (remplace "YOUR_PUBLIC_KEY")
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.emailjs) {
+        emailjs.init('YOUR_PUBLIC_KEY');
+      }
+    });
+  </script>
+</head>
+<body class="centered-layout" data-theme="auto">
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Navigation">
+    <ul>
+      <li><a href="#about">À propos</a></li>
+      <li><a href="#experience">Expérience</a></li>
+      <li><a href="#skills">Compétences</a></li>
+      <li><a href="#projects">Centres d’intérêt</a></li>
+      <li><a href="#education">Formation</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Basculer le thème" title="Thème">
+        <span class="theme-icon" aria-hidden="true">🌗</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="hero" data-parallax>
+    <div class="hero-bg" aria-hidden="true"></div>
+    <img src="WhatsApp Image 2025-10-18 à 17.43.59_9444101c.jpg" alt="Photo de profil" class="avatar" />
+    <h1>Viktor Morel</h1>
+    <p>Terminale CIEL • Bac pro Cybersécurité, Informatique et Réseaux Électroniques</p>
+  <div class="hero-actions"></div>
+</header>
+
+  <!-- À propos -->
+  <section id="about" class="section reveal" data-animate="fade">
+    <h2>À propos</h2>
+    <p class="lead">
+      Né le 30 juin 2008. Élève en Terminale CIEL au Lycée professionnel Jean Moulin (Le Chesnay, 78).
+      Intéressé par la découverte des métiers du numérique, avec des expériences en audiovisuel,
+      voirie et réseaux divers, rénovation et diagnostics de matériel informatique.
+    </p>
+  </section>
+
+  <!-- Expérience -->
+  <section id="experience" class="section reveal" data-animate="fade">
+    <h2>Expérience</h2>
+    <div class="timeline alt" role="list">
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>Stage de Terminale CIEL</h3>
+            <span class="tag">Découverte métiers du numérique</span>
+          </div>
+          <p class="date">1er–19 déc. 2025 • 5–23 janv. 2026</p>
+          <div class="bubble-content">
+            <p>Objectif : découverte des métiers du numérique, observation et participation aux activités techniques.</p>
+            <ul class="bullets">
+              <li>• Immersion dans des environnements IT</li>
+              <li>• Compréhension des rôles et des workflows</li>
+              <li>• Mise en pratique guidée</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>France Télévisions — Stage de 3e</h3>
+            <span class="tag">Audiovisuel</span>
+          </div>
+          <p class="date">1 semaine</p>
+          <div class="bubble-content">
+            <p>Découverte de l’entreprise et du secteur audiovisuel.</p>
+            <ul class="bullets">
+              <li>• Observation des métiers de production</li>
+              <li>• Sensibilisation aux workflows média</li>
+              <li>• Découverte des équipements</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>INGEMART — Bureau d’étude VRD</h3>
+            <span class="tag">Voirie & réseaux divers</span>
+          </div>
+          <p class="date">3 semaines (seconde)</p>
+          <div class="bubble-content">
+            <p>Participation aux plans d’aménagement, découverte du bureau d’étude.</p>
+            <ul class="bullets">
+              <li>• Lecture de plans et DAO</li>
+              <li>• Sensibilité aux contraintes terrain</li>
+              <li>• Organisation d’équipe</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>Restos du Cœur — Chantier d’insertion</h3>
+            <span class="tag">Rénovation et démantèlement IT</span>
+          </div>
+          <p class="date">3 semaines (seconde)</p>
+          <div class="bubble-content">
+            <p>Rénovation d’ordinateurs et démantèlement de matériel informatique.</p>
+            <ul class="bullets">
+              <li>• Tri et remise en état</li>
+              <li>• Démantèlement, recyclage</li>
+              <li>• Connaissance des composants</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>Restos du Cœur — Chantier d’insertion</h3>
+            <span class="tag">Approfondissement IT</span>
+          </div>
+          <p class="date">Stage de première</p>
+          <div class="bubble-content">
+            <p>Approfondissement des connaissances et compétences techniques.</p>
+            <ul class="bullets">
+              <li>• Rénovation plus avancée</li>
+              <li>• Diagnostics matériels</li>
+              <li>• Méthodologie de réparation</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>Palan Informatique — Plaisir</h3>
+            <span class="tag">Diagnostics & réparations</span>
+          </div>
+          <p class="date">Stage de première</p>
+          <div class="bubble-content">
+            <p>Diagnostic, réparation et relation clientèle.</p>
+            <ul class="bullets">
+              <li>• Tests matériels et logiciels</li>
+              <li>• Remplacement de composants</li>
+              <li>• Accueil et suivi client</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Compétences -->
+  <section id="skills" class="section reveal" data-animate="fade">
+    <h2>Compétences</h2>
+    <div class="skills-grid">
+      <div class="skill-bubble">Anglais (LV)</div>
+      <div class="skill-bubble">Certification Pix (3e)</div>
+      <div class="skill-bubble">Rénovation d’ordinateurs</div>
+      <div class="skill-bubble">Diagnostics matériels</div>
+      <div class="skill-bubble">Bases réseaux</div>
+      <div class="skill-bubble">Sens du service</div>
+    </div>
+  </section>
+
+  <section id="interests" class="section reveal">
+  <h2>Centres d’intérêt</h2>
+
+  <!-- Bulles de compétences -->
+  <div class="skills-grid">
+    <div class="skill-bubble">Sport — Ultimate, tennis, natation</div>
+    <div class="skill-bubble">Gaming en réseau — Jeux en équipe et communication (3e)(1ère)</div>
+    <div class="skill-bubble">Réseaux sociaux — TikTok, Instagram, YouTube</div>
+  </div>
+</section>
+
+
+  <!-- Formation -->
+  <section id="education" class="section reveal" data-animate="fade">
+    <h2>Formation</h2>
+    <div class="timeline alt" role="list">
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3l10 5-10 5L2 8l10-5zm0 7l6.5-3.25V15c0 2.9-4.33 4-6.5 4s-6.5-1.1-6.5-4V6.75L12 10z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>Terminale CIEL — Lycée pro Jean Moulin</h3>
+            <span class="tag">Le Chesnay (78)</span>
+          </div>
+          <p class="date">En cours</p>
+          <div class="bubble-content">
+            <p>Bac pro Cybersécurité, Informatique et Réseaux Électroniques.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="section reveal" data-animate="fade">
+    <h2>Contact</h2>
+    <div class="contact-cards" role="list">
+      <div class="contact-card glass gradient-border" role="listitem">
+        <div class="icon svg anim" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M3 5h18a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2zm1.5 2l7.5 5 7.5-5" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+        <h3>Email</h3>
+        <p><a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a></p>
+      </div>
+      <div class="contact-card glass gradient-border" role="listitem">
+        <div class="icon svg anim" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M6 2h6l2 3v4l-4 3 4 3v4l-2 3H6a2 2 0 01-2-2V4a2 2 0 012-2z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3>Téléphone</h3>
+        <p><span>06.14.09.93.55</span></p>
+      </div>
+      <div class="contact-card glass gradient-border" role="listitem">
+        <div class="icon svg anim" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M4.98 3.5A2.5 2.5 0 107.48 6a2.5 2.5 0 00-2.5-2.5zM4.5 8.5H8v12H4.5v-12zm6 0h3.2v1.6h.05c.45-.85 1.55-1.75 3.2-1.75 3.42 0 4.05 2.25 4.05 5.18V20.5H17.7v-5.28c0-1.26-.02-2.88-1.76-2.88-1.76 0-2.03 1.38-2.03 2.79v5.37H10.5v-12z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3>LinkedIn</h3>
+        <p><a href="#" target="_blank" rel="noopener">viktormorel</a></p>
+      </div>
+    </div>
+
+    <form class="contact-form" onsubmit="handleContactSubmit(event)" novalidate aria-labelledby="contactFormTitle">
+      <h3 id="contactFormTitle" class="sr-only">Formulaire de contact</h3>
+      <div class="form-field">
+        <label for="name">Nom</label>
+        <input id="name" name="name" type="text" placeholder="Nom" required aria-required="true" />
+        <small class="error" aria-live="polite"></small>
+      </div>
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="Email" required aria-required="true" />
+        <small class="error" aria-live="polite"></small>
+      </div>
+      <div class="form-field">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Message" required aria-required="true"></textarea>
+        <small class="error" aria-live="polite"></small>
+      </div>
+
+      <!-- Champs cachés pour EmailJS -->
+      <input type="hidden" id="to_email" name="to_email" value="viktormorel@mailo.com" />
+      <button type="submit" class="btn primary">Envoyer</button>
+    </form>
+  </section>
+
+  <!-- Section de téléchargement placée sous la partie contact -->
+  <section id="download" class="section reveal" data-animate="fade">
+    <h2>Télécharger le CV</h2>
+    <p class="lead">Pour accéder au téléchargement, connectez-vous via Google puis confirmez avec le code 2FA.</p>
+    <div style="margin-top:18px;">
+      <a id="downloadCV" class="btn primary" role="button" aria-label="Télécharger le CV (authentification)">Télécharger le CV de Viktor</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© <span id="year"></span> Viktor Morel — Tous droits réservés.</p>
+  </footer>
+
+  <!-- Modal (option) -->
+  <script>
+    // Construire dynamiquement l'URL du lien de connexion OAuth basée sur le domaine actuel
+    document.addEventListener('DOMContentLoaded', () => {
+      const downloadBtn = document.getElementById('downloadCV');
+      const baseUrl = window.location.origin; // http://localhost:3001 ou l'URL publique
+      downloadBtn.href = `${baseUrl}/auth/google`;
+    });
+  </script>
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Détails">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+
+

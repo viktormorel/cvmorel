@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Configurer 2FA — Viktor Morel</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text)}
+    .card{background:var(--card);padding:24px;border-radius:12px;max-width:720px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+    .row{display:flex;gap:18px;align-items:center}
+    img.qr{max-width:260px;border-radius:8px;border:1px solid var(--border)}
+    pre.secret{background:#0b1220;color:#d1e8ff;padding:10px;border-radius:8px;overflow:auto}
+    .muted{color:var(--muted);font-size:.95rem}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Configurer la 2FA (test local)</h1>
+    <p class="muted">Cette page génère un secret TOTP lié à ta session et affiche un QR à scanner avec Google Authenticator / Authy.</p>
+
+    <p>
+      <button id="gen" class="btn primary">Générer QR &amp; secret</button>
+    </p>
+
+    <div id="result" style="margin-top:16px;display:none">
+      <div class="row">
+        <div>
+          <img id="qr" class="qr" src="" alt="QR code" />
+        </div>
+        <div style="flex:1">
+          <h3>Secret (manuel)</h3>
+          <pre id="secret" class="secret"></pre>
+          <p class="muted">Tu peux scanner le QR ou entrer manuellement ce secret dans ton application d'authentification.</p>
+        </div>
+      </div>
+
+      <hr style="margin:18px 0" />
+
+      <div>
+        <label for="token">Code (6 chiffres)</label>
+        <input id="token" inputmode="numeric" maxlength="6" style="padding:8px;border-radius:6px;border:1px solid var(--border);width:160px;margin-left:8px">
+        <button id="check" class="btn primary">Vérifier</button>
+        <span id="checkRes" style="margin-left:12px"></span>
+      </div>
+    </div>
+
+    <p style="margin-top:18px" class="muted">Note : le secret est stocké uniquement dans la session de ton navigateur (cookie). Utilise le même navigateur pour générer et vérifier.</p>
+  </main>
+
+  <script>
+    const genBtn = document.getElementById('gen');
+    const result = document.getElementById('result');
+    const qr = document.getElementById('qr');
+    const secretEl = document.getElementById('secret');
+    const checkBtn = document.getElementById('check');
+    const tokenInput = document.getElementById('token');
+    const checkRes = document.getElementById('checkRes');
+
+    genBtn.addEventListener('click', async () => {
+      genBtn.disabled = true;
+      genBtn.textContent = 'Génération...';
+      try {
+        const res = await fetch('/api/2fa/generate', { method: 'POST', credentials: 'include' });
+        const j = await res.json();
+        if (j.qrCode) {
+          qr.src = j.qrCode;
+          secretEl.textContent = j.secret;
+          result.style.display = 'block';
+        } else {
+          alert('Erreur génération: ' + (j.error||JSON.stringify(j)));
+        }
+      } catch (e) {
+        alert('Erreur réseau: ' + e.message);
+      } finally {
+        genBtn.disabled = false;
+        genBtn.textContent = 'Générer QR & secret';
+      }
+    });
+
+    checkBtn.addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      checkRes.textContent = '';
+      if (!/^\d{6}$/.test(token)) { checkRes.textContent = 'Code invalide'; return; }
+      try {
+        const res = await fetch('/api/2fa/verify', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token }) });
+        const j = await res.json();
+        if (j.valid) {
+          checkRes.style.color = 'green';
+          checkRes.textContent = '✅ Code valide — session 2FA activée';
+        } else {
+          checkRes.style.color = 'crimson';
+          checkRes.textContent = '❌ Code invalide';
+        }
+      } catch (e) {
+        checkRes.textContent = 'Erreur: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
