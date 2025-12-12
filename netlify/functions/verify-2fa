@@ -1,5 +1,6 @@
 // netlify/functions/api/verify-2fa.js
 const speakeasy = require("speakeasy");
+const jwt = require("jsonwebtoken");
 
 exports.handler = async (event) => {
   try {
@@ -14,14 +15,40 @@ exports.handler = async (event) => {
     }
 
     const secret = process.env.TOTP_SECRET;
-    if (!secret) {
-      console.error("❌ TOTP_SECRET manquant dans les variables d'environnement");
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!secret || !jwtSecret) {
+      console.error("❌ Variables d'environnement manquantes:", { secret, jwtSecret });
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: "Missing TOTP secret" })
+        body: JSON.stringify({ error: "Missing environment variables" })
       };
     }
 
+    // 🔎 Récupération du cookie JWT
+    const cookies = event.headers.cookie || "";
+    const sessionCookie = cookies.split(";").find(c => c.trim().startsWith("session="));
+    if (!sessionCookie) {
+      console.error("❌ Aucun cookie de session trouvé");
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "No session cookie found" })
+      };
+    }
+
+    const token = sessionCookie.split("=")[1];
+    let payload;
+    try {
+      payload = jwt.verify(token, jwtSecret);
+    } catch (err) {
+      console.error("❌ JWT invalide:", err.message);
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid session token" })
+      };
+    }
+
+    // ✅ Vérification du code TOTP
     const verified = speakeasy.totp.verify({
       secret,
       encoding: "base32",
@@ -39,9 +66,24 @@ exports.handler = async (event) => {
       };
     }
 
+    // 🔑 Mise à jour du JWT avec twoFA:true
+    const newToken = jwt.sign(
+      {
+        email: payload.email,
+        googleId: payload.googleId,
+        twoFA: true
+      },
+      jwtSecret,
+      { expiresIn: "15m" }
+    );
+
+    // ✅ Redirection vers /admin avec nouveau cookie
     return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true })
+      statusCode: 302,
+      headers: {
+        "Set-Cookie": `session=${newToken}; HttpOnly; Secure; Path=/; SameSite=Lax`,
+        Location: "/admin"
+      }
     };
 
   } catch (err) {
@@ -52,3 +94,4 @@ exports.handler = async (event) => {
     };
   }
 };
+
