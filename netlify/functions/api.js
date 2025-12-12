@@ -17,6 +17,9 @@ exports.handler = async () => {
 
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 
+  // 🔎 Debug log pour vérifier l’URL générée
+  console.log("🔗 Google Auth URL:", googleAuthUrl);
+
   return {
     statusCode: 302,
     headers: {
