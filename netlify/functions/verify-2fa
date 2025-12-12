@@ -1,0 +1,54 @@
+// netlify/functions/api/verify-2fa.js
+const speakeasy = require("speakeasy");
+
+exports.handler = async (event) => {
+  try {
+    const { code } = JSON.parse(event.body || "{}");
+
+    if (!code) {
+      console.error("❌ Aucun code 2FA reçu");
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing 2FA code" })
+      };
+    }
+
+    const secret = process.env.TOTP_SECRET;
+    if (!secret) {
+      console.error("❌ TOTP_SECRET manquant dans les variables d'environnement");
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing TOTP secret" })
+      };
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret,
+      encoding: "base32",
+      token: code,
+      window: 1 // tolérance ±30s
+    });
+
+    console.log("🔐 Code 2FA reçu:", code);
+    console.log("✅ Vérification:", verified);
+
+    if (!verified) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid 2FA code" })
+      };
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true })
+    };
+
+  } catch (err) {
+    console.error("❌ Erreur dans verify-2fa.js:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
+    };
+  }
+};
