@@ -105,7 +105,7 @@ app.get('/health', (req, res) => {
 // Google Auth
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/callback', (req, res, next) => {
+app.get(['/auth/google/callback', '/.netlify/functions/api/auth/google/callback'], (req, res, next) => {
   passport.authenticate('google', (err, user, info) => {
     if (err) {
       console.error('OAuth error:', err);
