@@ -3,7 +3,7 @@ const querystring = require("querystring");
 
 exports.handler = async (event, context) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = "https://cvviktormorel.netlify.app/auth/google/callback";
+  const redirectUri = "https://cvviktormorel.netlify.app/.netlify/functions/api/auth/google/callback";
   const scope = [
     "openid",
     "email",
