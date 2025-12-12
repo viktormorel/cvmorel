@@ -1,11 +1,20 @@
 // netlify/functions/api/auth/google.js
 const querystring = require("querystring");
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   try {
+    // ✅ Vérification stricte de la méthode HTTP
+    if (event.httpMethod !== "GET") {
+      return {
+        statusCode: 405,
+        headers: { Allow: "GET" },
+        body: JSON.stringify({ error: "Method Not Allowed" })
+      };
+    }
+
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit correspondre EXACTEMENT à Google Cloud Console
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
@@ -42,7 +51,8 @@ exports.handler = async () => {
     return {
       statusCode: 302,
       headers: {
-        Location: googleAuthUrl
+        Location: googleAuthUrl,
+        "Cache-Control": "no-store" // empêche la mise en cache
       }
     };
 
