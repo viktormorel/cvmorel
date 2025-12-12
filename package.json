@@ -11,19 +11,20 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "archiver": "^5.3.1",                
-    "dotenv": "^16.0.3",                 
-    "express": "^4.18.2",                
-    "express-session": "^1.17.3",        
-    "passport": "^0.6.0",                
-    "passport-google-oauth20": "^2.0.0", 
-    "qrcode": "^1.5.1",                  
-    "serverless-http": "^4.0.0",         
-    "speakeasy": "^2.0.0"                
+    "archiver": "^5.3.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "node-fetch": "^2.7.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "qrcode": "^1.5.1",
+    "serverless-http": "^4.0.0",
+    "speakeasy": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",                
-    "nodemon": "^3.0.1"                  
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -31,5 +32,3 @@
   "author": "Vahé",
   "license": "MIT"
 }
-
-

@@ -1,5 +1,4 @@
 // netlify/functions/api/auth/google-callback.js
-const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
   try {
@@ -20,7 +19,11 @@ exports.handler = async (event) => {
     const redirectUri = process.env.GOOGLE_CALLBACK_URL;
 
     if (!clientId || !clientSecret || !redirectUri) {
-      console.error("❌ Variables d'environnement manquantes");
+      console.error("❌ Variables d'environnement manquantes:", {
+        clientId,
+        clientSecret: clientSecret ? "***" : undefined,
+        redirectUri
+      });
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Missing environment variables" })
@@ -47,7 +50,10 @@ exports.handler = async (event) => {
       console.error("❌ Pas de access_token reçu");
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Failed to retrieve access token", details: tokenData })
+        body: JSON.stringify({
+          error: "Failed to retrieve access token",
+          details: tokenData
+        })
       };
     }
 
@@ -69,8 +75,12 @@ exports.handler = async (event) => {
     console.error("❌ Erreur dans google-callback:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
+      body: JSON.stringify({
+        error: "Internal Server Error",
+        details: err.message
+      })
     };
   }
 };
+
 
