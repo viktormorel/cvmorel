@@ -16,8 +16,8 @@ exports.handler = async () => {
         body: JSON.stringify({
           error: "Missing environment variables",
           details: {
-            GOOGLE_CLIENT_ID: clientId,
-            GOOGLE_CALLBACK_URL: redirectUri
+            GOOGLE_CLIENT_ID: clientId || "undefined",
+            GOOGLE_CALLBACK_URL: redirectUri || "undefined"
           }
         })
       };
@@ -36,7 +36,7 @@ exports.handler = async () => {
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 
     // 🔎 Debug log pour vérifier l’URL générée
-    console.log("🔗 Google Auth URL:", googleAuthUrl);
+    console.log("🔗 Google Auth URL générée:", googleAuthUrl);
 
     // ✅ Redirection vers Google OAuth
     return {
@@ -50,8 +50,13 @@ exports.handler = async () => {
     console.error("❌ Erreur dans google.js:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
+      body: JSON.stringify({
+        error: "Internal Server Error",
+        details: err.message
+      })
     };
   }
 };
+
+
 
