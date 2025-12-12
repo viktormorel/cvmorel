@@ -2,8 +2,8 @@
 const querystring = require("querystring");
 
 exports.handler = async () => {
-  const clientId = process.env.GOOGLE_CLIENT_ID;        // 👉 défini dans Netlify
-  const redirectUri = process.env.GOOGLE_CALLBACK_URL;  // 👉 défini dans Netlify
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const redirectUri = process.env.GOOGLE_CALLBACK_URL;
   const scope = ["openid", "email", "profile"].join(" ");
 
   const params = querystring.stringify({
