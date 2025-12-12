@@ -5,7 +5,7 @@ exports.handler = async () => {
   try {
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
