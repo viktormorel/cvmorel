@@ -1,45 +1,35 @@
 // netlify/functions/api/auth/google-callback.js
-const fetch = require("node-fetch");
-
 exports.handler = async (event) => {
-  const code = event.queryStringParameters.code;
+  const code = new URLSearchParams(event.queryStringParameters).get("code");
 
-  if (!code) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Missing code parameter" })
-    };
-  }
+  const clientId = process.env.GOOGLE_CLIENT_ID;         // 👉 défini dans Netlify
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET; // 👉 défini dans Netlify
+  const redirectUri = process.env.GOOGLE_CALLBACK_URL;   // 👉 défini dans Netlify
 
-  try {
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: "https://cvviktormorel.netlify.app/auth/google/callback",
-        grant_type: "authorization_code"
-      })
-    });
+  // 1️⃣ Échange du code contre un token
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: "authorization_code"
+    })
+  });
 
-    const tokenData = await tokenRes.json();
+  const tokenData = await tokenRes.json();
 
-    const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` }
-    });
+  // 2️⃣ Récupération des infos utilisateur
+  const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${tokenData.access_token}` }
+  });
 
-    const userData = await userRes.json();
+  const userData = await userRes.json();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "OAuth success", user: userData })
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
-    };
-  }
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ tokenData, userData })
+  };
 };
