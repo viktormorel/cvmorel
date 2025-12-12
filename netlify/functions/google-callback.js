@@ -1,12 +1,10 @@
 // netlify/functions/api/auth/google-callback.js
 const jwt = require("jsonwebtoken");
-// ⚠️ Avec Node 18+, node-fetch v3 doit être importé en ESM.
-// Comme Netlify Functions utilisent CommonJS, on force l'import dynamique :
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async (event) => {
   try {
-    // 🔎 Récupération du code envoyé par Google
+    // 🔎 Lecture du code Google
     const code = event.queryStringParameters?.code;
     if (!code) {
       console.error("❌ Aucun code reçu dans le callback");
@@ -20,16 +18,11 @@ exports.handler = async (event) => {
     // ✅ Variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit correspondre EXACTEMENT à celui déclaré dans Google Cloud Console
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
-      console.error("❌ Variables d'environnement manquantes:", {
-        clientId,
-        clientSecret: clientSecret ? "***" : undefined,
-        redirectUri,
-        jwtSecret: jwtSecret ? "***" : undefined
-      });
+      console.error("❌ Variables manquantes:", { clientId, clientSecret, redirectUri, jwtSecret });
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Missing environment variables" })
@@ -49,26 +42,21 @@ exports.handler = async (event) => {
       })
     });
 
+    const rawToken = await tokenRes.text();
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text();
-      console.error("❌ Erreur lors de l'échange du code:", errText);
+      console.error("❌ Échec échange token:", rawToken);
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Failed to exchange code", details: errText })
+        body: JSON.stringify({ error: "Failed to exchange code", details: rawToken })
       };
     }
 
-    const tokenData = await tokenRes.json();
-    console.log("📦 Token Data:", tokenData);
-
+    const tokenData = JSON.parse(rawToken);
     if (!tokenData.access_token) {
-      console.error("❌ Pas de access_token reçu");
+      console.error("❌ Pas d'access_token:", tokenData);
       return {
         statusCode: 400,
-        body: JSON.stringify({
-          error: "Failed to retrieve access token",
-          details: tokenData
-        })
+        body: JSON.stringify({ error: "No access_token", details: tokenData })
       };
     }
 
@@ -77,33 +65,27 @@ exports.handler = async (event) => {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
 
+    const rawUser = await userRes.text();
     if (!userRes.ok) {
-      const errText = await userRes.text();
-      console.error("❌ Erreur lors de la récupération des infos utilisateur:", errText);
+      console.error("❌ Échec récupération user:", rawUser);
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Failed to fetch user info", details: errText })
+        body: JSON.stringify({ error: "Failed to fetch user info", details: rawUser })
       };
     }
 
-    const userData = await userRes.json();
-    console.log("👤 User Data:", userData);
-
+    const userData = JSON.parse(rawUser);
     if (!userData.email) {
-      console.error("❌ Pas d'email utilisateur reçu");
+      console.error("❌ Email utilisateur manquant:", userData);
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "No user email found", details: userData })
       };
     }
 
-    // 3️⃣ Création d’un JWT avec l’email
+    // 3️⃣ Création du JWT
     const sessionToken = jwt.sign(
-      {
-        email: userData.email,
-        googleId: userData.id,
-        twoFA: false
-      },
+      { email: userData.email, googleId: userData.id, twoFA: false },
       jwtSecret,
       { expiresIn: "15m" }
     );
@@ -118,13 +100,10 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    console.error("❌ Erreur dans google-callback:", err);
+    console.error("❌ Erreur interne:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message
-      })
+      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
     };
   }
 };
