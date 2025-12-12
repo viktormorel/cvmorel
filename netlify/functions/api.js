@@ -8,10 +8,9 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 
-// Fichier de donnees du site (pour l'admin)
+// Fichier de donnees du site
 const DATA_FILE = path.join('/tmp', 'site-data.json');
 
-// Donnees par defaut
 const DEFAULT_DATA = {
   skills: ['Anglais (LV)', 'Certification Pix (3e)', 'Renovation d\'ordinateurs', 'Diagnostics materiels', 'Bases reseaux', 'Sens du service'],
   interests: ['Sport - Ultimate, tennis, natation', 'Gaming en reseau', 'Reseaux sociaux - TikTok, Instagram, YouTube'],
@@ -54,7 +53,7 @@ function ensureAdmin(req, res, next) {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated() && req.session.twoFA === true) return next();
-  res.redirect('/.netlify/functions/api/auth/google');
+  res.redirect('/auth/google');
 }
 
 const app = express();
@@ -62,9 +61,9 @@ app.set('trust proxy', 1);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Session avec cookie sécurisé
+// Session
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
+  secret: process.env.SESSION_SECRET || 'secret-key',
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -73,8 +72,8 @@ app.use(session({
   }
 }));
 
-// Config Google OAuth
-const CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://cv-viktor-morel.netlify.app/.netlify/functions/api/auth/google/callback';
+// Google OAuth config
+const CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://cvviktormorel.netlify.app/auth/google/callback';
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -98,15 +97,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health
-app.get('/.netlify/functions/api/health', (req, res) => {
+// Routes
+app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Auth Google
-app.get('/.netlify/functions/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+// Google Auth
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/.netlify/functions/api/auth/google/callback', (req, res, next) => {
+app.get('/auth/google/callback', (req, res, next) => {
   passport.authenticate('google', (err, user, info) => {
     if (err) {
       console.error('OAuth error:', err);
@@ -124,8 +123,8 @@ app.get('/.netlify/functions/api/auth/google/callback', (req, res, next) => {
   })(req, res, next);
 });
 
-// 2FA verification
-app.post('/.netlify/functions/api/verify-2fa', (req, res) => {
+// 2FA Verify (form submission)
+app.post('/verify-2fa', (req, res) => {
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!secret) {
     return res.status(400).send('<h2>Erreur serveur : secret 2FA manquant.</h2>');
@@ -143,8 +142,8 @@ app.post('/.netlify/functions/api/verify-2fa', (req, res) => {
   res.send('<h2>Code invalide, réessaie.</h2><a href="/login-2fa.html">Retour</a>');
 });
 
-// 2FA generate
-app.post('/.netlify/functions/api/api/2fa/generate', (req, res) => {
+// 2FA Generate (API)
+app.post('/api/2fa/generate', (req, res) => {
   try {
     const secret = speakeasy.generateSecret({ length: 20, name: 'ViktorMorel' });
     req.session.twoFASecret = secret.base32;
@@ -160,8 +159,8 @@ app.post('/.netlify/functions/api/api/2fa/generate', (req, res) => {
   }
 });
 
-// 2FA verify API
-app.post('/.netlify/functions/api/api/2fa/verify', (req, res) => {
+// 2FA Verify (API)
+app.post('/api/2fa/verify', (req, res) => {
   const token = req.body.token;
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!token) return res.status(400).json({ valid: false, message: 'token missing' });
@@ -179,8 +178,8 @@ app.post('/.netlify/functions/api/api/2fa/verify', (req, res) => {
   return res.json({ valid: false, message: 'Code invalide' });
 });
 
-// 2FA code display
-app.get('/.netlify/functions/api/api/2fa/code', (req, res) => {
+// 2FA Code Display (admin only)
+app.get('/api/2fa/code', (req, res) => {
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!secret) return res.status(400).json({ error: 'secret_missing' });
   if (process.env.ALLOW_TOTP_DISPLAY !== 'true') return res.status(403).json({ error: 'not_allowed' });
@@ -192,24 +191,24 @@ app.get('/.netlify/functions/api/api/2fa/code', (req, res) => {
   }
 });
 
-// Admin check
-app.get('/.netlify/functions/api/api/admin/check', ensureAuthenticated, (req, res) => {
+// Admin Check
+app.get('/api/admin/check', ensureAuthenticated, (req, res) => {
   res.json({ isAdmin: isAdmin(req) });
 });
 
-app.get('/.netlify/functions/api/api/admin/check-login', (req, res) => {
+app.get('/api/admin/check-login', (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ isAdmin: false });
   }
   res.json({ isAdmin: isAdmin(req) });
 });
 
-// Admin data
-app.get('/.netlify/functions/api/api/admin/data', ensureAdmin, (req, res) => {
+// Admin Data
+app.get('/api/admin/data', ensureAdmin, (req, res) => {
   res.json(loadSiteData());
 });
 
-app.post('/.netlify/functions/api/api/admin/save', ensureAdmin, (req, res) => {
+app.post('/api/admin/save', ensureAdmin, (req, res) => {
   try {
     saveSiteData(req.body);
     res.json({ success: true, message: 'Donnees sauvegardees' });
@@ -218,8 +217,8 @@ app.post('/.netlify/functions/api/api/admin/save', ensureAdmin, (req, res) => {
   }
 });
 
-// Auth check pour téléchargement
-app.get('/.netlify/functions/api/auth-check', (req, res) => {
+// Auth check
+app.get('/auth-check', (req, res) => {
   if (req.isAuthenticated() && req.session.twoFA === true) {
     return res.json({ authenticated: true });
   }
