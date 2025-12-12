@@ -127,7 +127,8 @@ app.get(['/auth/google/callback', '/.netlify/functions/api/auth/google/callback'
 app.post('/verify-2fa', (req, res) => {
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!secret) {
-    return res.status(400).send('<h2>Erreur serveur : secret 2FA manquant.</h2>');
+    console.error('No 2FA secret available in session or env');
+    return res.status(400).send('<h2>Erreur serveur : secret 2FA manquant. Réessaie après avoir cliqué "Afficher QR".</h2><a href="/login-2fa.html">Retour</a>');
   }
   const verified = speakeasy.totp.verify({
     secret: secret,
@@ -147,14 +148,17 @@ app.post('/api/2fa/generate', (req, res) => {
   try {
     const secret = speakeasy.generateSecret({ length: 20, name: 'ViktorMorel' });
     req.session.twoFASecret = secret.base32;
+    console.log('2FA Secret generated, stored in session');
     QRCode.toDataURL(secret.otpauth_url)
       .then((dataUrl) => {
         res.json({ secret: secret.base32, otpauth_url: secret.otpauth_url, qrCode: dataUrl });
       })
       .catch((err) => {
+        console.error('QR generation error:', err);
         res.status(500).json({ error: 'QR generation failed' });
       });
   } catch (e) {
+    console.error('2FA generate error:', e);
     res.status(500).json({ error: '2FA generate failed' });
   }
 });
