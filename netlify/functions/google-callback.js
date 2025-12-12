@@ -2,7 +2,6 @@
 
 exports.handler = async (event) => {
   try {
-    // 🔎 Récupération du code envoyé par Google
     const code = new URLSearchParams(event.queryStringParameters).get("code");
     if (!code) {
       console.error("❌ Aucun code reçu dans le callback");
@@ -13,7 +12,6 @@ exports.handler = async (event) => {
     }
     console.log("🔑 Code reçu du callback:", code);
 
-    // ✅ Variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const redirectUri = process.env.GOOGLE_CALLBACK_URL;
@@ -65,10 +63,12 @@ exports.handler = async (event) => {
     const userData = await userRes.json();
     console.log("👤 User Data:", userData);
 
-    // ✅ Réponse finale
+    // ✅ Redirection finale vers ton interface (ex: /2fa)
     return {
-      statusCode: 200,
-      body: JSON.stringify({ tokenData, userData })
+      statusCode: 302,
+      headers: {
+        Location: "/2fa" // ou "/admin" selon ton besoin
+      }
     };
 
   } catch (err) {
@@ -82,5 +82,4 @@ exports.handler = async (event) => {
     };
   }
 };
-
 
