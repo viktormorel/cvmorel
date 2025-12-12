@@ -40,7 +40,7 @@ function saveSiteData(data) {
 function isAdmin(req) {
   if (!req.user || !req.user.emails || req.user.emails.length === 0) return false;
   const userEmail = req.user.emails[0].value;
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL || 'vikvahe@gmail.com';
   return userEmail === adminEmail;
 }
 
