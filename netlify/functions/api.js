@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    let redirectUri = process.env.GOOGLE_CALLBACK_URL; 
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL;
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
@@ -73,6 +73,7 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
 
