@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     // ✅ Variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL; 
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
@@ -27,6 +27,12 @@ exports.handler = async (event) => {
         statusCode: 500,
         body: JSON.stringify({ error: "Missing environment variables" })
       };
+    }
+
+    // ✅ Normalisation stricte du redirectUri
+    redirectUri = redirectUri.trim();
+    if (redirectUri.endsWith("/")) {
+      redirectUri = redirectUri.slice(0, -1);
     }
 
     // 1️⃣ Échange du code contre un token
@@ -108,12 +114,13 @@ exports.handler = async (event) => {
       { expiresIn: "15m" }
     );
 
-    // ✅ Redirection vers /2fa avec cookie sécurisé
+    // ✅ Redirection vers login-2fa.html avec cookie sécurisé
     return {
       statusCode: 302,
       headers: {
         "Set-Cookie": `session=${sessionToken}; HttpOnly; Secure; Path=/; SameSite=Lax`,
-        Location: "/2fa"
+        "Cache-Control": "no-store",
+        Location: "/login-2fa.html"
       }
     };
 
@@ -125,5 +132,6 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
