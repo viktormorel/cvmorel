@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    let redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL; 
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
@@ -32,8 +32,11 @@ exports.handler = async (event) => {
       };
     }
 
-    // ✅ Normalisation de l’URL (évite les slashs ou espaces parasites)
-    redirectUri = redirectUri.trim().replace(/\/+$/, "");
+    // ✅ Normalisation stricte de l’URL
+    redirectUri = redirectUri.trim();
+    if (redirectUri.endsWith("/")) {
+      redirectUri = redirectUri.slice(0, -1);
+    }
 
     // ✅ Construction des paramètres OAuth
     const params = querystring.stringify({
