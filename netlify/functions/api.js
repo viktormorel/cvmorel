@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
@@ -31,6 +31,9 @@ exports.handler = async (event) => {
         })
       };
     }
+
+    // ✅ Normalisation de l’URL (évite les slashs ou espaces parasites)
+    redirectUri = redirectUri.trim().replace(/\/+$/, "");
 
     // ✅ Construction des paramètres OAuth
     const params = querystring.stringify({
@@ -52,7 +55,7 @@ exports.handler = async (event) => {
       statusCode: 302,
       headers: {
         Location: googleAuthUrl,
-        "Cache-Control": "no-store, no-cache, must-revalidate" // empêche toute mise en cache
+        "Cache-Control": "no-store, no-cache, must-revalidate"
       }
     };
 
