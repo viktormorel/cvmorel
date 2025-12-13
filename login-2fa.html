@@ -16,7 +16,6 @@
       justify-content: center;
       min-height: 100vh;
     }
-
     .container-2fa {
       background: var(--card);
       border: 1px solid var(--border);
@@ -27,7 +26,6 @@
       box-shadow: 0 12px 32px rgba(0,0,0,0.35);
       animation: fadeIn .6s ease;
     }
-
     .container-2fa h1 {
       font-size: 1.6rem;
       margin-bottom: 12px;
@@ -35,24 +33,20 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     .container-2fa p {
       font-size: 0.95rem;
       color: var(--muted);
       margin-bottom: 24px;
     }
-
     .form-field {
       margin-bottom: 18px;
     }
-
     .form-field label {
       display: block;
       margin-bottom: 6px;
       font-size: 0.9rem;
       color: var(--muted);
     }
-
     .form-field input {
       width: 100%;
       padding: 12px;
@@ -62,13 +56,11 @@
       color: var(--text);
       transition: border-color .3s ease, box-shadow .3s ease;
     }
-
     .form-field input:focus {
       border-color: var(--primary2);
       box-shadow: 0 0 0 3px rgba(37,117,252,0.25);
       outline: none;
     }
-
     .btn-submit {
       width: 100%;
       padding: 12px;
@@ -80,18 +72,15 @@
       cursor: pointer;
       transition: transform .2s ease, filter .2s ease;
     }
-
     .btn-submit:hover {
       transform: translateY(-2px);
       filter: brightness(1.15);
     }
-
     .error-msg {
       color: #ff6b6b;
       font-size: 0.85rem;
       min-height: 1em;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -103,22 +92,11 @@
     <h1>Validation 2FA</h1>
     <p>Connexion Google réussie.<br>Veuillez entrer votre code de vérification pour accéder au CV de Viktor.</p>
 
-    <div id="qr-section" style="margin-bottom:20px;display:none;text-align:center;padding:16px;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid var(--border)">
-      <p style="margin-top:0;color:var(--muted);font-size:0.9rem">Scanne ce QR code avec Google Authenticator ou Authy :</p>
-      <img id="qr-image" src="" alt="QR Code 2FA" style="max-width:200px;margin:8px auto;border-radius:8px;border:2px solid var(--border)">
-      <p id="qr-secret" style="margin-bottom:0;color:var(--muted);font-size:0.85rem;word-break:break-all"></p>
-    </div>
-
     <form method="POST" action="/verify-2fa" id="form-2fa">
       <div class="form-field">
-        <label for="token">Code 2FA (6 chiffres)</label>
-        <input id="token" name="token" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" required placeholder="Ex: 123456" aria-describedby="error-token">
-        <small id="error-token" class="error-msg"></small>
-      </div>
-      <div id="admin-controls" style="margin-top:10px;display:flex;gap:8px;align-items:center">
-        <button type="button" id="toggle-qr" class="btn-submit" style="background:transparent;color:var(--text);border:1px solid var(--border);padding:8px 12px;max-width:180px;flex:1">Afficher QR</button>
-        <button type="button" id="show-code" class="btn-submit" style="background:transparent;color:var(--text);border:1px solid var(--border);padding:8px 12px;display:none">Code (admin)</button>
-        <div id="dev-code" style="font-weight:700;color:var(--muted)"></div>
+        <label for="code">Code 2FA (6 chiffres)</label>
+        <input id="code" name="code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" required placeholder="Ex: 123456" aria-describedby="error-code" autocomplete="one-time-code">
+        <small id="error-code" class="error-msg"></small>
       </div>
       <button type="submit" class="btn-submit">Valider et accéder au CV</button>
     </form>
@@ -126,93 +104,36 @@
 
   <script>
     const form = document.getElementById('form-2fa');
-    const tokenInput = document.getElementById('token');
-    const errorMsg = document.getElementById('error-token');
-    const toggleQrBtn = document.getElementById('toggle-qr');
-    const qrSection = document.getElementById('qr-section');
-    const qrImage = document.getElementById('qr-image');
-    const qrSecret = document.getElementById('qr-secret');
-    const showBtn = document.getElementById('show-code');
-    const devCode = document.getElementById('dev-code');
-    const adminControls = document.getElementById('admin-controls');
+    const codeInput = document.getElementById('code');
+    const errorMsg = document.getElementById('error-code');
 
-    // Toggle QR affichage
-    toggleQrBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (qrSection.style.display === 'block') {
-        qrSection.style.display = 'none';
-        toggleQrBtn.textContent = 'Afficher QR';
-        return;
-      }
-      
-      toggleQrBtn.disabled = true;
-      toggleQrBtn.textContent = 'Génération...';
-      try {
-        const res = await fetch('/api/2fa/generate', { method: 'POST', credentials: 'include' });
-        const j = await res.json();
-        if (j.qrCode) {
-          qrImage.src = j.qrCode;
-          qrSecret.textContent = 'Secret : ' + j.secret;
-          qrSection.style.display = 'block';
-          toggleQrBtn.textContent = 'Masquer QR';
-        } else {
-          alert('Erreur QR: ' + (j.error || JSON.stringify(j)));
-        }
-      } catch (e) {
-        alert('Erreur réseau: ' + e.message);
-      } finally {
-        toggleQrBtn.disabled = false;
-      }
-    });
-
-    // Verifier si admin
-    async function checkAdminForCode() {
-      try {
-        const res = await fetch('/api/admin/check-login', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.isAdmin) {
-            showBtn.style.display = 'block';
-          }
-        }
-      } catch (e) {
-        // Pas admin
-      }
-    }
-    checkAdminForCode();
-
-    tokenInput.addEventListener('input', (e) => {
+    codeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
       errorMsg.textContent = '';
     });
 
-    form.addEventListener('submit', (e) => {
-      if (tokenInput.value.length !== 6) {
-        e.preventDefault();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = codeInput.value.trim();
+      if (code.length !== 6) {
         errorMsg.textContent = 'Veuillez entrer un code de 6 chiffres.';
+        return;
       }
-    });
-
-    // Afficher code TOTP (admin)
-    showBtn.addEventListener('click', async () => {
-      showBtn.disabled = true;
-      devCode.textContent = 'Chargement...';
       try {
-        const res = await fetch('/api/2fa/code', { credentials: 'include' });
-        if (!res.ok) {
-          const j = await res.json().catch(()=>null);
-          devCode.textContent = j && j.error ? j.error : 'Erreur';
-          devCode.style.color = 'crimson';
-          return;
+        const res = await fetch('/verify-2fa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ code })
+        });
+        if (res.status === 302) {
+          window.location.href = '/admin';
+        } else {
+          const j = await res.json().catch(() => null);
+          errorMsg.textContent = j && j.error ? j.error : 'Erreur inconnue';
         }
-        const j = await res.json();
-        devCode.style.color = 'green';
-        devCode.textContent = j.token || '—';
-      } catch (e) {
-        devCode.style.color = 'crimson';
-        devCode.textContent = 'Erreur reseau';
-      } finally {
-        showBtn.disabled = false;
+      } catch (err) {
+        errorMsg.textContent = 'Erreur réseau: ' + err.message;
       }
     });
   </script>
