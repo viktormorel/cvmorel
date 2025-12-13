@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     // ✅ Variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
@@ -30,28 +30,37 @@ exports.handler = async (event) => {
     }
 
     // 1️⃣ Échange du code contre un token
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: "authorization_code"
-      })
-    });
+    let tokenData;
+    try {
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code"
+        })
+      });
 
-    const rawToken = await tokenRes.text();
-    if (!tokenRes.ok) {
-      console.error("❌ Échec échange token:", rawToken);
+      const rawToken = await tokenRes.text();
+      if (!tokenRes.ok) {
+        console.error("❌ Échec échange token:", rawToken);
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: "Failed to exchange code", details: rawToken })
+        };
+      }
+      tokenData = JSON.parse(rawToken);
+    } catch (err) {
+      console.error("❌ Erreur lors de l’échange du token:", err);
       return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Failed to exchange code", details: rawToken })
+        statusCode: 500,
+        body: JSON.stringify({ error: "Token exchange failed", details: err.message })
       };
     }
 
-    const tokenData = JSON.parse(rawToken);
     if (!tokenData.access_token) {
       console.error("❌ Pas d'access_token:", tokenData);
       return {
@@ -61,20 +70,29 @@ exports.handler = async (event) => {
     }
 
     // 2️⃣ Récupération des infos utilisateur
-    const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` }
-    });
+    let userData;
+    try {
+      const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` }
+      });
 
-    const rawUser = await userRes.text();
-    if (!userRes.ok) {
-      console.error("❌ Échec récupération user:", rawUser);
+      const rawUser = await userRes.text();
+      if (!userRes.ok) {
+        console.error("❌ Échec récupération user:", rawUser);
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: "Failed to fetch user info", details: rawUser })
+        };
+      }
+      userData = JSON.parse(rawUser);
+    } catch (err) {
+      console.error("❌ Erreur lors de la récupération user:", err);
       return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Failed to fetch user info", details: rawUser })
+        statusCode: 500,
+        body: JSON.stringify({ error: "User info fetch failed", details: err.message })
       };
     }
 
-    const userData = JSON.parse(rawUser);
     if (!userData.email) {
       console.error("❌ Email utilisateur manquant:", userData);
       return {
@@ -107,4 +125,5 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
