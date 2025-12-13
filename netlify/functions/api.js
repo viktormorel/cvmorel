@@ -14,7 +14,7 @@ exports.handler = async (event) => {
 
     // ✅ Récupération des variables d'environnement
     const clientId = process.env.GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit correspondre EXACTEMENT à Google Cloud Console
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL; // doit être EXACTEMENT celui déclaré dans Google Cloud Console
     const scope = ["openid", "email", "profile"].join(" ");
 
     // 🔎 Vérification des variables
@@ -52,7 +52,7 @@ exports.handler = async (event) => {
       statusCode: 302,
       headers: {
         Location: googleAuthUrl,
-        "Cache-Control": "no-store" // empêche la mise en cache
+        "Cache-Control": "no-store, no-cache, must-revalidate" // empêche toute mise en cache
       }
     };
 
@@ -67,6 +67,7 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
 

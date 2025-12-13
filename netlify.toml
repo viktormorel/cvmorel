@@ -5,7 +5,7 @@
 [functions]
   node_bundler = "esbuild"
 
-# Redirects pour les API
+# OAuth Google
 [[redirects]]
   from = "/auth/google"
   to = "/.netlify/functions/api/auth/google"
@@ -13,24 +13,28 @@
 
 [[redirects]]
   from = "/auth/google/callback"
-  to = "/.netlify/functions/api/auth/google/callback"
+  to = "/.netlify/functions/api/auth/google-callback"
   status = 200
 
+# Vérification 2FA
 [[redirects]]
   from = "/verify-2fa"
   to = "/.netlify/functions/api/verify-2fa"
   status = 200
 
+# API générique
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/api/:splat"
   status = 200
 
+# Healthcheck
 [[redirects]]
   from = "/health"
   to = "/.netlify/functions/api/health"
   status = 200
 
+# Pages statiques
 [[redirects]]
   from = "/login-2fa"
   to = "/login-2fa.html"
@@ -50,3 +54,10 @@
   from = "/setup-2fa"
   to = "/setup-2fa.html"
   status = 200
+
+[[redirects]]
+  from = "/2fa"
+  to = "/2fa.html"
+  status = 200
+
+
