@@ -81,6 +81,24 @@
       font-size: 0.85rem;
       min-height: 1em;
     }
+    #result {
+      margin-top: 16px;
+      display: none;
+    }
+    #qr {
+      max-width: 220px;
+      display: block;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    pre.secret {
+      background:#0b1220;
+      color:#d1e8ff;
+      padding:10px;
+      border-radius:8px;
+      overflow:auto;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -90,8 +108,16 @@
 <body>
   <div class="container-2fa">
     <h1>Validation 2FA</h1>
-    <p>Connexion Google réussie.<br>Veuillez entrer votre code de vérification pour accéder au CV de Viktor.</p>
+    <p>Connexion Google réussie.<br>Veuillez générer votre QR puis entrer le code de vérification pour accéder au CV de Viktor.</p>
 
+    <!-- Bouton pour générer QR + secret -->
+    <p><button id="gen" class="btn-submit">Générer QR &amp; secret</button></p>
+    <div id="result">
+      <img id="qr" src="" alt="QR code">
+      <pre id="secret" class="secret"></pre>
+    </div>
+
+    <!-- Formulaire de validation -->
     <form id="form-2fa">
       <div class="form-field">
         <label for="code">Code 2FA (6 chiffres)</label>
@@ -107,6 +133,34 @@
   const errorMsg = document.getElementById('error-code');
   const form = document.getElementById('form-2fa');
 
+  // Génération QR + secret
+  const genBtn = document.getElementById('gen');
+  const result = document.getElementById('result');
+  const qr = document.getElementById('qr');
+  const secretEl = document.getElementById('secret');
+
+  genBtn.addEventListener('click', async () => {
+    genBtn.disabled = true;
+    genBtn.textContent = 'Génération...';
+    try {
+      const res = await fetch('/.netlify/functions/api/2fa/generate', { method: 'POST', credentials: 'include' });
+      const j = await res.json();
+      if (j.qrCode) {
+        qr.src = j.qrCode;
+        secretEl.textContent = j.secret || '';
+        result.style.display = 'block';
+      } else {
+        alert('Erreur génération: ' + (j.error || JSON.stringify(j)));
+      }
+    } catch (e) {
+      alert('Erreur réseau: ' + e.message);
+    } finally {
+      genBtn.disabled = false;
+      genBtn.textContent = 'Générer QR & secret';
+    }
+  });
+
+  // Validation du code
   codeInput.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
     errorMsg.textContent = '';
@@ -114,19 +168,19 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const code = codeInput.value.trim();
+    const token = codeInput.value.trim(); // ✅ harmonisé
 
-    if (code.length !== 6) {
+    if (token.length !== 6) {
       errorMsg.textContent = 'Veuillez entrer un code de 6 chiffres.';
       return;
     }
 
     try {
-      const res = await fetch('/.netlify/functions/api/verify-2fa', {
+      const res = await fetch('/.netlify/functions/api/2fa/verify', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ token }) // ✅ correspond au backend
       });
 
       const j = await res.json();
@@ -134,7 +188,6 @@
       if (j.error) {
         errorMsg.textContent = '❌ ' + j.error;
       } else if (j.valid && j.redirect) {
-        // ✅ Redirection côté client
         window.location.href = j.redirect;
       } else {
         errorMsg.textContent = '❌ Code invalide';

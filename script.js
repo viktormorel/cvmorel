@@ -3,46 +3,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // Thème persistant
+  // Thème persistant (auto/dark/light)
   const themeToggle = document.getElementById('themeToggle');
-  const root = document.body;
-
   function applyTheme(mode) {
     if (mode === 'auto') {
-      root.setAttribute('data-theme', 'auto');
       document.documentElement.removeAttribute('data-theme');
     } else {
-      root.setAttribute('data-theme', mode);
       document.documentElement.setAttribute('data-theme', mode);
     }
     localStorage.setItem('themeMode', mode);
   }
-
   function cycleTheme() {
-    const current = root.getAttribute('data-theme') || 'auto';
+    const current = document.documentElement.getAttribute('data-theme') || 'auto';
     const next = current === 'auto' ? 'dark' : current === 'dark' ? 'light' : 'auto';
     applyTheme(next);
   }
-
   applyTheme(localStorage.getItem('themeMode') || 'auto');
   if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
 
-  // Toggle bulles + ARIA
-  function toggleBubble(el) {
-    const expanded = el.classList.toggle('open');
-    el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-  }
-
-  // Reveal au scroll
-  const reveals = document.querySelectorAll('.reveal, .timeline-item');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
-  }, { threshold: 0.15 });
-  reveals.forEach((el) => observer.observe(el));
-
-  // Smooth scroll
+  // Smooth scroll navbar
   document.querySelectorAll('.navbar a').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
@@ -51,28 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Parallax (hero)
-  let ticking = false;
-  function onScroll() {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const hero = document.getElementById('hero');
-        if (!hero) return;
-        const bg = hero.querySelector('.hero-bg');
-        if (!bg) return;
-        const rect = hero.getBoundingClientRect();
-        const factor = Math.min(Math.max((window.innerHeight - rect.top) / window.innerHeight, 0), 2);
-        bg.style.transform = `translate3d(0, ${factor * 20}px, 0)`;
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.addEventListener('scroll', onScroll, { passive: true });
-  }
+  // Reveal au scroll
+  const reveals = document.querySelectorAll('.reveal, .timeline-item');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(el => observer.observe(el));
 
-  // Modal (projets)
+  // Modal projets
   function openModal(id) {
     const body = document.getElementById('modal-body');
     if (body) body.innerHTML = "<p>Contenu à compléter.</p>";
@@ -91,14 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
       document.removeEventListener('keydown', escClose);
     }
   }
-  function escClose(e) {
-    if (e.key === 'Escape') closeModal();
-  }
+  function escClose(e) { if (e.key === 'Escape') closeModal(); }
+  window.openModal = openModal;
+  window.closeModal = closeModal;
 
-  // Validation formulaire
+  // Validation formulaire contact
   const form = document.querySelector('.contact-form');
   const fields = form ? form.querySelectorAll('input[required], textarea[required]') : [];
-
   function validateField(field) {
     const errorEl = field.parentElement.querySelector('.error');
     let error = '';
@@ -110,16 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (errorEl) errorEl.textContent = error;
     return !error;
   }
-
   fields.forEach(f => {
     f.addEventListener('input', () => validateField(f));
     f.addEventListener('blur', () => validateField(f));
   });
 
   // Soumission vers Discord webhook
-  function handleContactSubmit(e) {
+  async function handleContactSubmit(e) {
     e.preventDefault();
-
     let allValid = true;
     fields.forEach(f => { if (!validateField(f)) allValid = false; });
     if (!allValid) return;
@@ -129,51 +93,47 @@ document.addEventListener("DOMContentLoaded", () => {
       email: form.email.value.trim(),
       message: form.message.value.trim()
     };
-
-    const webhookURL = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
-
     const payload = {
-      content: `📩 Nouveau message de contact :\n**Nom :** ${data.name}\n**Email :** ${data.email}\n**Message :** ${data.message}`
+      content: `📩 Nouveau message :\n**Nom :** ${data.name}\n**Email :** ${data.email}\n**Message :** ${data.message}`
     };
-
-    fetch(webhookURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(res => {
+    try {
+      const res = await fetch("https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
       if (res.ok) {
-        alert("✅ Message envoyé sur Discord !");
+        alert("✅ Message envoyé !");
         form.reset();
         form.querySelectorAll('.error').forEach(el => el.textContent = '');
       } else {
         alert("❌ Erreur lors de l'envoi.");
       }
-    })
-    .catch(err => {
+    } catch (err) {
       console.error(err);
       alert("⚠️ Impossible d'envoyer le message.");
-    });
+    }
   }
   if (form) form.addEventListener('submit', handleContactSubmit);
 
   // Accessibilité timeline
   document.querySelectorAll('.timeline-item').forEach(item => {
-    item.addEventListener('keydown', (e) => {
+    item.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        toggleBubble(item);
+        item.classList.toggle('open');
+        item.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
       }
     });
   });
-  // Bouton Télécharger le CV → Google OAuth puis 2FA
-  const downloadBtn = document.getElementById('downloadCV');
-  console.log('debug: downloadBtn element ->', downloadBtn);
-  // Expose functions used by inline attributes in the HTML
-  window.toggleBubble = toggleBubble;
-  window.openModal = openModal;
-  window.closeModal = closeModal;
-  window.handleContactSubmit = handleContactSubmit;
 
+  // Bouton Télécharger le CV → déclenche OAuth + 2FA
+  const downloadBtn = document.getElementById('downloadCV');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      window.location.href = "/.netlify/functions/api/auth/google"; // redirige vers ton flow OAuth
+    });
+  }
 });
+
 
