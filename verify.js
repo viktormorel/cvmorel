@@ -17,25 +17,12 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: "Code invalide" }) };
     }
 
-    const secret = process.env.TOTP_SECRET;
     const jwtSecret = process.env.JWT_SECRET;
-    if (!secret || !jwtSecret) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing environment variables" }) };
+    if (!jwtSecret) {
+      return { statusCode: 500, body: JSON.stringify({ error: "Missing JWT_SECRET environment variable" }) };
     }
 
-    // Vérification du code TOTP
-    const valid = speakeasy.totp.verify({
-      secret,
-      encoding: "base32",
-      token,
-      window: 1
-    });
-
-    if (!valid) {
-      return { statusCode: 401, body: JSON.stringify({ error: "Invalid 2FA code" }) };
-    }
-
-    // Lecture du cookie JWT existant
+    // 🔎 Lecture du cookie JWT existant
     const rawCookies = event.headers.cookie || "";
     const cookies = rawCookies.split(";").map(c => c.trim()).filter(Boolean);
     const sessionPair = cookies.find(c => c.startsWith("session="));
@@ -51,7 +38,23 @@ exports.handler = async (event) => {
       return { statusCode: 401, body: JSON.stringify({ error: "Invalid session token" }) };
     }
 
-    // Création d’un nouveau JWT avec twoFA:true
+    // ✅ Vérification du code TOTP avec le secret stocké dans le JWT
+    if (!payload.twoFASecret) {
+      return { statusCode: 400, body: JSON.stringify({ error: "No 2FA secret in session" }) };
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: payload.twoFASecret,
+      encoding: "base32",
+      token,
+      window: 1
+    });
+
+    if (!valid) {
+      return { statusCode: 401, body: JSON.stringify({ error: "Invalid 2FA code" }) };
+    }
+
+    // 🔑 Création d’un nouveau JWT avec twoFA:true (secret retiré)
     const newToken = jwt.sign(
       { email: payload.email, googleId: payload.googleId, twoFA: true },
       jwtSecret,
@@ -73,4 +76,3 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: "Erreur vérification", details: err.message }) };
   }
 };
-
