@@ -38,22 +38,11 @@
       color: var(--muted);
       margin-bottom: 24px;
     }
-    .form-field {
-      margin-bottom: 18px;
-    }
-    .form-field label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
+    .form-field { margin-bottom: 18px; }
+    .form-field label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: var(--muted); }
     .form-field input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
       transition: border-color .3s ease, box-shadow .3s ease;
     }
     .form-field input:focus {
@@ -62,47 +51,17 @@
       outline: none;
     }
     .btn-submit {
-      width: 100%;
-      padding: 12px;
-      border-radius: 999px;
-      border: none;
+      width: 100%; padding: 12px; border-radius: 999px; border: none;
       background: linear-gradient(135deg, var(--primary), var(--primary2));
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
+      color: white; font-weight: 600; cursor: pointer;
       transition: transform .2s ease, filter .2s ease;
     }
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.15);
-    }
-    .error-msg {
-      color: #ff6b6b;
-      font-size: 0.85rem;
-      min-height: 1em;
-    }
-    #result {
-      margin-top: 16px;
-      display: none;
-    }
-    #qr {
-      max-width: 220px;
-      display: block;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-    pre.secret {
-      background:#0b1220;
-      color:#d1e8ff;
-      padding:10px;
-      border-radius:8px;
-      overflow:auto;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .error-msg { color: #ff6b6b; font-size: 0.85rem; min-height: 1em; }
+    #result { margin-top: 16px; display: none; }
+    #qr { max-width: 220px; display: block; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; }
+    pre.secret { background:#0b1220; color:#d1e8ff; padding:10px; border-radius:8px; overflow:auto; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
@@ -111,7 +70,7 @@
     <p>Connexion Google réussie.<br>Veuillez générer votre QR puis entrer le code de vérification pour accéder au CV de Viktor.</p>
 
     <!-- Bouton pour générer QR + secret -->
-    <p><button id="gen" class="btn-submit">Générer QR &amp; secret</button></p>
+    <p><button id="gen" class="btn-submit" type="button">Générer QR &amp; secret</button></p>
     <div id="result">
       <img id="qr" src="" alt="QR code">
       <pre id="secret" class="secret"></pre>
@@ -121,7 +80,8 @@
     <form id="form-2fa">
       <div class="form-field">
         <label for="code">Code 2FA (6 chiffres)</label>
-        <input id="code" name="code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" required placeholder="Ex: 123456" aria-describedby="error-code" autocomplete="one-time-code">
+        <input id="code" name="code" type="text" inputmode="numeric" maxlength="6"
+               required placeholder="Ex: 123456" aria-describedby="error-code" autocomplete="one-time-code">
         <small id="error-code" class="error-msg"></small>
       </div>
       <button type="submit" class="btn-submit">Valider et accéder au CV</button>
@@ -132,25 +92,29 @@
   const codeInput = document.getElementById('code');
   const errorMsg = document.getElementById('error-code');
   const form = document.getElementById('form-2fa');
-
-  // Génération QR + secret
   const genBtn = document.getElementById('gen');
   const result = document.getElementById('result');
   const qr = document.getElementById('qr');
   const secretEl = document.getElementById('secret');
 
+  function parseJSON(text) {
+    try { return JSON.parse(text); } catch { return null; }
+  }
+
+  // Génération QR + secret
   genBtn.addEventListener('click', async () => {
     genBtn.disabled = true;
     genBtn.textContent = 'Génération...';
     try {
       const res = await fetch('/.netlify/functions/api/2fa/generate', { method: 'POST', credentials: 'include' });
-      const j = await res.json();
-      if (j.qrCode) {
+      const text = await res.text();
+      const j = parseJSON(text);
+      if (j && j.qrCode) {
         qr.src = j.qrCode;
         secretEl.textContent = j.secret || '';
         result.style.display = 'block';
       } else {
-        alert('Erreur génération: ' + (j.error || JSON.stringify(j)));
+        alert('Erreur génération: ' + (j && j.error ? j.error : text));
       }
     } catch (e) {
       alert('Erreur réseau: ' + e.message);
@@ -168,8 +132,7 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const token = codeInput.value.trim(); // ✅ harmonisé
-
+    const token = codeInput.value.trim();
     if (token.length !== 6) {
       errorMsg.textContent = 'Veuillez entrer un code de 6 chiffres.';
       return;
@@ -180,11 +143,14 @@
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }) // ✅ correspond au backend
+        body: JSON.stringify({ token })
       });
-
-      const j = await res.json();
-
+      const text = await res.text();
+      const j = parseJSON(text);
+      if (!j) {
+        errorMsg.textContent = 'Réponse non-JSON: ' + text.slice(0,100);
+        return;
+      }
       if (j.error) {
         errorMsg.textContent = '❌ ' + j.error;
       } else if (j.valid && j.redirect) {
@@ -196,6 +162,8 @@
       errorMsg.textContent = 'Erreur réseau: ' + err.message;
     }
   });
-</script>
+  </script>
 </body>
 </html>
+
+
