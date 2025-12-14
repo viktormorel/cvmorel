@@ -65,10 +65,11 @@
       genBtn.textContent = 'Génération...';
       try {
         const res = await fetch('/.netlify/functions/api/2fa/generate', { method: 'POST', credentials: 'include' });
-        const j = await res.json();
+        const text = await res.text();
+        let j;
+        try { j = JSON.parse(text); } catch { throw new Error("Réponse non-JSON: " + text); }
         if (j.qrCode) {
           qr.src = j.qrCode;
-          // ⚠️ En prod, tu peux masquer le secret si tu veux
           secretEl.textContent = j.secret || '';
           result.style.display = 'block';
         } else {
@@ -96,10 +97,12 @@
           method: 'POST', 
           credentials: 'include', 
           headers: {'Content-Type':'application/json'}, 
-          body: JSON.stringify({ token }) // ✅ harmonisé avec backend
+          body: JSON.stringify({ token })
         });
-        const j = await res.json();
-        if (j.valid) {
+        const text = await res.text();
+        let j;
+        try { j = JSON.parse(text); } catch { throw new Error("Réponse non-JSON: " + text); }
+        if (j.valid && j.redirect) {
           checkRes.style.color = 'green';
           checkRes.textContent = '✅ Code valide — session 2FA activée';
           window.location.href = j.redirect;
