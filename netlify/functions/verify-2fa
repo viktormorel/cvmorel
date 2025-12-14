@@ -1,10 +1,9 @@
-// netlify/functions/api/verify-2fa.js
+// netlify/functions/api/2fa/verify.js
 const speakeasy = require("speakeasy");
 const jwt = require("jsonwebtoken");
 
 exports.handler = async (event) => {
   try {
-    // ✅ Méthode HTTP
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -13,110 +12,67 @@ exports.handler = async (event) => {
       };
     }
 
-    // 🔎 Lecture du body
-    let body;
-    try {
-      body = JSON.parse(event.body || "{}");
-    } catch (err) {
-      console.error("❌ Body JSON invalide:", err.message);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Invalid request body" })
-      };
+    const { token } = JSON.parse(event.body || "{}");
+    if (!token || !/^\d{6}$/.test(token)) {
+      return { statusCode: 400, body: JSON.stringify({ error: "Code invalide" }) };
     }
 
-    const code = body.code;
-    if (!code) {
-      console.error("❌ Aucun code 2FA reçu");
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing 2FA code" })
-      };
-    }
-
-    // ✅ Variables d'environnement
     const secret = process.env.TOTP_SECRET;
     const jwtSecret = process.env.JWT_SECRET;
     if (!secret || !jwtSecret) {
-      console.error("❌ Variables d'environnement manquantes:", { TOTP_SECRET: !!secret, JWT_SECRET: !!jwtSecret });
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Missing environment variables" })
-      };
+      return { statusCode: 500, body: JSON.stringify({ error: "Missing environment variables" }) };
     }
 
-    // 🔎 Récupération du cookie JWT
-    const rawCookies = event.headers.cookie || "";
-    const cookies = rawCookies.split(";").map(c => c.trim()).filter(Boolean);
-
-    const sessionPair = cookies.find(c => c.startsWith("session="));
-    if (!sessionPair) {
-      console.error("❌ Aucun cookie de session trouvé");
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: "No session cookie found" })
-      };
-    }
-
-    const token = sessionPair.slice("session=".length);
-    let payload;
-    try {
-      payload = jwt.verify(token, jwtSecret);
-    } catch (err) {
-      console.error("❌ JWT invalide:", err.message);
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: "Invalid session token" })
-      };
-    }
-
-    // ✅ Vérification du code TOTP
-    const verified = speakeasy.totp.verify({
+    // Vérification du code TOTP
+    const valid = speakeasy.totp.verify({
       secret,
       encoding: "base32",
-      token: code,
-      window: 1 // tolérance ±30s
+      token,
+      window: 1
     });
 
-    console.log("🔐 Code 2FA reçu:", code);
-    console.log("✅ Vérification:", verified);
-
-    if (!verified) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ error: "Invalid 2FA code" })
-      };
+    if (!valid) {
+      return { statusCode: 401, body: JSON.stringify({ error: "Invalid 2FA code" }) };
     }
 
-    // 🔑 Mise à jour du JWT avec twoFA:true
+    // Lecture du cookie JWT existant
+    const rawCookies = event.headers.cookie || "";
+    const cookies = rawCookies.split(";").map(c => c.trim()).filter(Boolean);
+    const sessionPair = cookies.find(c => c.startsWith("session="));
+    if (!sessionPair) {
+      return { statusCode: 401, body: JSON.stringify({ error: "No session cookie found" }) };
+    }
+
+    const oldToken = sessionPair.slice("session=".length);
+    let payload;
+    try {
+      payload = jwt.verify(oldToken, jwtSecret);
+    } catch (err) {
+      return { statusCode: 401, body: JSON.stringify({ error: "Invalid session token" }) };
+    }
+
+    // Création d’un nouveau JWT avec twoFA:true
     const newToken = jwt.sign(
       { email: payload.email, googleId: payload.googleId, twoFA: true },
       jwtSecret,
       { expiresIn: "15m" }
     );
 
-    // ✅ Redirection vers /admin avec nouveau cookie
+    // ✅ Réponse JSON + nouveau cookie
     return {
-      statusCode: 302,
+      statusCode: 200,
       headers: {
-        "Set-Cookie": [
-          // tue l'ancien cookie si besoin
-          `session=deleted; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age=0`,
-          // pose le nouveau
-          `session=${newToken}; HttpOnly; Secure; Path=/; SameSite=Lax`
-        ].join(", "),
-        "Cache-Control": "no-store",
-        Location: "/admin"
-      }
+        "Set-Cookie": `session=${newToken}; HttpOnly; Secure; Path=/; SameSite=Lax`,
+        "Cache-Control": "no-store"
+      },
+      body: JSON.stringify({ valid: true, redirect: "/admin.html" })
     };
 
   } catch (err) {
-    console.error("❌ Erreur dans verify-2fa.js:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
-    };
+    console.error("❌ Erreur dans verify.js:", err);
+    return { statusCode: 500, body: JSON.stringify({ error: "Erreur vérification", details: err.message }) };
   }
 };
+
 
 
