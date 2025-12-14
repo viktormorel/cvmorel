@@ -1,4 +1,4 @@
-// netlify/functions/api.js
+// netlify/functions/api.mjs
 import serverless from "serverless-http";
 import express from "express";
 import passport from "passport";
@@ -9,6 +9,7 @@ import path from "path";
 import fs from "fs";
 import QRCode from "qrcode";
 
+// Fichier de données persistant (Lambda: /tmp)
 const DATA_FILE = path.join("/tmp", "site-data.json");
 
 const DEFAULT_DATA = {
@@ -45,7 +46,12 @@ function loadSiteData() {
 }
 
 function saveSiteData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur écriture site-data.json:", err);
+    throw err;
+  }
 }
 
 function isAdmin(req) {
@@ -56,9 +62,7 @@ function isAdmin(req) {
 }
 
 function ensureAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.session.twoFA === true && isAdmin(req)) {
-    return next();
-  }
+  if (req.isAuthenticated() && req.session.twoFA === true && isAdmin(req)) return next();
   res.status(403).json({ error: "Acces refuse - Admin uniquement" });
 }
 
@@ -67,25 +71,41 @@ function ensureAuthenticated(req, res, next) {
   res.redirect("/auth/google");
 }
 
+// App
 const app = express();
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+// Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Sessions (secure uniquement en prod)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret-key",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      secure: true,
-      sameSite: "lax"
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      httpOnly: true
     }
   })
 );
 
+// CORS + préflight pour les POST/OPTIONS
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(204).end();
+  next();
+});
+
+// Google OAuth
 const CALLBACK_URL =
-  process.env.GOOGLE_CALLBACK_URL ||
+  (process.env.GOOGLE_CALLBACK_URL || "").trim().replace(/\/$/, "") ||
   "https://cvviktormorel.netlify.app/auth/google/callback";
 
 passport.use(
@@ -105,18 +125,13 @@ app.use(passport.session());
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
-
-// Routes
+// Health
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+// Auth start
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
+// Auth callback (double chemin pour compat)
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
   passport.authenticate("google", (err, user) => {
     if (err) {
@@ -125,20 +140,23 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
     }
     if (!user) return res.redirect("/");
     req.logIn(user, (loginErr) => {
-      if (loginErr) return res.status(500).send("Erreur de connexion.");
+      if (loginErr) {
+        console.error("Erreur de connexion:", loginErr);
+        return res.status(500).send("Erreur de connexion.");
+      }
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
 });
 
-// 2FA Verify (form)
+// 2FA: formulaire
 app.post("/verify-2fa", (req, res) => {
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!secret) return res.status(400).send("<h2>Erreur serveur : secret 2FA manquant.</h2>");
   const verified = speakeasy.totp.verify({
     secret,
     encoding: "base32",
-    token: req.body.token,
+    token: String(req.body.token || "").trim(),
     window: 1
   });
   if (verified) {
@@ -148,25 +166,26 @@ app.post("/verify-2fa", (req, res) => {
   res.send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
 });
 
-// 2FA Generate (API)
-app.post("/api/2fa/generate", (req, res) => {
+// 2FA: API generate
+app.post("/api/2fa/generate", async (req, res) => {
   try {
     const secret = speakeasy.generateSecret({ length: 20, name: "ViktorMorel" });
     req.session.twoFASecret = secret.base32;
-    QRCode.toDataURL(secret.otpauth_url)
-      .then((dataUrl) => res.json({ secret: secret.base32, qrCode: dataUrl }))
-      .catch(() => res.status(500).json({ error: "QR generation failed" }));
-  } catch {
+    const dataUrl = await QRCode.toDataURL(secret.otpauth_url);
+    res.json({ secret: secret.base32, qrCode: dataUrl });
+  } catch (err) {
+    console.error("2FA generate error:", err);
     res.status(500).json({ error: "2FA generate failed" });
   }
 });
 
-// 2FA Verify (API)
+// 2FA: API verify
 app.post("/api/2fa/verify", (req, res) => {
-  const token = req.body.token;
+  const token = String(req.body.token || "").trim();
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!token) return res.status(400).json({ valid: false, error: "token missing" });
   if (!secret) return res.status(400).json({ valid: false, error: "secret missing" });
+
   const verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
   if (verified) {
     req.session.twoFA = true;
@@ -186,15 +205,23 @@ app.post("/api/admin/save", ensureAdmin, (req, res) => {
   try {
     saveSiteData(req.body);
     res.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error("Erreur sauvegarde:", err);
     res.status(500).json({ error: "Erreur sauvegarde" });
   }
 });
 
+// Auth check
 app.get("/auth-check", (req, res) => {
   if (req.isAuthenticated() && req.session.twoFA === true) return res.json({ authenticated: true });
   res.json({ authenticated: false });
 });
 
+// 404 JSON pour routes inconnues (évite HTML "Cannot POST")
+app.use((req, res) => {
+  res.status(404).json({ error: "not_found", path: req.path, method: req.method });
+});
+
+// Export Netlify handler
 export const handler = serverless(app);
-// netlify/functions/api.js
+
