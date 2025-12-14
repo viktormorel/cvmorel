@@ -1,10 +1,16 @@
-const jwt = require("jsonwebtoken");
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
+// netlify/functions/google-callback.js
+import jwt from "jsonwebtoken";
+import fetch from "node-fetch";
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   try {
     const code = event.queryStringParameters?.code;
-    if (!code) return { statusCode: 400, body: JSON.stringify({ error: "Missing authorization code" }) };
+    if (!code) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing authorization code" })
+      };
+    }
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -12,7 +18,10 @@ exports.handler = async (event) => {
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing environment variables" }) };
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing environment variables" })
+      };
     }
 
     redirectUri = redirectUri.trim().replace(/\/$/, "");
@@ -29,18 +38,26 @@ exports.handler = async (event) => {
         grant_type: "authorization_code"
       })
     });
+
     const tokenData = await tokenRes.json();
     if (!tokenRes.ok || !tokenData.access_token) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Failed to exchange code", details: tokenData }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Failed to exchange code", details: tokenData })
+      };
     }
 
     // Infos utilisateur
     const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
+
     const userData = await userRes.json();
     if (!userRes.ok || !userData.email) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Failed to fetch user info", details: userData }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Failed to fetch user info", details: userData })
+      };
     }
 
     // JWT initial
@@ -59,9 +76,13 @@ exports.handler = async (event) => {
       body: JSON.stringify({ success: true, redirect: "/login-2fa.html" })
     };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Internal Server Error", details: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error", details: err.message })
+    };
   }
 };
+
 
 
 
