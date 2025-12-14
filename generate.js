@@ -1,11 +1,17 @@
-const speakeasy = require("speakeasy");
-const qrcode = require("qrcode");
-const jwt = require("jsonwebtoken");
+// netlify/functions/2fa-generate.mjs
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import jwt from "jsonwebtoken";
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   try {
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) return { statusCode: 500, body: JSON.stringify({ error: "Missing JWT_SECRET" }) };
+    if (!jwtSecret) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Missing JWT_SECRET" })
+      };
+    }
 
     // Lire session existante
     const rawCookies = event.headers.cookie || "";
@@ -14,7 +20,11 @@ exports.handler = async (event) => {
     let basePayload = {};
     if (sessionPair) {
       const oldToken = sessionPair.slice("session=".length);
-      try { basePayload = jwt.verify(oldToken, jwtSecret) || {}; } catch {}
+      try {
+        basePayload = jwt.verify(oldToken, jwtSecret) || {};
+      } catch {
+        basePayload = {};
+      }
     }
 
     // Générer secret et QR
@@ -42,7 +52,11 @@ exports.handler = async (event) => {
       body: JSON.stringify({ qrCode: qrCodeDataUrl })
     };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Erreur génération QR", details: err.message }) };
+    console.error("Erreur génération QR:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Erreur génération QR", details: err.message })
+    };
   }
 };
 
