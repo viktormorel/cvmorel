@@ -18,7 +18,7 @@
 </head>
 <body>
   <main class="card">
-    <h1>Configurer la 2FA (test local)</h1>
+    <h1>Configurer la 2FA</h1>
     <p class="muted">Cette page génère un secret TOTP lié à ta session et affiche un QR à scanner avec Google Authenticator / Authy.</p>
 
     <p>
@@ -59,15 +59,17 @@
     const tokenInput = document.getElementById('token');
     const checkRes = document.getElementById('checkRes');
 
+    // Génération du QR + secret
     genBtn.addEventListener('click', async () => {
       genBtn.disabled = true;
       genBtn.textContent = 'Génération...';
       try {
-        const res = await fetch('/api/2fa/generate', { method: 'POST', credentials: 'include' });
+        const res = await fetch('/.netlify/functions/api/2fa/generate', { method: 'POST', credentials: 'include' });
         const j = await res.json();
         if (j.qrCode) {
           qr.src = j.qrCode;
-          secretEl.textContent = j.secret;
+          // ⚠️ En prod, tu peux masquer le secret si tu veux
+          secretEl.textContent = j.secret || '';
           result.style.display = 'block';
         } else {
           alert('Erreur génération: ' + (j.error||JSON.stringify(j)));
@@ -80,24 +82,37 @@
       }
     });
 
+    // Vérification du code
     checkBtn.addEventListener('click', async () => {
       const token = tokenInput.value.trim();
       checkRes.textContent = '';
-      if (!/^\d{6}$/.test(token)) { checkRes.textContent = 'Code invalide'; return; }
+      if (!/^\d{6}$/.test(token)) { 
+        checkRes.style.color = 'crimson';
+        checkRes.textContent = '❌ Code invalide';
+        return; 
+      }
       try {
-        const res = await fetch('/api/2fa/verify', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token }) });
+        const res = await fetch('/.netlify/functions/api/2fa/verify', { 
+          method: 'POST', 
+          credentials: 'include', 
+          headers: {'Content-Type':'application/json'}, 
+          body: JSON.stringify({ token }) // ✅ harmonisé avec backend
+        });
         const j = await res.json();
         if (j.valid) {
           checkRes.style.color = 'green';
           checkRes.textContent = '✅ Code valide — session 2FA activée';
+          window.location.href = j.redirect;
         } else {
           checkRes.style.color = 'crimson';
-          checkRes.textContent = '❌ Code invalide';
+          checkRes.textContent = '❌ ' + (j.error || 'Code invalide');
         }
       } catch (e) {
+        checkRes.style.color = 'crimson';
         checkRes.textContent = 'Erreur: ' + e.message;
       }
     });
   </script>
 </body>
 </html>
+
