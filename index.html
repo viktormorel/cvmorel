@@ -274,7 +274,7 @@
         <h3>Email</h3>
         <p>
           <a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a>
-          <button type="button" class="copy-btn" onclick="copyEmail()" title="Copier l'email" aria-label="Copier l'adresse email">
+          <button type="button" class="copy-btn" onclick="copyEmail(event)" title="Copier l'email" aria-label="Copier l'adresse email">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
@@ -289,7 +289,15 @@
           </svg>
         </div>
         <h3>Téléphone</h3>
-        <p><span>06.14.09.93.55</span></p>
+        <p>
+          <span>06.14.09.93.55</span>
+          <button type="button" class="copy-btn" onclick="copyPhone(event)" title="Copier le téléphone" aria-label="Copier le numéro de téléphone">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
+        </p>
       </div>
       <div class="contact-card glass gradient-border" role="listitem">
         <div class="icon svg anim" aria-hidden="true">
@@ -298,7 +306,15 @@
           </svg>
         </div>
         <h3>LinkedIn</h3>
-        <p><a href="#" target="_blank" rel="noopener">viktormorel</a></p>
+        <p>
+          <a href="#" target="_blank" rel="noopener">viktormorel</a>
+          <button type="button" class="copy-btn" onclick="copyLinkedin(event)" title="Copier le profil LinkedIn" aria-label="Copier le nom LinkedIn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
+        </p>
       </div>
     </div>
 

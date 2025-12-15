@@ -158,11 +158,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.toggleBubble = toggleBubble;
 
-  // Copier l'email dans le presse-papier
-  function copyEmail() {
-    const email = 'viktormorel@mailo.com';
-    navigator.clipboard.writeText(email).then(() => {
-      const btn = document.querySelector('.copy-btn');
+  // Fonction générique pour copier et feedback visuel
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
       const originalTitle = btn.title;
       btn.title = 'Copié !';
       btn.classList.add('copied');
@@ -171,10 +169,30 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.classList.remove('copied');
       }, 2000);
     }).catch(() => {
-      alert('Impossible de copier l\'email');
+      alert('Impossible de copier');
     });
   }
+
+  // Copier l'email
+  function copyEmail(e) {
+    const btn = e.currentTarget;
+    copyToClipboard('viktormorel@mailo.com', btn);
+  }
   window.copyEmail = copyEmail;
+
+  // Copier le téléphone
+  function copyPhone(e) {
+    const btn = e.currentTarget;
+    copyToClipboard('0614099355', btn);
+  }
+  window.copyPhone = copyPhone;
+
+  // Copier le profil LinkedIn
+  function copyLinkedin(e) {
+    const btn = e.currentTarget;
+    copyToClipboard('viktormorel', btn);
+  }
+  window.copyLinkedin = copyLinkedin;
 
   // Accessibilité timeline (clavier)
   document.querySelectorAll('.timeline-item').forEach(item => {
