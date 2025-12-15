@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .js,.mjs",
     "format": "prettier --write \"**/*.{js,mjs,json,css,html}\"",
     "test": "jest --passWithNoTests",
-    "prepare": "husky install",
+    "prepare": "husky install || true",
     "netlify:dev": "netlify dev",
     "deploy": "netlify deploy --prod"
   },
