@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Téléchargement — CV Viktor Morel</title>
+  <style>body{visibility:hidden}</style>
   <link rel="stylesheet" href="/styles.css">
   <style>
     .download-hero{padding:80px 20px;text-align:center}
@@ -13,13 +14,11 @@
     .big-download{font-size:1.05rem;padding:14px 20px;border-radius:12px}
     .btn-admin{background:linear-gradient(135deg, #ff6b6b, #ee5a24);margin-top:12px;display:none}
     .btn-admin.visible{display:inline-flex}
-    .hidden{display:none}
-    .loading{text-align:center;padding:100px 20px;color:var(--muted)}
   </style>
+  <script>eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2F1dGgtY2hlY2snLHtjcmVkZW50aWFsczonaW5jbHVkZSd9KS50aGVuKHI9PnIuanNvbigpKS50aGVuKGQ9PntpZighZC5hdXRoZW50aWNhdGVkKXdpbmRvdy5sb2NhdGlvbi5yZXBsYWNlKCcvJyk7ZWxzZSBkb2N1bWVudC5ib2R5LnN0eWxlLnZpc2liaWxpdHk9J3Zpc2libGUnO30pLmNhdGNoKCgpPT53aW5kb3cubG9jYXRpb24ucmVwbGFjZSgnLycpKTs='));</script>
 </head>
 <body class="centered-layout">
-  <div id="loading" class="loading">Verification en cours...</div>
-  <main id="content" class="download-hero hidden">
+  <main id="content" class="download-hero">
     <div class="download-card glass gradient-border" role="main">
       <h1 class="download-title">Acces securise</h1>
       <p class="download-sub">Bravo — tu t'es authentifie avec succes via Google et valide la 2FA.</p>
@@ -37,25 +36,6 @@
     </div>
   </main>
 
-  <script>
-    // Verifier authentification (Google + 2FA)
-    fetch('/.netlify/functions/api/auth-check', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        if (!data.authenticated) {
-          window.location.replace('/');
-        } else {
-          // Authentifie - afficher le contenu
-          document.getElementById('loading').classList.add('hidden');
-          document.getElementById('content').classList.remove('hidden');
-          // Verifier si admin
-          fetch('/.netlify/functions/api/admin/check', { credentials: 'include' })
-            .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d && d.isAdmin) document.getElementById('admin-btn').classList.add('visible'); })
-            .catch(() => {});
-        }
-      })
-      .catch(() => { window.location.replace('/'); });
-  </script>
+  <script>eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2FkbWluL2NoZWNrJyx7Y3JlZGVudGlhbHM6J2luY2x1ZGUnfSkudGhlbihyPT5yLm9rP3IuanNvbigpOm51bGwpLnRoZW4oZD0+e2lmKGQmJmQuaXNBZG1pbilkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWRtaW4tYnRuJykuY2xhc3NMaXN0LmFkZCgndmlzaWJsZScpO30pLmNhdGNoKCgpPT57fSk7'));</script>
 </body>
 </html>
