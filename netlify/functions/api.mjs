@@ -91,17 +91,32 @@ async function loadLogins() {
 async function saveLogin(user) {
   try {
     let logins = await loadLogins();
+    const userEmail = user.emails?.[0]?.value || "";
+    const now = Date.now();
+
+    // Eviter les doublons : ne pas enregistrer si meme email dans les 5 dernieres minutes
+    const fiveMinutesAgo = now - (5 * 60 * 1000);
+    const recentLogin = logins.find(login =>
+      login.email === userEmail &&
+      login.date &&
+      new Date(login.date).getTime() > fiveMinutesAgo
+    );
+
+    if (recentLogin) {
+      console.log("Login already recorded recently for:", userEmail);
+      return;
+    }
 
     // Ajouter la nouvelle connexion
     logins.unshift({
       name: user.displayName || "",
-      email: user.emails?.[0]?.value || "",
+      email: userEmail,
       photo: user.photos?.[0]?.value || "",
       date: new Date().toISOString()
     });
 
     // Garder uniquement les connexions des 15 derniers jours
-    const fifteenDaysAgo = Date.now() - (15 * 24 * 60 * 60 * 1000);
+    const fifteenDaysAgo = now - (15 * 24 * 60 * 60 * 1000);
     logins = logins.filter(login => {
       if (!login.date) return false;
       return new Date(login.date).getTime() > fifteenDaysAgo;
