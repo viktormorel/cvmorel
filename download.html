@@ -13,10 +13,13 @@
     .big-download{font-size:1.05rem;padding:14px 20px;border-radius:12px}
     .btn-admin{background:linear-gradient(135deg, #ff6b6b, #ee5a24);margin-top:12px;display:none}
     .btn-admin.visible{display:inline-flex}
+    .hidden{display:none}
+    .loading{text-align:center;padding:100px 20px;color:var(--muted)}
   </style>
 </head>
 <body class="centered-layout">
-  <main class="download-hero">
+  <div id="loading" class="loading">Verification en cours...</div>
+  <main id="content" class="download-hero hidden">
     <div class="download-card glass gradient-border" role="main">
       <h1 class="download-title">Acces securise</h1>
       <p class="download-sub">Bravo — tu t'es authentifie avec succes via Google et valide la 2FA.</p>
@@ -40,16 +43,19 @@
       .then(r => r.json())
       .then(data => {
         if (!data.authenticated) {
-          window.location.href = '/';
+          window.location.replace('/');
         } else {
-          // Si authentifie, verifier si admin
-          fetch('/api/admin/check', { credentials: 'include' })
+          // Authentifie - afficher le contenu
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('content').classList.remove('hidden');
+          // Verifier si admin
+          fetch('/.netlify/functions/api/admin/check', { credentials: 'include' })
             .then(r => r.ok ? r.json() : null)
             .then(d => { if (d && d.isAdmin) document.getElementById('admin-btn').classList.add('visible'); })
             .catch(() => {});
         }
       })
-      .catch(() => { window.location.href = '/'; });
+      .catch(() => { window.location.replace('/'); });
   </script>
 </body>
 </html>

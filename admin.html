@@ -6,6 +6,8 @@
   <title>Console Admin — CV Viktor Morel</title>
   <link rel="stylesheet" href="/styles.css">
   <style>
+    .hidden{display:none!important}
+    .loading-screen{text-align:center;padding:100px 20px;color:var(--muted);font-size:1.1rem}
     .admin-container {
       max-width: 900px;
       margin: 0 auto;
@@ -178,7 +180,8 @@
   </style>
 </head>
 <body class="centered-layout">
-  <div class="admin-container">
+  <div id="loading-screen" class="loading-screen">Verification en cours...</div>
+  <div id="admin-content" class="admin-container hidden">
     <a href="/download-cv" class="back-link">Retour au telechargement</a>
 
     <div class="admin-header">
@@ -539,17 +542,18 @@
       })
       .then(data => {
         if (!data.isAdmin) {
-          alert('Acces reserve aux administrateurs');
-          window.location.href = '/';
+          window.location.replace('/');
         } else {
-          // Admin OK, charger les donnees
+          // Admin OK - afficher et charger
+          document.getElementById('loading-screen').classList.add('hidden');
+          document.getElementById('admin-content').classList.remove('hidden');
           loadData();
           loadLogins();
           loadStats();
         }
       })
       .catch(() => {
-        window.location.href = '/';
+        window.location.replace('/');
       });
   </script>
 </body>
