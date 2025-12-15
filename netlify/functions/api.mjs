@@ -5,14 +5,10 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
-import path from "path";
-import fs from "fs";
 import QRCode from "qrcode";
+import { getStore } from "@netlify/blobs";
 
-// Fichier de données persistant (Lambda: /tmp)
-const DATA_FILE = path.join("/tmp", "site-data.json");
-const LOGINS_FILE = path.join("/tmp", "logins.json");
-
+// Donnees par defaut
 const DEFAULT_DATA = {
   skills: [
     "Anglais (LV)",
@@ -35,41 +31,43 @@ const DEFAULT_DATA = {
   }
 };
 
-function loadSiteData() {
+// Netlify Blobs pour persistance
+async function loadSiteData() {
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-    }
+    const store = getStore("cv-data");
+    const data = await store.get("site-data", { type: "json" });
+    return data || DEFAULT_DATA;
   } catch (err) {
-    console.error("Erreur lecture site-data.json:", err);
+    console.error("Erreur lecture site-data:", err);
+    return DEFAULT_DATA;
   }
-  return DEFAULT_DATA;
 }
 
-function saveSiteData(data) {
+async function saveSiteData(data) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+    const store = getStore("cv-data");
+    await store.setJSON("site-data", data);
   } catch (err) {
-    console.error("Erreur écriture site-data.json:", err);
+    console.error("Erreur ecriture site-data:", err);
     throw err;
   }
 }
 
-// Gestion des connexions
-function loadLogins() {
+// Gestion des connexions avec Netlify Blobs
+async function loadLogins() {
   try {
-    if (fs.existsSync(LOGINS_FILE)) {
-      return JSON.parse(fs.readFileSync(LOGINS_FILE, "utf8"));
-    }
+    const store = getStore("cv-data");
+    const logins = await store.get("logins", { type: "json" });
+    return logins || [];
   } catch (err) {
-    console.error("Erreur lecture logins.json:", err);
+    console.error("Erreur lecture logins:", err);
+    return [];
   }
-  return [];
 }
 
-function saveLogin(user) {
+async function saveLogin(user) {
   try {
-    let logins = loadLogins();
+    let logins = await loadLogins();
 
     // Ajouter la nouvelle connexion
     logins.unshift({
@@ -86,7 +84,8 @@ function saveLogin(user) {
       return new Date(login.date).getTime() > fifteenDaysAgo;
     });
 
-    fs.writeFileSync(LOGINS_FILE, JSON.stringify(logins, null, 2), "utf8");
+    const store = getStore("cv-data");
+    await store.setJSON("logins", logins);
   } catch (err) {
     console.error("Erreur sauvegarde login:", err);
   }
@@ -391,10 +390,13 @@ app.get(["/api/admin/check-login", "/admin/check-login", "/.netlify/functions/ap
   if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
   res.json({ isAdmin: isAdmin(req) });
 });
-app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"], ensureAdmin, (req, res) => res.json(loadSiteData()));
-app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, (req, res) => {
+app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"], ensureAdmin, async (req, res) => {
+  const data = await loadSiteData();
+  res.json(data);
+});
+app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, async (req, res) => {
   try {
-    saveSiteData(req.body);
+    await saveSiteData(req.body);
     res.json({ success: true });
   } catch (err) {
     console.error("Erreur sauvegarde:", err);
@@ -403,8 +405,9 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
 });
 
 // Admin: historique des connexions
-app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, (req, res) => {
-  res.json(loadLogins());
+app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, async (req, res) => {
+  const logins = await loadLogins();
+  res.json(logins);
 });
 
 // Auth check
