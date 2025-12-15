@@ -216,9 +216,9 @@ app.post('/api/2fa/verify', (req, res) => {
 
   if (verified) {
     req.session.twoFA = true;
-    return res.json({ valid: true, message: 'Code valide' });
+    return res.json({ valid: true, message: 'Code valide', redirect: '/download-cv' });
   }
-  return res.json({ valid: false, message: 'Code invalide' });
+  return res.json({ valid: false, error: 'Code invalide' });
 });
 
 // API: retourner le code TOTP courant (DEVELOPMENT ONLY)
