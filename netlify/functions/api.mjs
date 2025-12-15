@@ -522,7 +522,7 @@ app.get(["/auth-check", "/api/auth-check", "/.netlify/functions/api/auth-check"]
 });
 
 // Page download securisee - HTML servi uniquement si authentifie
-app.get(["/download-cv", "/secure/download"], (req, res) => {
+app.get(["/download-cv", "/secure/download", "/.netlify/functions/api/download-cv"], (req, res) => {
   if (!req.isAuthenticated() || req.session.twoFA !== true) {
     return res.redirect("/");
   }
@@ -532,7 +532,7 @@ app.get(["/download-cv", "/secure/download"], (req, res) => {
 });
 
 // Console admin securisee - HTML servi uniquement si admin
-app.get(["/admin-console", "/secure/admin"], (req, res) => {
+app.get(["/admin-console", "/secure/admin", "/.netlify/functions/api/admin-console"], (req, res) => {
   if (!req.isAuthenticated() || req.session.twoFA !== true || !isAdmin(req)) {
     return res.redirect("/");
   }
