@@ -111,8 +111,7 @@ function ensureAuthenticated(req, res, next) {
 
 // Notification Discord lors d'une connexion
 async function notifyDiscord(user) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) return;
+  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
 
   try {
     const payload = {
