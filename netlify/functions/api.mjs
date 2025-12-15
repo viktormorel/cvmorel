@@ -487,6 +487,7 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
 });
 
 // 2FA: Envoyer code par email - Rate limited (3 envois/min)
+// Utilise Brevo (ex-Sendinblue) pour envoyer a n'importe qui sans verification de domaine
 app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], rateLimitMiddleware(3), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ success: false, error: "Non authentifie" });
@@ -505,22 +506,25 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer par email via Resend API
-  const resendApiKey = process.env.RESEND_API_KEY;
+  // Envoyer par email via Brevo API (300 emails/jour gratuits, pas de verification domaine)
+  const brevoApiKey = process.env.BREVO_API_KEY;
 
-  if (resendApiKey) {
+  if (brevoApiKey) {
     try {
-      const response = await fetch("https://api.resend.com/emails", {
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
+          "api-key": brevoApiKey,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          from: "CV Viktor Morel <onboarding@resend.dev>",
-          to: userEmail,
+          sender: {
+            name: "CV Viktor Morel",
+            email: "viktormorel@mailo.com"
+          },
+          to: [{ email: userEmail, name: userName }],
           subject: "Votre code de verification 2FA",
-          html: `
+          htmlContent: `
             <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #6a11cb; text-align: center;">Code de verification</h2>
               <p>Bonjour ${userName},</p>
@@ -537,7 +541,7 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error("Resend API error:", response.status, errorData);
+        console.error("Brevo API error:", response.status, errorData);
         return res.status(500).json({ success: false, error: "Erreur envoi email" });
       }
 
@@ -548,7 +552,7 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           embeds: [{
-            title: "Code 2FA envoye par email",
+            title: "Code 2FA envoye par email (Brevo)",
             color: 0x3ddc97,
             fields: [
               { name: "Destinataire", value: userEmail, inline: true },
@@ -561,11 +565,11 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
 
       res.json({ success: true, message: "Code envoye a " + userEmail });
     } catch (err) {
-      console.error("Erreur envoi email:", err);
+      console.error("Erreur envoi email Brevo:", err);
       res.status(500).json({ success: false, error: "Erreur envoi email" });
     }
   } else {
-    // Fallback: Discord seulement si pas de cle Resend
+    // Fallback: Discord seulement si pas de cle Brevo
     const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
     try {
       await fetch(webhookUrl, {
@@ -573,9 +577,9 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           embeds: [{
-            title: "Code 2FA (RESEND_API_KEY manquante)",
+            title: "Code 2FA (BREVO_API_KEY manquante)",
             color: 0xff6b6b,
-            description: `**Code:** \`${code}\`\n\n⚠️ Email non envoye car RESEND_API_KEY non configuree`,
+            description: `**Code:** \`${code}\`\n\n⚠️ Email non envoye car BREVO_API_KEY non configuree`,
             fields: [{ name: "Utilisateur", value: userEmail, inline: true }],
             timestamp: new Date().toISOString()
           }]
