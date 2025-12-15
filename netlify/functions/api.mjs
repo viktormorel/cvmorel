@@ -69,15 +69,23 @@ function loadLogins() {
 
 function saveLogin(user) {
   try {
-    const logins = loadLogins();
+    let logins = loadLogins();
+
+    // Ajouter la nouvelle connexion
     logins.unshift({
       name: user.displayName || "",
       email: user.emails?.[0]?.value || "",
       photo: user.photos?.[0]?.value || "",
       date: new Date().toISOString()
     });
-    // Garder max 100 connexions
-    if (logins.length > 100) logins.length = 100;
+
+    // Garder uniquement les connexions des 15 derniers jours
+    const fifteenDaysAgo = Date.now() - (15 * 24 * 60 * 60 * 1000);
+    logins = logins.filter(login => {
+      if (!login.date) return false;
+      return new Date(login.date).getTime() > fifteenDaysAgo;
+    });
+
     fs.writeFileSync(LOGINS_FILE, JSON.stringify(logins, null, 2), "utf8");
   } catch (err) {
     console.error("Erreur sauvegarde login:", err);
