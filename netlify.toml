@@ -61,4 +61,10 @@
   to = "/login-2fa.html"
   status = 200
 
+# Téléchargement CV
+[[redirects]]
+  from = "/download-cv/file"
+  to = "/Viktor Morel CV.docx"
+  status = 200
+
 
