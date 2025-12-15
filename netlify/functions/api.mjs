@@ -103,24 +103,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Google OAuth
+// Google OAuth - initialisation différée
 const CALLBACK_URL =
   (process.env.GOOGLE_CALLBACK_URL || "").trim().replace(/\/$/, "") ||
   "https://viktorvahemorelcv.netlify.app/auth/google/callback";
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: CALLBACK_URL
-    },
-    (accessToken, refreshToken, profile, done) => done(null, profile)
-  )
-);
-
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Initialiser Google Strategy seulement si les credentials sont présentes
+let googleStrategyInitialized = false;
+function initGoogleStrategy() {
+  if (googleStrategyInitialized) return;
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.error("GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET manquant!");
+    return;
+  }
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: CALLBACK_URL
+      },
+      (accessToken, refreshToken, profile, done) => done(null, profile)
+    )
+  );
+  googleStrategyInitialized = true;
+}
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
@@ -129,10 +139,14 @@ passport.deserializeUser((obj, done) => done(null, obj));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Auth start
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get("/auth/google", (req, res, next) => {
+  initGoogleStrategy();
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+});
 
 // Auth callback (double chemin pour compat)
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
+  initGoogleStrategy();
   passport.authenticate("google", (err, user) => {
     if (err) {
       console.error("OAuth error:", err);
