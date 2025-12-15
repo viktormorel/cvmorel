@@ -295,15 +295,9 @@
 
   let currentMethod = 'email';
 
-  // Verifier que l'utilisateur est connecte via Google
+  // Check user info
   fetch('/.netlify/functions/api/user-info', { credentials: 'include' })
-    .then(r => {
-      if (!r.ok) {
-        window.location.href = '/';
-        return Promise.reject('Non authentifie');
-      }
-      return r.json();
-    })
+    .then(r => r.json())
     .then(j => {
       if (j.isAdmin) adminZone.classList.add('visible');
     })

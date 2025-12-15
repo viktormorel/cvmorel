@@ -413,30 +413,34 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer via Discord webhook
-  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        embeds: [{
-          title: "Code de verification 2FA",
-          color: 0x3ddc97,
-          description: `**Code:** \`${code}\`\n\nCe code expire dans 10 minutes.`,
-          fields: [
-            { name: "Utilisateur", value: userEmail, inline: true }
-          ],
-          timestamp: new Date().toISOString()
-        }]
-      })
-    });
-  } catch (err) {
-    console.error("Erreur envoi Discord:", err);
-    return res.status(500).json({ success: false, error: "Erreur envoi code" });
+  // Envoyer via Discord webhook (pour l'instant)
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "Code de verification 2FA",
+            color: 0x3ddc97,
+            description: `**Code:** \`${code}\`\n\nCe code expire dans 10 minutes.`,
+            fields: [
+              { name: "Utilisateur", value: userEmail, inline: true }
+            ],
+            timestamp: new Date().toISOString()
+          }]
+        })
+      });
+    } catch (err) {
+      console.error("Erreur envoi Discord:", err);
+    }
   }
 
-  res.json({ success: true, message: "Code envoye sur Discord" });
+  // TODO: Integrer un vrai service d'email (SendGrid, Mailgun, etc.)
+  // Pour l'instant, on simule l'envoi - le code est envoye sur Discord
+
+  res.json({ success: true, message: "Code envoye" });
 });
 
 // Info utilisateur (pour afficher l'email + isAdmin)

@@ -35,28 +35,21 @@
   </main>
 
   <script>
-    // Verifier authentification puis admin
-    async function init() {
+    // Verifier si l'utilisateur est admin
+    async function checkAdmin() {
       try {
-        const authRes = await fetch('/api/auth-check');
-        const authData = await authRes.json();
-        if (!authData.authenticated) {
-          window.location.href = '/';
-          return;
-        }
-        // Verifier si admin
-        const adminRes = await fetch('/api/admin/check');
-        if (adminRes.ok) {
-          const adminData = await adminRes.json();
-          if (adminData.isAdmin) {
+        const response = await fetch('/api/admin/check');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isAdmin) {
             document.getElementById('admin-btn').classList.add('visible');
           }
         }
       } catch (err) {
-        window.location.href = '/';
+        console.error('Erreur verification admin:', err);
       }
     }
-    init();
+    checkAdmin();
   </script>
 </body>
 </html>
