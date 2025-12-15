@@ -33,7 +33,7 @@ const DEFAULT_DATA = {
 
 // Helper pour obtenir le store Netlify Blobs
 function getBlobStore() {
-  return getStore({ name: "cv-data", siteID: process.env.SITE_ID, token: process.env.NETLIFY_ACCESS_TOKEN });
+  return getStore("cv-data");
 }
 
 // Netlify Blobs pour persistance
