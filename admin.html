@@ -193,6 +193,7 @@
       <button class="tab-btn" onclick="showTab('interests')">Centres d'interet</button>
       <button class="tab-btn" onclick="showTab('experience')">Experiences</button>
       <button class="tab-btn" onclick="showTab('contact')">Contact</button>
+      <button class="tab-btn" onclick="showTab('logins')">Connexions</button>
     </div>
 
     <!-- Competences -->
@@ -266,6 +267,18 @@
           <label>LinkedIn</label>
           <input type="text" id="contact-linkedin" placeholder="Votre profil LinkedIn">
         </div>
+      </div>
+    </div>
+
+    <!-- Connexions -->
+    <div id="tab-logins" class="tab-content">
+      <div class="admin-section">
+        <h2>Historique des Connexions</h2>
+        <p style="color:#5a6376;margin-bottom:16px;">Liste des utilisateurs qui se sont connectes via Google OAuth</p>
+        <div id="logins-list" style="max-height:400px;overflow-y:auto;">
+          <p style="color:#888;">Chargement...</p>
+        </div>
+        <button class="btn-add" onclick="loadLogins()" style="margin-top:16px;background:linear-gradient(135deg,#2575fc,#6a11cb);">Actualiser</button>
       </div>
     </div>
 
@@ -440,8 +453,42 @@
       event.target.classList.add('active');
     }
 
+    // Charger les connexions
+    async function loadLogins() {
+      const container = document.getElementById('logins-list');
+      container.innerHTML = '<p style="color:#888;">Chargement...</p>';
+      try {
+        const response = await fetch('/api/admin/logins');
+        if (response.ok) {
+          const logins = await response.json();
+          if (logins.length === 0) {
+            container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
+          } else {
+            container.innerHTML = '<ul class="item-list">' + logins.map(login => `
+              <li style="flex-direction:column;align-items:flex-start;gap:4px;">
+                <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                  ${login.photo ? `<img src="${login.photo}" alt="" style="width:36px;height:36px;border-radius:50%;">` : ''}
+                  <div style="flex:1;">
+                    <strong style="color:#1f2430;">${login.name || 'Utilisateur'}</strong>
+                    <span style="color:#5a6376;font-size:0.9rem;margin-left:8px;">${login.email || ''}</span>
+                  </div>
+                </div>
+                <small style="color:#888;">${login.date ? new Date(login.date).toLocaleString('fr-FR') : ''}</small>
+              </li>
+            `).join('') + '</ul>';
+          }
+        } else {
+          container.innerHTML = '<p style="color:#ff4757;">Erreur lors du chargement.</p>';
+        }
+      } catch (err) {
+        console.error('Erreur chargement connexions:', err);
+        container.innerHTML = '<p style="color:#ff4757;">Erreur reseau.</p>';
+      }
+    }
+
     // Charger au demarrage
     loadData();
+    loadLogins();
   </script>
 </body>
 </html>

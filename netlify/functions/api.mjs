@@ -11,6 +11,7 @@ import QRCode from "qrcode";
 
 // Fichier de données persistant (Lambda: /tmp)
 const DATA_FILE = path.join("/tmp", "site-data.json");
+const LOGINS_FILE = path.join("/tmp", "logins.json");
 
 const DEFAULT_DATA = {
   skills: [
@@ -51,6 +52,35 @@ function saveSiteData(data) {
   } catch (err) {
     console.error("Erreur écriture site-data.json:", err);
     throw err;
+  }
+}
+
+// Gestion des connexions
+function loadLogins() {
+  try {
+    if (fs.existsSync(LOGINS_FILE)) {
+      return JSON.parse(fs.readFileSync(LOGINS_FILE, "utf8"));
+    }
+  } catch (err) {
+    console.error("Erreur lecture logins.json:", err);
+  }
+  return [];
+}
+
+function saveLogin(user) {
+  try {
+    const logins = loadLogins();
+    logins.unshift({
+      name: user.displayName || "",
+      email: user.emails?.[0]?.value || "",
+      photo: user.photos?.[0]?.value || "",
+      date: new Date().toISOString()
+    });
+    // Garder max 100 connexions
+    if (logins.length > 100) logins.length = 100;
+    fs.writeFileSync(LOGINS_FILE, JSON.stringify(logins, null, 2), "utf8");
+  } catch (err) {
+    console.error("Erreur sauvegarde login:", err);
   }
 }
 
@@ -159,6 +189,8 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
         console.error("Erreur de connexion:", loginErr);
         return res.status(500).send("Erreur de connexion.");
       }
+      // Enregistrer la connexion
+      saveLogin(user);
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
@@ -224,6 +256,11 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
     console.error("Erreur sauvegarde:", err);
     res.status(500).json({ error: "Erreur sauvegarde" });
   }
+});
+
+// Admin: historique des connexions
+app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, (req, res) => {
+  res.json(loadLogins());
 });
 
 // Auth check
