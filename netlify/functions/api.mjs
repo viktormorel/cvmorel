@@ -189,9 +189,9 @@ app.post("/api/2fa/verify", (req, res) => {
   const verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
   if (verified) {
     req.session.twoFA = true;
-    return res.json({ valid: true, redirect: "/download.html" });
+    return res.json({ valid: true, message: "Code valide", redirect: "/download-cv" });
   }
-  return res.json({ valid: false, error: "Invalid 2FA code" });
+  return res.json({ valid: false, error: "Code invalide" });
 });
 
 // Admin

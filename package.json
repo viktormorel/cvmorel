@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Application sécurisée pour CV avec Google OAuth et 2FA",
   "main": "serveur.js",
-  "type": "module",
   "scripts": {
     "start": "node serveur.js",
     "dev": "nodemon serveur.js",
