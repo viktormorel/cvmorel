@@ -452,8 +452,8 @@ app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/lo
   res.json(logins);
 });
 
-// Admin: statistiques de visites
-app.get(["/api/admin/stats", "/admin/stats", "/.netlify/functions/api/admin/stats"], ensureAdmin, async (req, res) => {
+// Statistiques de visites (public - pas de données sensibles)
+app.get(["/api/admin/stats", "/admin/stats", "/.netlify/functions/api/admin/stats"], async (req, res) => {
   const stats = await getStats();
   res.json(stats);
 });

@@ -481,9 +481,14 @@
           const today = new Date().toISOString().split('T')[0];
           const todayStats = stats.lastVisits?.find(v => v.date === today);
           document.getElementById('today-visits').textContent = todayStats?.count || 0;
+        } else {
+          document.getElementById('total-visits').textContent = 0;
+          document.getElementById('today-visits').textContent = 0;
         }
       } catch (err) {
         console.error('Erreur chargement stats:', err);
+        document.getElementById('total-visits').textContent = 0;
+        document.getElementById('today-visits').textContent = 0;
       }
     }
 
@@ -512,11 +517,16 @@
               </li>
             `).join('') + '</ul>';
           }
+        } else if (response.status === 403) {
+          document.getElementById('total-logins').textContent = '-';
+          container.innerHTML = '<p style="color:#888;">Connectez-vous en admin pour voir les connexions.</p>';
         } else {
+          document.getElementById('total-logins').textContent = 0;
           container.innerHTML = '<p style="color:#ff4757;">Erreur lors du chargement.</p>';
         }
       } catch (err) {
         console.error('Erreur chargement connexions:', err);
+        document.getElementById('total-logins').textContent = 0;
         container.innerHTML = '<p style="color:#ff4757;">Erreur reseau.</p>';
       }
     }
