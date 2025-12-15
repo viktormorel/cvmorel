@@ -31,24 +31,34 @@ const DEFAULT_DATA = {
   }
 };
 
+// Helper pour obtenir le store Netlify Blobs
+function getBlobStore() {
+  return getStore({ name: "cv-data", siteID: process.env.SITE_ID, token: process.env.NETLIFY_ACCESS_TOKEN });
+}
+
 // Netlify Blobs pour persistance
 async function loadSiteData() {
   try {
-    const store = getStore("cv-data");
-    const data = await store.get("site-data", { type: "json" });
+    const store = getBlobStore();
+    let data;
+    try {
+      data = await store.get("site-data", { type: "json" });
+    } catch (e) {
+      data = null;
+    }
     return data || DEFAULT_DATA;
   } catch (err) {
-    console.error("Erreur lecture site-data:", err);
+    console.error("Erreur lecture site-data:", err.message);
     return DEFAULT_DATA;
   }
 }
 
 async function saveSiteData(data) {
   try {
-    const store = getStore("cv-data");
+    const store = getBlobStore();
     await store.setJSON("site-data", data);
   } catch (err) {
-    console.error("Erreur ecriture site-data:", err);
+    console.error("Erreur ecriture site-data:", err.message);
     throw err;
   }
 }
@@ -56,11 +66,16 @@ async function saveSiteData(data) {
 // Gestion des connexions avec Netlify Blobs
 async function loadLogins() {
   try {
-    const store = getStore("cv-data");
-    const logins = await store.get("logins", { type: "json" });
+    const store = getBlobStore();
+    let logins;
+    try {
+      logins = await store.get("logins", { type: "json" });
+    } catch (e) {
+      logins = null;
+    }
     return logins || [];
   } catch (err) {
-    console.error("Erreur lecture logins:", err);
+    console.error("Erreur lecture logins:", err.message);
     return [];
   }
 }
@@ -84,18 +99,26 @@ async function saveLogin(user) {
       return new Date(login.date).getTime() > fifteenDaysAgo;
     });
 
-    const store = getStore("cv-data");
+    const store = getBlobStore();
     await store.setJSON("logins", logins);
+    console.log("Login saved for:", user.displayName);
   } catch (err) {
-    console.error("Erreur sauvegarde login:", err);
+    console.error("Erreur sauvegarde login:", err.message);
   }
 }
 
 // Compteur de visites
 async function incrementVisits() {
   try {
-    const store = getStore("cv-data");
-    const stats = await store.get("stats", { type: "json" }) || { visits: 0, lastVisits: [] };
+    const store = getBlobStore();
+    let stats;
+    try {
+      stats = await store.get("stats", { type: "json" });
+    } catch (e) {
+      console.log("Stats not found, creating new");
+      stats = null;
+    }
+    if (!stats) stats = { visits: 0, lastVisits: [] };
 
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -110,25 +133,30 @@ async function incrementVisits() {
       todayEntry.count++;
     } else {
       stats.lastVisits.unshift({ date: today, count: 1 });
-      // Garder seulement 30 jours
       stats.lastVisits = stats.lastVisits.slice(0, 30);
     }
 
     await store.setJSON("stats", stats);
+    console.log("Stats saved:", stats);
     return stats;
   } catch (err) {
-    console.error("Erreur compteur visites:", err);
+    console.error("Erreur compteur visites:", err.message, err.stack);
     return { visits: 0, lastVisits: [] };
   }
 }
 
 async function getStats() {
   try {
-    const store = getStore("cv-data");
-    const stats = await store.get("stats", { type: "json" });
+    const store = getBlobStore();
+    let stats;
+    try {
+      stats = await store.get("stats", { type: "json" });
+    } catch (e) {
+      stats = null;
+    }
     return stats || { visits: 0, lastVisits: [] };
   } catch (err) {
-    console.error("Erreur lecture stats:", err);
+    console.error("Erreur lecture stats:", err.message);
     return { visits: 0, lastVisits: [] };
   }
 }
