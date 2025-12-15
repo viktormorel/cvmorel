@@ -1,8 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Tracker la visite (une seule fois par session)
-  if (!sessionStorage.getItem('visited')) {
+  // Tracker la visite (une seule fois par jour par visiteur)
+  const lastVisit = localStorage.getItem('lastVisit');
+  const today = new Date().toDateString();
+  if (lastVisit !== today) {
     fetch('/.netlify/functions/api/track-visit', { method: 'POST' }).catch(() => {});
-    sessionStorage.setItem('visited', '1');
+    localStorage.setItem('lastVisit', today);
   }
 
   // Année dynamique
