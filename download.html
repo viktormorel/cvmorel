@@ -35,21 +35,21 @@
   </main>
 
   <script>
-    // Verifier si l'utilisateur est admin
-    async function checkAdmin() {
-      try {
-        const response = await fetch('/api/admin/check');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.isAdmin) {
-            document.getElementById('admin-btn').classList.add('visible');
-          }
+    // Verifier authentification (Google + 2FA)
+    fetch('/.netlify/functions/api/auth-check', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.authenticated) {
+          window.location.href = '/';
+        } else {
+          // Si authentifie, verifier si admin
+          fetch('/api/admin/check', { credentials: 'include' })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d && d.isAdmin) document.getElementById('admin-btn').classList.add('visible'); })
+            .catch(() => {});
         }
-      } catch (err) {
-        console.error('Erreur verification admin:', err);
-      }
-    }
-    checkAdmin();
+      })
+      .catch(() => { window.location.href = '/'; });
   </script>
 </body>
 </html>

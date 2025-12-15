@@ -531,10 +531,26 @@
       }
     }
 
-    // Charger au demarrage
-    loadData();
-    loadLogins();
-    loadStats();
+    // Verifier authentification admin avant de charger
+    fetch('/.netlify/functions/api/admin/check', { credentials: 'include' })
+      .then(r => {
+        if (!r.ok) throw new Error('Non admin');
+        return r.json();
+      })
+      .then(data => {
+        if (!data.isAdmin) {
+          alert('Acces reserve aux administrateurs');
+          window.location.href = '/';
+        } else {
+          // Admin OK, charger les donnees
+          loadData();
+          loadLogins();
+          loadStats();
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
   </script>
 </body>
 </html>
