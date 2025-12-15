@@ -116,13 +116,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (form) form.addEventListener('submit', handleContactSubmit);
 
-  // Accessibilité timeline
+  // Toggle bubble pour les timeline items (clic)
+  function toggleBubble(el) {
+    el.classList.toggle('open');
+    el.setAttribute('aria-expanded', el.classList.contains('open') ? 'true' : 'false');
+  }
+  window.toggleBubble = toggleBubble;
+
+  // Accessibilité timeline (clavier)
   document.querySelectorAll('.timeline-item').forEach(item => {
     item.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        item.classList.toggle('open');
-        item.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
+        toggleBubble(item);
       }
     });
   });
