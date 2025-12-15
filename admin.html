@@ -188,6 +188,24 @@
 
     <div id="message" class="message"></div>
 
+    <!-- Stats rapides -->
+    <div class="admin-section" style="margin-bottom:20px;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#6a11cb,#2575fc);border-radius:12px;color:white;">
+          <div style="font-size:2rem;font-weight:700;" id="total-visits">-</div>
+          <div style="font-size:0.85rem;opacity:0.9;">Visites totales</div>
+        </div>
+        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#2575fc,#6a11cb);border-radius:12px;color:white;">
+          <div style="font-size:2rem;font-weight:700;" id="today-visits">-</div>
+          <div style="font-size:0.85rem;opacity:0.9;">Aujourd'hui</div>
+        </div>
+        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#3ddc97,#00b894);border-radius:12px;color:white;">
+          <div style="font-size:2rem;font-weight:700;" id="total-logins">-</div>
+          <div style="font-size:0.85rem;opacity:0.9;">Connexions (15j)</div>
+        </div>
+      </div>
+    </div>
+
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('skills')">Competences</button>
       <button class="tab-btn" onclick="showTab('interests')">Centres d'interet</button>
@@ -453,7 +471,23 @@
       event.target.classList.add('active');
     }
 
-    // Charger les connexions
+    // Charger les stats
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/admin/stats');
+        if (response.ok) {
+          const stats = await response.json();
+          document.getElementById('total-visits').textContent = stats.visits || 0;
+          const today = new Date().toISOString().split('T')[0];
+          const todayStats = stats.lastVisits?.find(v => v.date === today);
+          document.getElementById('today-visits').textContent = todayStats?.count || 0;
+        }
+      } catch (err) {
+        console.error('Erreur chargement stats:', err);
+      }
+    }
+
+    // Charger les connexions avec compteur
     async function loadLogins() {
       const container = document.getElementById('logins-list');
       container.innerHTML = '<p style="color:#888;">Chargement...</p>';
@@ -461,6 +495,7 @@
         const response = await fetch('/api/admin/logins');
         if (response.ok) {
           const logins = await response.json();
+          document.getElementById('total-logins').textContent = logins.length;
           if (logins.length === 0) {
             container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
           } else {
@@ -489,6 +524,7 @@
     // Charger au demarrage
     loadData();
     loadLogins();
+    loadStats();
   </script>
 </body>
 </html>

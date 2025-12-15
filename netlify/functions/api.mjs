@@ -91,6 +91,48 @@ async function saveLogin(user) {
   }
 }
 
+// Compteur de visites
+async function incrementVisits() {
+  try {
+    const store = getStore("cv-data");
+    const stats = await store.get("stats", { type: "json" }) || { visits: 0, lastVisits: [] };
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    // Incrementer le compteur total
+    stats.visits = (stats.visits || 0) + 1;
+
+    // Garder l'historique des 30 derniers jours
+    if (!stats.lastVisits) stats.lastVisits = [];
+    const todayEntry = stats.lastVisits.find(v => v.date === today);
+    if (todayEntry) {
+      todayEntry.count++;
+    } else {
+      stats.lastVisits.unshift({ date: today, count: 1 });
+      // Garder seulement 30 jours
+      stats.lastVisits = stats.lastVisits.slice(0, 30);
+    }
+
+    await store.setJSON("stats", stats);
+    return stats;
+  } catch (err) {
+    console.error("Erreur compteur visites:", err);
+    return { visits: 0, lastVisits: [] };
+  }
+}
+
+async function getStats() {
+  try {
+    const store = getStore("cv-data");
+    const stats = await store.get("stats", { type: "json" });
+    return stats || { visits: 0, lastVisits: [] };
+  } catch (err) {
+    console.error("Erreur lecture stats:", err);
+    return { visits: 0, lastVisits: [] };
+  }
+}
+
 function isAdmin(req) {
   if (!req.user || !req.user.emails || req.user.emails.length === 0) return false;
   const userEmail = req.user.emails[0].value;
@@ -213,19 +255,19 @@ app.get("/auth/google", (req, res, next) => {
 // Auth callback (double chemin pour compat)
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
   initGoogleStrategy();
-  passport.authenticate("google", (err, user) => {
+  passport.authenticate("google", async (err, user) => {
     if (err) {
       console.error("OAuth error:", err);
       return res.status(500).send("Erreur OAuth");
     }
     if (!user) return res.redirect("/");
-    req.logIn(user, (loginErr) => {
+    req.logIn(user, async (loginErr) => {
       if (loginErr) {
         console.error("Erreur de connexion:", loginErr);
         return res.status(500).send("Erreur de connexion.");
       }
       // Enregistrer la connexion et notifier Discord
-      saveLogin(user);
+      await saveLogin(user);
       notifyDiscord(user);
 
       // Tout le monde passe par la 2FA (admin inclus)
@@ -408,6 +450,18 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
 app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, async (req, res) => {
   const logins = await loadLogins();
   res.json(logins);
+});
+
+// Admin: statistiques de visites
+app.get(["/api/admin/stats", "/admin/stats", "/.netlify/functions/api/admin/stats"], ensureAdmin, async (req, res) => {
+  const stats = await getStats();
+  res.json(stats);
+});
+
+// Tracking: incrementer le compteur de visites (appele depuis le frontend)
+app.post(["/api/track-visit", "/track-visit", "/.netlify/functions/api/track-visit"], async (req, res) => {
+  const stats = await incrementVisits();
+  res.json({ success: true, visits: stats.visits });
 });
 
 // Auth check

@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Tracker la visite (une seule fois par session)
+  if (!sessionStorage.getItem('visited')) {
+    fetch('/.netlify/functions/api/track-visit', { method: 'POST' }).catch(() => {});
+    sessionStorage.setItem('visited', '1');
+  }
+
   // Année dynamique
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -151,6 +157,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   window.toggleBubble = toggleBubble;
+
+  // Copier l'email dans le presse-papier
+  function copyEmail() {
+    const email = 'viktormorel@mailo.com';
+    navigator.clipboard.writeText(email).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      const originalTitle = btn.title;
+      btn.title = 'Copié !';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.title = originalTitle;
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      alert('Impossible de copier l\'email');
+    });
+  }
+  window.copyEmail = copyEmail;
 
   // Accessibilité timeline (clavier)
   document.querySelectorAll('.timeline-item').forEach(item => {

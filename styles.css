@@ -291,6 +291,29 @@ body.centered-layout{
 .contact-card a { color: #ffffff; text-decoration: none; }
 .contact-card a:hover { text-decoration: underline; }
 
+/* Bouton copier email */
+.copy-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-left: 8px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background .2s ease, transform .15s ease;
+}
+.copy-btn:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.1);
+}
+.copy-btn.copied {
+  background: #3ddc97;
+}
+.copy-btn svg {
+  display: block;
+  stroke: #ffffff;
+}
+
 .contact-form { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; text-align: left; }
 .contact-form .form-field { display: grid; gap: 6px; }
 .contact-form label { color: #5a6376; font-size: 0.95rem; }
