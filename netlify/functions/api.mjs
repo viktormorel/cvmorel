@@ -98,7 +98,36 @@ function ensureAdmin(req, res, next) {
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated() && req.session.twoFA === true) return next();
-  res.redirect("/auth/google");
+  res.status(401).json({ error: "Non authentifie" });
+}
+
+// Notification Discord lors d'une connexion
+async function notifyDiscord(user) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    const payload = {
+      embeds: [{
+        title: "Nouvelle connexion sur le CV",
+        color: 0x6a11cb,
+        fields: [
+          { name: "Nom", value: user.displayName || "Inconnu", inline: true },
+          { name: "Email", value: user.emails?.[0]?.value || "Inconnu", inline: true }
+        ],
+        thumbnail: { url: user.photos?.[0]?.value || "" },
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error("Erreur notification Discord:", err);
+  }
 }
 
 // App
@@ -189,8 +218,9 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
         console.error("Erreur de connexion:", loginErr);
         return res.status(500).send("Erreur de connexion.");
       }
-      // Enregistrer la connexion
+      // Enregistrer la connexion et notifier Discord
       saveLogin(user);
+      notifyDiscord(user);
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
