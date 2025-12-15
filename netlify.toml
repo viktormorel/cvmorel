@@ -64,7 +64,7 @@
 # Téléchargement CV
 [[redirects]]
   from = "/download-cv/file"
-  to = "/Viktor Morel CV.docx"
+  to = "/cv-viktor-morel.docx"
   status = 200
 
 
