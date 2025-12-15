@@ -33,6 +33,14 @@ const DEFAULT_DATA = {
 
 // Helper pour obtenir le store Netlify Blobs
 function getBlobStore() {
+  // En production sur Netlify, utiliser les variables d'environnement injectées
+  const siteID = process.env.SITE_ID;
+  const token = process.env.NETLIFY_ACCESS_TOKEN;
+
+  if (siteID && token) {
+    return getStore({ name: "cv-data", siteID, token });
+  }
+  // Fallback pour le contexte de fonction native (si disponible)
   return getStore("cv-data");
 }
 
