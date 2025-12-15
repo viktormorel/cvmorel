@@ -96,6 +96,7 @@ app.use(
 
 // CORS + préflight pour les POST/OPTIONS
 app.use((req, res, next) => {
+  console.log(`[API] ${req.method} ${req.path} (originalUrl: ${req.originalUrl})`);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -181,7 +182,7 @@ app.post("/verify-2fa", (req, res) => {
 });
 
 // 2FA: API generate
-app.post(["/api/2fa/generate", "/2fa/generate"], async (req, res) => {
+app.post(["/api/2fa/generate", "/2fa/generate", "/.netlify/functions/api/2fa/generate"], async (req, res) => {
   try {
     const secret = speakeasy.generateSecret({ length: 20, name: "ViktorMorel" });
     req.session.twoFASecret = secret.base32;
@@ -194,7 +195,7 @@ app.post(["/api/2fa/generate", "/2fa/generate"], async (req, res) => {
 });
 
 // 2FA: API verify
-app.post(["/api/2fa/verify", "/2fa/verify"], (req, res) => {
+app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) => {
   const token = String(req.body.token || "").trim();
   const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
   if (!token) return res.status(400).json({ valid: false, error: "token missing" });
@@ -209,13 +210,13 @@ app.post(["/api/2fa/verify", "/2fa/verify"], (req, res) => {
 });
 
 // Admin
-app.get(["/api/admin/check", "/admin/check"], ensureAuthenticated, (req, res) => res.json({ isAdmin: isAdmin(req) }));
-app.get(["/api/admin/check-login", "/admin/check-login"], (req, res) => {
+app.get(["/api/admin/check", "/admin/check", "/.netlify/functions/api/admin/check"], ensureAuthenticated, (req, res) => res.json({ isAdmin: isAdmin(req) }));
+app.get(["/api/admin/check-login", "/admin/check-login", "/.netlify/functions/api/admin/check-login"], (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
   res.json({ isAdmin: isAdmin(req) });
 });
-app.get(["/api/admin/data", "/admin/data"], ensureAdmin, (req, res) => res.json(loadSiteData()));
-app.post(["/api/admin/save", "/admin/save"], ensureAdmin, (req, res) => {
+app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"], ensureAdmin, (req, res) => res.json(loadSiteData()));
+app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, (req, res) => {
   try {
     saveSiteData(req.body);
     res.json({ success: true });
