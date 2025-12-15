@@ -49,6 +49,16 @@ body.centered-layout{
 }
 .navbar a { color: #ffffff; text-decoration: none; padding: 8px 10px; border-radius: 8px; }
 .navbar a:hover { background: rgba(255,255,255,0.15); }
+.navbar a.nav-download {
+  background: linear-gradient(135deg, #3ddc97, #00b894);
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 16px;
+}
+.navbar a.nav-download:hover {
+  background: linear-gradient(135deg, #00b894, #3ddc97);
+  transform: translateY(-1px);
+}
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 .theme-toggle { background: transparent; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
 .theme-toggle:hover { background: rgba(255,255,255,0.15); }
