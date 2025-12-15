@@ -304,6 +304,22 @@
   </div>
 
   <script>
+    // Verification authentification admin au chargement
+    (async function checkAuth() {
+      try {
+        const res = await fetch('/api/admin/check-login');
+        const data = await res.json();
+        if (!res.ok || !data.isAdmin) {
+          alert('Acces refuse. Connectez-vous en tant qu\'admin.');
+          window.location.href = '/';
+          return;
+        }
+      } catch (e) {
+        window.location.href = '/';
+        return;
+      }
+    })();
+
     // Donnees du site (chargees depuis le serveur)
     let siteData = {
       skills: [],
