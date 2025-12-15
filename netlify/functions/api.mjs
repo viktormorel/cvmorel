@@ -516,7 +516,7 @@ app.post(["/api/track-visit", "/track-visit", "/.netlify/functions/api/track-vis
 });
 
 // Auth check
-app.get("/auth-check", (req, res) => {
+app.get(["/auth-check", "/api/auth-check", "/.netlify/functions/api/auth-check"], (req, res) => {
   if (req.isAuthenticated() && req.session.twoFA === true) return res.json({ authenticated: true });
   res.json({ authenticated: false });
 });
