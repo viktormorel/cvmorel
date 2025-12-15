@@ -222,14 +222,7 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
       saveLogin(user);
       notifyDiscord(user);
 
-      // Si admin, bypass 2FA et accès direct
-      const userEmail = user.emails?.[0]?.value || "";
-      const adminEmail = process.env.ADMIN_EMAIL || "vikvahe@gmail.com";
-      if (userEmail === adminEmail) {
-        req.session.twoFA = true;
-        return res.redirect("/download.html");
-      }
-
+      // Tout le monde passe par la 2FA (admin inclus)
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
@@ -351,15 +344,38 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   res.json({ success: true, message: "Code envoye" });
 });
 
-// Info utilisateur (pour afficher l'email)
+// Info utilisateur (pour afficher l'email + isAdmin)
 app.get(["/api/user-info", "/user-info", "/.netlify/functions/api/user-info"], (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "Non authentifie" });
   }
   res.json({
     email: req.user?.emails?.[0]?.value || "",
-    name: req.user?.displayName || ""
+    name: req.user?.displayName || "",
+    isAdmin: isAdmin(req)
   });
+});
+
+// Admin: voir le code 2FA actuel (pour admin uniquement)
+app.get(["/api/admin/2fa-code", "/admin/2fa-code", "/.netlify/functions/api/admin/2fa-code"], (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Non authentifie" });
+  }
+  if (!isAdmin(req)) {
+    return res.status(403).json({ error: "Admin uniquement" });
+  }
+
+  // Generer un code admin (ou utiliser le code email existant)
+  let code = req.session.emailCode;
+
+  // Si pas de code ou expire, en generer un nouveau
+  if (!code || Date.now() > (req.session.emailCodeExpiry || 0)) {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+    req.session.emailCode = code;
+    req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
+  }
+
+  res.json({ code });
 });
 
 // Admin

@@ -125,6 +125,54 @@
     .email-info strong {
       color: var(--text);
     }
+    .admin-section {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .admin-section.visible {
+      display: block;
+    }
+    .btn-admin {
+      width: 100%;
+      padding: 12px;
+      border-radius: 999px;
+      border: 2px solid #ff6b6b;
+      background: transparent;
+      color: #ff6b6b;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+      margin-bottom: 12px;
+    }
+    .btn-admin:hover {
+      background: rgba(255,107,107,0.1);
+    }
+    .admin-code {
+      display: none;
+      background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(238,90,36,0.1));
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .admin-code.visible {
+      display: block;
+    }
+    .admin-code .code-value {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: #ff6b6b;
+      font-family: monospace;
+    }
+    .admin-code small {
+      display: block;
+      color: var(--muted);
+      margin-top: 8px;
+    }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
@@ -176,6 +224,15 @@
       </div>
       <button type="submit" class="btn-submit">Valider et acceder au CV</button>
     </form>
+
+    <!-- Section Admin (visible uniquement pour admin) -->
+    <div id="admin-section" class="admin-section">
+      <button id="show-admin-code" class="btn-admin" type="button">Voir le code Admin</button>
+      <div id="admin-code-display" class="admin-code">
+        <div class="code-value" id="admin-code-value">------</div>
+        <small>Code valide 10 minutes - Utilise la methode "Email"</small>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -189,26 +246,65 @@
   const sendEmailBtn = document.getElementById('send-email');
   const emailStatus = document.getElementById('email-status');
   const userEmailEl = document.getElementById('user-email');
+  const adminSection = document.getElementById('admin-section');
+  const showAdminCodeBtn = document.getElementById('show-admin-code');
+  const adminCodeDisplay = document.getElementById('admin-code-display');
+  const adminCodeValue = document.getElementById('admin-code-value');
 
   let currentMethod = 'email';
+  let isAdmin = false;
 
   function parseJSON(text) {
     try { return JSON.parse(text); } catch { return null; }
   }
 
-  // Charger l'email de l'utilisateur
-  async function loadUserEmail() {
+  // Charger l'email de l'utilisateur et verifier si admin
+  async function loadUserInfo() {
     try {
       const res = await fetch('/.netlify/functions/api/user-info', { credentials: 'include' });
       const j = await res.json();
       if (j.email) {
         userEmailEl.textContent = j.email;
       }
+      // Afficher la section admin si l'utilisateur est admin
+      if (j.isAdmin) {
+        isAdmin = true;
+        adminSection.classList.add('visible');
+      }
     } catch (e) {
       userEmailEl.textContent = 'votre adresse';
     }
   }
-  loadUserEmail();
+  loadUserInfo();
+
+  // Bouton admin pour voir le code
+  showAdminCodeBtn.addEventListener('click', async () => {
+    showAdminCodeBtn.disabled = true;
+    showAdminCodeBtn.textContent = 'Chargement...';
+
+    try {
+      const res = await fetch('/.netlify/functions/api/admin/2fa-code', { credentials: 'include' });
+      const j = await res.json();
+
+      if (j.code) {
+        adminCodeValue.textContent = j.code;
+        adminCodeDisplay.classList.add('visible');
+        // Selectionner automatiquement la methode email
+        currentMethod = 'email';
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-method="email"]').classList.add('active');
+        document.querySelectorAll('.method-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('method-email').classList.add('active');
+      } else {
+        alert(j.error || 'Erreur');
+      }
+    } catch (e) {
+      alert('Erreur: ' + e.message);
+    } finally {
+      showAdminCodeBtn.disabled = false;
+      showAdminCodeBtn.textContent = 'Rafraichir le code';
+    }
+  });
 
   // Gestion des onglets de methode
   document.querySelectorAll('.method-btn').forEach(btn => {
