@@ -5,19 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CV Studio V2 – Viktor Morel</title>
   <meta name="description" content="Portfolio CV premium : stages, compétences et contact." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <!-- Preconnect pour accelerer le chargement des fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Preload des ressources critiques -->
+  <link rel="preload" href="styles.css" as="style">
+  <link rel="preload" href="script.js" as="script">
+
+  <!-- DNS prefetch pour les API externes -->
+  <link rel="dns-prefetch" href="https://discord.com">
+
+  <!-- Fonts avec display=swap pour eviter le FOIT -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css" />
-  <!-- EmailJS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    // Initialise EmailJS (remplace "YOUR_PUBLIC_KEY")
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.emailjs) {
-        emailjs.init('YOUR_PUBLIC_KEY');
-      }
-    });
-  </script>
 </head>
 <body class="centered-layout" data-theme="auto">
   <!-- Navigation -->
@@ -344,7 +347,7 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
 

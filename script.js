@@ -21,29 +21,42 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(localStorage.getItem('themeMode') || 'auto');
   if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
 
-  // Smooth scroll navbar
+  // Smooth scroll navbar - optimise avec passive
   document.querySelectorAll('.navbar a').forEach(a => {
     a.addEventListener('click', e => {
-      e.preventDefault();
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
-    });
+      const href = a.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, { passive: false });
   });
 
-  // Reveal au scroll
+  // Reveal au scroll - optimise avec rootMargin pour pre-charger
   const reveals = document.querySelectorAll('.reveal, .timeline-item');
-  const observer = new IntersectionObserver(entries => {
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '50px 0px'
+  };
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
+      if (entry.isIntersecting) {
+        requestAnimationFrame(() => {
+          entry.target.classList.add('visible');
+        });
+        observer.unobserve(entry.target);
+      }
     });
-  }, { threshold: 0.15 });
+  }, observerOptions);
   reveals.forEach(el => observer.observe(el));
 
-  // Modal projets
+  // Modal projets - cache les elements
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modal-body');
+
   function openModal(id) {
-    const body = document.getElementById('modal-body');
-    if (body) body.innerHTML = "<p>Contenu à compléter.</p>";
-    const modal = document.getElementById('modal');
+    if (modalBody) modalBody.innerHTML = "<p>Contenu à compléter.</p>";
     if (modal) {
       modal.classList.add('show');
       modal.setAttribute('aria-hidden', 'false');
@@ -51,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   function closeModal() {
-    const modal = document.getElementById('modal');
     if (modal) {
       modal.classList.remove('show');
       modal.setAttribute('aria-hidden', 'true');
@@ -62,23 +74,38 @@ document.addEventListener("DOMContentLoaded", () => {
   window.openModal = openModal;
   window.closeModal = closeModal;
 
-  // Validation formulaire contact
+  // Validation formulaire contact - debounce pour performance
   const form = document.querySelector('.contact-form');
   const fields = form ? form.querySelectorAll('input[required], textarea[required]') : [];
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   function validateField(field) {
     const errorEl = field.parentElement.querySelector('.error');
     let error = '';
-    if (!field.value.trim()) error = 'Ce champ est requis.';
-    else if (field.type === 'email') {
-      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(field.value.trim());
-      if (!ok) error = 'Email invalide.';
+    const value = field.value.trim();
+    if (!value) {
+      error = 'Ce champ est requis.';
+    } else if (field.type === 'email' && !emailRegex.test(value)) {
+      error = 'Email invalide.';
     }
     if (errorEl) errorEl.textContent = error;
     return !error;
   }
+
+  // Debounce pour eviter trop de validations
+  function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  const debouncedValidate = debounce((field) => validateField(field), 150);
+
   fields.forEach(f => {
-    f.addEventListener('input', () => validateField(f));
-    f.addEventListener('blur', () => validateField(f));
+    f.addEventListener('input', () => debouncedValidate(f), { passive: true });
+    f.addEventListener('blur', () => validateField(f), { passive: true });
   });
 
   // Soumission vers Discord webhook
@@ -116,10 +143,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (form) form.addEventListener('submit', handleContactSubmit);
 
-  // Toggle bubble pour les timeline items (clic)
+  // Toggle bubble pour les timeline items - optimise avec RAF
   function toggleBubble(el) {
-    el.classList.toggle('open');
-    el.setAttribute('aria-expanded', el.classList.contains('open') ? 'true' : 'false');
+    requestAnimationFrame(() => {
+      el.classList.toggle('open');
+      el.setAttribute('aria-expanded', el.classList.contains('open') ? 'true' : 'false');
+    });
   }
   window.toggleBubble = toggleBubble;
 
@@ -137,9 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadBtn = document.getElementById('downloadCV');
   if (downloadBtn) {
     downloadBtn.addEventListener('click', () => {
-      window.location.href = "/.netlify/functions/api/auth/google"; // redirige vers ton flow OAuth
+      window.location.href = "/.netlify/functions/api/auth/google";
     });
   }
 });
-
-
