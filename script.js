@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Tracker la visite (une seule fois par jour par visiteur)
+  // Tracker la visite uniquement sur la page d'accueil (une seule fois par jour)
+  const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
   const lastVisit = localStorage.getItem('lastVisit');
   const today = new Date().toDateString();
-  if (lastVisit !== today) {
+  if (isHomePage && lastVisit !== today) {
     fetch('/.netlify/functions/api/track-visit', { method: 'POST' }).catch(() => {});
     localStorage.setItem('lastVisit', today);
   }
