@@ -234,30 +234,122 @@ const app = express();
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
 
-// Body parsing
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// Rate limiting simple en memoire (protection brute-force)
+const rateLimitStore = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 10; // 10 requetes par minute pour les routes sensibles
 
-// Sessions (secure uniquement en prod)
+function rateLimit(key, max = RATE_LIMIT_MAX) {
+  const now = Date.now();
+  const record = rateLimitStore.get(key) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+
+  if (now > record.resetAt) {
+    record.count = 1;
+    record.resetAt = now + RATE_LIMIT_WINDOW;
+  } else {
+    record.count++;
+  }
+
+  rateLimitStore.set(key, record);
+
+  // Nettoyer les anciennes entrees toutes les 100 requetes
+  if (rateLimitStore.size > 1000) {
+    for (const [k, v] of rateLimitStore) {
+      if (now > v.resetAt) rateLimitStore.delete(k);
+    }
+  }
+
+  return record.count <= max;
+}
+
+// Middleware rate limiting pour routes sensibles
+function rateLimitMiddleware(max = RATE_LIMIT_MAX) {
+  return (req, res, next) => {
+    const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+    const key = `${ip}:${req.path}`;
+
+    if (!rateLimit(key, max)) {
+      return res.status(429).json({ error: "Trop de requetes. Reessayez dans 1 minute." });
+    }
+    next();
+  };
+}
+
+// Body parsing avec limite de taille
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(express.json({ limit: "10kb" }));
+
+// Sessions (securisees)
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "secret-key",
+    secret: process.env.SESSION_SECRET || "secret-key-change-me-in-prod",
+    name: "__Host-session", // Prefixe securise
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true
+      secure: true, // Toujours HTTPS
+      sameSite: "strict", // Protection CSRF renforcee
+      httpOnly: true, // Pas accessible via JS
+      maxAge: 30 * 60 * 1000, // 30 minutes
+      path: "/"
     }
   })
 );
 
-// CORS + préflight pour les POST/OPTIONS
+// Headers de securite (avant toute route)
+app.use((_req, res, next) => {
+  // HSTS - Force HTTPS pendant 1 an
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+
+  // Empeche le clickjacking
+  res.setHeader("X-Frame-Options", "DENY");
+
+  // Bloque le MIME sniffing
+  res.setHeader("X-Content-Type-Options", "nosniff");
+
+  // Protection XSS navigateur
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+
+  // Referrer Policy - ne pas fuiter les URLs
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  // Permissions Policy - desactiver les features non utilisees
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
+
+  // Content Security Policy restrictive
+  res.setHeader("Content-Security-Policy", [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'", // inline necessaire pour le HTML injecte
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+    "font-src 'self' fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https://discord.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://accounts.google.com"
+  ].join("; "));
+
+  next();
+});
+
+// CORS restrictif (pas de wildcard en prod)
 app.use((req, res, next) => {
   console.log(`[API] ${req.method} ${req.path} (originalUrl: ${req.originalUrl})`);
-  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  const allowedOrigins = [
+    "https://cv-viktor-morel.netlify.app",
+    "https://viktormorel.com" // Si tu as un domaine custom
+  ];
+  const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
   if (req.method === "OPTIONS") return res.status(204).end();
   next();
 });
@@ -296,8 +388,8 @@ passport.deserializeUser((obj, done) => done(null, obj));
 // Health
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// Auth start
-app.get("/auth/google", (req, res, next) => {
+// Auth start - Rate limited (10 tentatives/min)
+app.get("/auth/google", rateLimitMiddleware(10), (req, res, next) => {
   initGoogleStrategy();
   passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
@@ -356,8 +448,8 @@ app.post(["/api/2fa/generate", "/2fa/generate", "/.netlify/functions/api/2fa/gen
   }
 });
 
-// 2FA: API verify (supporte email et qrcode)
-app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) => {
+// 2FA: API verify (supporte email et qrcode) - Rate limited (5 essais/min)
+app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"], rateLimitMiddleware(5), (req, res) => {
   const token = String(req.body.token || "").trim();
   const method = req.body.method || "qrcode";
 
@@ -394,8 +486,8 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
   return res.json({ valid: false, error: "Code invalide" });
 });
 
-// 2FA: Envoyer code par email
-app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], async (req, res) => {
+// 2FA: Envoyer code par email - Rate limited (3 envois/min)
+app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], rateLimitMiddleware(3), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ success: false, error: "Non authentifie" });
   }
