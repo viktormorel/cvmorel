@@ -390,7 +390,7 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
     // Nettoyer le code email utilise
     delete req.session.emailCode;
     delete req.session.emailCodeExpiry;
-    return res.json({ valid: true, message: "Code valide", redirect: "/download-cv" });
+    return res.json({ valid: true, message: "Code valide", redirect: "/download.html" });
   }
   return res.json({ valid: false, error: "Code invalide" });
 });
