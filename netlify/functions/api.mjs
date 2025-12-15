@@ -221,6 +221,15 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
       // Enregistrer la connexion et notifier Discord
       saveLogin(user);
       notifyDiscord(user);
+
+      // Si admin, bypass 2FA et accès direct
+      const userEmail = user.emails?.[0]?.value || "";
+      const adminEmail = process.env.ADMIN_EMAIL || "vikvahe@gmail.com";
+      if (userEmail === adminEmail) {
+        req.session.twoFA = true;
+        return res.redirect("/download.html");
+      }
+
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
