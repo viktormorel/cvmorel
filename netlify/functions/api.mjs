@@ -214,7 +214,7 @@ app.use((req, res, next) => {
 // Google OAuth - initialisation différée
 const CALLBACK_URL =
   (process.env.GOOGLE_CALLBACK_URL || "").trim().replace(/\/$/, "") ||
-  "https://viktorvahemorelcv.netlify.app/auth/google/callback";
+  "https://viktor-morel-cv.netlify.app/auth/google/callback";
 
 app.use(passport.initialize());
 app.use(passport.session());
