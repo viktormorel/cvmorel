@@ -493,6 +493,7 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   }
 
   const userEmail = req.user?.emails?.[0]?.value;
+  const userName = req.user?.displayName || "Utilisateur";
   if (!userEmail) {
     return res.status(400).json({ success: false, error: "Email non disponible" });
   }
@@ -504,35 +505,86 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer via Discord webhook
-  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
+  // Envoyer par email via Resend API
+  const resendApiKey = process.env.RESEND_API_KEY;
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        embeds: [{
-          title: "Code de verification 2FA",
-          color: 0x3ddc97,
-          description: `**Code:** \`${code}\`\n\nCe code expire dans 10 minutes.`,
-          fields: [
-            { name: "Utilisateur", value: userEmail, inline: true }
-          ],
-          timestamp: new Date().toISOString()
-        }]
-      })
-    });
+  if (resendApiKey) {
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "CV Viktor Morel <onboarding@resend.dev>",
+          to: userEmail,
+          subject: "Votre code de verification 2FA",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #6a11cb; text-align: center;">Code de verification</h2>
+              <p>Bonjour ${userName},</p>
+              <p>Voici votre code de verification pour acceder au CV de Viktor Morel :</p>
+              <div style="background: linear-gradient(135deg, #6a11cb, #2575fc); color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 12px; letter-spacing: 8px; margin: 20px 0;">
+                ${code}
+              </div>
+              <p style="color: #666; font-size: 14px;">Ce code expire dans <strong>10 minutes</strong>.</p>
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">Si vous n'avez pas demande ce code, ignorez cet email.</p>
+            </div>
+          `
+        })
+      });
 
-    if (!response.ok) {
-      console.error("Discord webhook error:", response.status);
-      return res.status(500).json({ success: false, error: "Erreur envoi du code" });
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Resend API error:", response.status, errorData);
+        return res.status(500).json({ success: false, error: "Erreur envoi email" });
+      }
+
+      // Notifier aussi sur Discord (pour toi)
+      const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "Code 2FA envoye par email",
+            color: 0x3ddc97,
+            fields: [
+              { name: "Destinataire", value: userEmail, inline: true },
+              { name: "Code", value: `\`${code}\``, inline: true }
+            ],
+            timestamp: new Date().toISOString()
+          }]
+        })
+      }).catch(() => {});
+
+      res.json({ success: true, message: "Code envoye a " + userEmail });
+    } catch (err) {
+      console.error("Erreur envoi email:", err);
+      res.status(500).json({ success: false, error: "Erreur envoi email" });
     }
-
-    res.json({ success: true, message: "Code envoye sur Discord" });
-  } catch (err) {
-    console.error("Erreur envoi Discord:", err);
-    res.status(500).json({ success: false, error: "Erreur envoi du code" });
+  } else {
+    // Fallback: Discord seulement si pas de cle Resend
+    const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
+    try {
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "Code 2FA (RESEND_API_KEY manquante)",
+            color: 0xff6b6b,
+            description: `**Code:** \`${code}\`\n\n⚠️ Email non envoye car RESEND_API_KEY non configuree`,
+            fields: [{ name: "Utilisateur", value: userEmail, inline: true }],
+            timestamp: new Date().toISOString()
+          }]
+        })
+      });
+      res.json({ success: false, error: "Service email non configure. Contactez l'administrateur." });
+    } catch (err) {
+      res.status(500).json({ success: false, error: "Erreur serveur" });
+    }
   }
 });
 
