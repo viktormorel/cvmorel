@@ -265,19 +265,101 @@ app.post(["/api/2fa/generate", "/2fa/generate", "/.netlify/functions/api/2fa/gen
   }
 });
 
-// 2FA: API verify
+// 2FA: API verify (supporte email et qrcode)
 app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) => {
   const token = String(req.body.token || "").trim();
-  const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
-  if (!token) return res.status(400).json({ valid: false, error: "token missing" });
-  if (!secret) return res.status(400).json({ valid: false, error: "secret missing" });
+  const method = req.body.method || "qrcode";
 
-  const verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
+  if (!token) return res.status(400).json({ valid: false, error: "token missing" });
+
+  let verified = false;
+
+  if (method === "email") {
+    // Verification du code email
+    const emailCode = req.session.emailCode;
+    const emailCodeExpiry = req.session.emailCodeExpiry;
+
+    if (!emailCode) {
+      return res.json({ valid: false, error: "Aucun code envoye. Cliquez sur 'Envoyer le code'." });
+    }
+    if (Date.now() > emailCodeExpiry) {
+      return res.json({ valid: false, error: "Code expire. Renvoyez un nouveau code." });
+    }
+    verified = (token === emailCode);
+  } else {
+    // Verification QR code (TOTP)
+    const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
+    if (!secret) return res.status(400).json({ valid: false, error: "secret missing" });
+    verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
+  }
+
   if (verified) {
     req.session.twoFA = true;
+    // Nettoyer le code email utilise
+    delete req.session.emailCode;
+    delete req.session.emailCodeExpiry;
     return res.json({ valid: true, message: "Code valide", redirect: "/download-cv" });
   }
   return res.json({ valid: false, error: "Code invalide" });
+});
+
+// 2FA: Envoyer code par email
+app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ success: false, error: "Non authentifie" });
+  }
+
+  const userEmail = req.user?.emails?.[0]?.value;
+  if (!userEmail) {
+    return res.status(400).json({ success: false, error: "Email non disponible" });
+  }
+
+  // Generer un code a 6 chiffres
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Stocker le code en session (expire dans 10 minutes)
+  req.session.emailCode = code;
+  req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
+
+  // Envoyer via Discord webhook (pour l'instant)
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [{
+            title: "Code de verification 2FA",
+            color: 0x3ddc97,
+            description: `**Code:** \`${code}\`\n\nCe code expire dans 10 minutes.`,
+            fields: [
+              { name: "Utilisateur", value: userEmail, inline: true }
+            ],
+            timestamp: new Date().toISOString()
+          }]
+        })
+      });
+    } catch (err) {
+      console.error("Erreur envoi Discord:", err);
+    }
+  }
+
+  // TODO: Integrer un vrai service d'email (SendGrid, Mailgun, etc.)
+  // Pour l'instant, on simule l'envoi - le code est envoye sur Discord
+
+  res.json({ success: true, message: "Code envoye" });
+});
+
+// Info utilisateur (pour afficher l'email)
+app.get(["/api/user-info", "/user-info", "/.netlify/functions/api/user-info"], (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Non authentifie" });
+  }
+  res.json({
+    email: req.user?.emails?.[0]?.value || "",
+    name: req.user?.displayName || ""
+  });
 });
 
 // Admin

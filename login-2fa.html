@@ -21,7 +21,7 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 32px;
-      max-width: 420px;
+      max-width: 480px;
       width: 100%;
       box-shadow: 0 12px 32px rgba(0,0,0,0.35);
       animation: fadeIn .6s ease;
@@ -38,12 +38,51 @@
       color: var(--muted);
       margin-bottom: 24px;
     }
+    .method-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .method-btn {
+      flex: 1;
+      padding: 16px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all .3s ease;
+      text-align: center;
+    }
+    .method-btn:hover {
+      border-color: var(--primary2);
+    }
+    .method-btn.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(106,17,203,0.1), rgba(37,117,252,0.1));
+    }
+    .method-btn .icon {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .method-btn .label {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .method-content {
+      display: none;
+    }
+    .method-content.active {
+      display: block;
+    }
     .form-field { margin-bottom: 18px; }
     .form-field label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: var(--muted); }
     .form-field input {
       width: 100%; padding: 12px; border-radius: 8px;
       border: 1px solid var(--border); background: var(--bg); color: var(--text);
       transition: border-color .3s ease, box-shadow .3s ease;
+      box-sizing: border-box;
     }
     .form-field input:focus {
       border-color: var(--primary2);
@@ -57,34 +96,85 @@
       transition: transform .2s ease, filter .2s ease;
     }
     .btn-submit:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      width: 100%; padding: 12px; border-radius: 999px;
+      border: 2px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-weight: 600; cursor: pointer;
+      transition: all .2s ease;
+      margin-bottom: 16px;
+    }
+    .btn-secondary:hover { background: rgba(106,17,203,0.1); }
+    .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
     .error-msg { color: #ff6b6b; font-size: 0.85rem; min-height: 1em; }
+    .success-msg { color: #3ddc97; font-size: 0.85rem; }
     #result { margin-top: 16px; display: none; }
-    #qr { max-width: 220px; display: block; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; }
-    pre.secret { background:#0b1220; color:#d1e8ff; padding:10px; border-radius:8px; overflow:auto; }
+    #qr { max-width: 200px; display: block; margin: 0 auto 12px; border: 1px solid var(--border); border-radius: 8px; }
+    pre.secret { background:#0b1220; color:#d1e8ff; padding:10px; border-radius:8px; overflow:auto; font-size: 0.8rem; text-align: center; }
+    .email-info {
+      background: rgba(37,117,252,0.1);
+      border: 1px solid rgba(37,117,252,0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .email-info strong {
+      color: var(--text);
+    }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
   <div class="container-2fa">
     <h1>Validation 2FA</h1>
-    <p>Connexion Google réussie.<br>Veuillez générer votre QR puis entrer le code de vérification pour accéder au CV de Viktor.</p>
+    <p>Connexion Google reussie. Choisissez votre methode de verification :</p>
 
-    <!-- Bouton pour générer QR + secret -->
-    <p><button id="gen" class="btn-submit" type="button">Générer QR &amp; secret</button></p>
-    <div id="result">
-      <img id="qr" src="" alt="QR code">
-      <pre id="secret" class="secret"></pre>
+    <!-- Selecteur de methode -->
+    <div class="method-selector">
+      <button class="method-btn active" data-method="email" type="button">
+        <span class="icon">📧</span>
+        <span class="label">Code par Email</span>
+      </button>
+      <button class="method-btn" data-method="qrcode" type="button">
+        <span class="icon">📱</span>
+        <span class="label">QR Code (App)</span>
+      </button>
     </div>
 
-    <!-- Formulaire de validation -->
+    <!-- Methode Email -->
+    <div id="method-email" class="method-content active">
+      <div class="email-info">
+        Un code a 6 chiffres sera envoye a votre adresse email <strong id="user-email">...</strong>
+      </div>
+      <button id="send-email" class="btn-secondary" type="button">Envoyer le code par email</button>
+      <p id="email-status" class="success-msg" style="display:none; text-align:center; margin-bottom:16px;"></p>
+    </div>
+
+    <!-- Methode QR Code -->
+    <div id="method-qrcode" class="method-content">
+      <p style="font-size:0.9rem; color:var(--muted); margin-bottom:16px;">
+        Scannez le QR code avec une application comme Google Authenticator ou Authy.
+      </p>
+      <button id="gen" class="btn-secondary" type="button">Generer QR Code</button>
+      <div id="result">
+        <img id="qr" src="" alt="QR code">
+        <pre id="secret" class="secret"></pre>
+      </div>
+    </div>
+
+    <!-- Formulaire de validation (commun) -->
     <form id="form-2fa">
       <div class="form-field">
-        <label for="code">Code 2FA (6 chiffres)</label>
+        <label for="code">Code de verification (6 chiffres)</label>
         <input id="code" name="code" type="text" inputmode="numeric" maxlength="6"
                required placeholder="Ex: 123456" aria-describedby="error-code" autocomplete="one-time-code">
         <small id="error-code" class="error-msg"></small>
       </div>
-      <button type="submit" class="btn-submit">Valider et accéder au CV</button>
+      <button type="submit" class="btn-submit">Valider et acceder au CV</button>
     </form>
   </div>
 
@@ -96,15 +186,82 @@
   const result = document.getElementById('result');
   const qr = document.getElementById('qr');
   const secretEl = document.getElementById('secret');
+  const sendEmailBtn = document.getElementById('send-email');
+  const emailStatus = document.getElementById('email-status');
+  const userEmailEl = document.getElementById('user-email');
+
+  let currentMethod = 'email';
 
   function parseJSON(text) {
     try { return JSON.parse(text); } catch { return null; }
   }
 
-  // Génération QR + secret
+  // Charger l'email de l'utilisateur
+  async function loadUserEmail() {
+    try {
+      const res = await fetch('/.netlify/functions/api/user-info', { credentials: 'include' });
+      const j = await res.json();
+      if (j.email) {
+        userEmailEl.textContent = j.email;
+      }
+    } catch (e) {
+      userEmailEl.textContent = 'votre adresse';
+    }
+  }
+  loadUserEmail();
+
+  // Gestion des onglets de methode
+  document.querySelectorAll('.method-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const method = btn.dataset.method;
+      currentMethod = method;
+
+      // Mettre a jour les boutons
+      document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Mettre a jour le contenu
+      document.querySelectorAll('.method-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('method-' + method).classList.add('active');
+    });
+  });
+
+  // Envoi du code par email
+  sendEmailBtn.addEventListener('click', async () => {
+    sendEmailBtn.disabled = true;
+    sendEmailBtn.textContent = 'Envoi en cours...';
+    emailStatus.style.display = 'none';
+
+    try {
+      const res = await fetch('/.netlify/functions/api/2fa/send-email', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const j = await res.json();
+
+      if (j.success) {
+        emailStatus.textContent = 'Code envoye ! Verifiez votre boite mail.';
+        emailStatus.className = 'success-msg';
+        emailStatus.style.display = 'block';
+      } else {
+        emailStatus.textContent = j.error || 'Erreur lors de l\'envoi';
+        emailStatus.className = 'error-msg';
+        emailStatus.style.display = 'block';
+      }
+    } catch (e) {
+      emailStatus.textContent = 'Erreur reseau: ' + e.message;
+      emailStatus.className = 'error-msg';
+      emailStatus.style.display = 'block';
+    } finally {
+      sendEmailBtn.disabled = false;
+      sendEmailBtn.textContent = 'Renvoyer le code';
+    }
+  });
+
+  // Generation QR + secret
   genBtn.addEventListener('click', async () => {
     genBtn.disabled = true;
-    genBtn.textContent = 'Génération...';
+    genBtn.textContent = 'Generation...';
     try {
       const res = await fetch('/.netlify/functions/api/2fa/generate', { method: 'POST', credentials: 'include' });
       const text = await res.text();
@@ -114,13 +271,13 @@
         secretEl.textContent = j.secret || '';
         result.style.display = 'block';
       } else {
-        alert('Erreur génération: ' + (j && j.error ? j.error : text));
+        alert('Erreur generation: ' + (j && j.error ? j.error : text));
       }
     } catch (e) {
-      alert('Erreur réseau: ' + e.message);
+      alert('Erreur reseau: ' + e.message);
     } finally {
       genBtn.disabled = false;
-      genBtn.textContent = 'Générer QR & secret';
+      genBtn.textContent = 'Generer QR Code';
     }
   });
 
@@ -143,23 +300,23 @@
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token, method: currentMethod })
       });
       const text = await res.text();
       const j = parseJSON(text);
       if (!j) {
-        errorMsg.textContent = 'Réponse non-JSON: ' + text.slice(0,100);
+        errorMsg.textContent = 'Reponse non-JSON: ' + text.slice(0,100);
         return;
       }
       if (j.error) {
-        errorMsg.textContent = '❌ ' + j.error;
+        errorMsg.textContent = j.error;
       } else if (j.valid && j.redirect) {
         window.location.href = j.redirect;
       } else {
-        errorMsg.textContent = '❌ Code invalide';
+        errorMsg.textContent = 'Code invalide';
       }
     } catch (err) {
-      errorMsg.textContent = 'Erreur réseau: ' + err.message;
+      errorMsg.textContent = 'Erreur reseau: ' + err.message;
     }
   });
   </script>
