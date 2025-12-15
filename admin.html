@@ -505,15 +505,15 @@
             container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
           } else {
             container.innerHTML = '<ul class="item-list">' + logins.map(login => `
-              <li style="flex-direction:column;align-items:flex-start;gap:4px;">
-                <div style="display:flex;align-items:center;gap:10px;width:100%;">
+              <li style="flex-direction:column;align-items:flex-start;gap:4px;padding:12px;">
+                <div style="display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap;">
                   ${login.photo ? `<img src="${login.photo}" alt="" style="width:36px;height:36px;border-radius:50%;">` : ''}
-                  <div style="flex:1;">
+                  <div style="flex:1;min-width:200px;">
                     <strong style="color:#1f2430;">${login.name || 'Utilisateur'}</strong>
                     <span style="color:#5a6376;font-size:0.9rem;margin-left:8px;">${login.email || ''}</span>
                   </div>
+                  <small style="color:#888;white-space:nowrap;">${login.date ? new Date(login.date).toLocaleString('fr-FR') : ''}</small>
                 </div>
-                <small style="color:#888;">${login.date ? new Date(login.date).toLocaleString('fr-FR') : ''}</small>
               </li>
             `).join('') + '</ul>';
           }
