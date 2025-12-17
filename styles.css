@@ -127,16 +127,17 @@ body.centered-layout{
   z-index: 1000;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  justify-content: center;
   padding: 12px 24px;
   background: linear-gradient(135deg, rgba(106, 17, 203, 0.95) 0%, rgba(37, 117, 252, 0.95) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ===== THEME TOGGLE (gauche de la navbar) ===== */
+/* ===== THEME TOGGLE (tout à gauche) ===== */
 .theme-toggle {
+  position: absolute;
+  left: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +150,6 @@ body.centered-layout{
   color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex-shrink: 0;
 }
 
 .theme-toggle:hover {
