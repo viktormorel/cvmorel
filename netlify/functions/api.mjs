@@ -37,11 +37,19 @@ function getBlobStore() {
   const siteID = process.env.SITE_ID;
   const token = process.env.NETLIFY_ACCESS_TOKEN;
 
+  console.log("[Blobs] SITE_ID present:", !!siteID, "TOKEN present:", !!token);
+
   if (siteID && token) {
     return getStore({ name: "cv-data", siteID, token });
   }
-  // Fallback pour le contexte de fonction native (si disponible)
-  return getStore("cv-data");
+  // Fallback pour le contexte de fonction native Netlify (deploy context)
+  // Cela fonctionne automatiquement si deploye sur Netlify
+  try {
+    return getStore("cv-data");
+  } catch (e) {
+    console.error("[Blobs] Fallback getStore failed:", e.message);
+    throw new Error("Netlify Blobs non configure. Verifiez SITE_ID et NETLIFY_ACCESS_TOKEN dans les variables d'environnement Netlify.");
+  }
 }
 
 // Netlify Blobs pour persistance
@@ -608,11 +616,13 @@ app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"]
 });
 app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, async (req, res) => {
   try {
+    console.log("[Save] Donnees recues:", JSON.stringify(req.body).slice(0, 200));
     await saveSiteData(req.body);
+    console.log("[Save] Sauvegarde reussie");
     res.json({ success: true });
   } catch (err) {
-    console.error("Erreur sauvegarde:", err);
-    res.status(500).json({ error: "Erreur sauvegarde" });
+    console.error("[Save] Erreur sauvegarde:", err.message, err.stack);
+    res.status(500).json({ error: "Erreur sauvegarde: " + err.message });
   }
 });
 
