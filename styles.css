@@ -173,30 +173,35 @@ body.centered-layout{
 .navbar-menu {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
   margin: 0;
-  padding: 12px 0;
+  padding: 10px 0;
   list-style: none;
+  flex-wrap: wrap;
 }
 
 .navbar-menu li {
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 /* Nav Links avec icones */
 .nav-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 8px 14px;
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .nav-link::before {
@@ -220,14 +225,14 @@ body.centered-layout{
 
 /* Icones de navigation */
 .nav-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .nav-link:hover .nav-icon {
-  transform: scale(1.15);
+  transform: scale(1.1);
 }
 
 /* Underline effect ameliore */
@@ -253,7 +258,7 @@ body.centered-layout{
   background: linear-gradient(135deg, #3ddc97, #00d4aa);
   color: #0f1724;
   font-weight: 600;
-  padding: 10px 18px;
+  padding: 8px 16px;
   border: none;
   box-shadow: 0 4px 15px rgba(61, 220, 151, 0.3);
 }

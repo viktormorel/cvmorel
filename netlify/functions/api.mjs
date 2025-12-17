@@ -420,7 +420,7 @@ passport.deserializeUser((obj, done) => done(null, obj));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Auth start - Rate limited (10 tentatives/min)
-app.get("/auth/google", rateLimitMiddleware(10), (req, res, next) => {
+app.get(["/auth/google", "/.netlify/functions/api/auth/google"], rateLimitMiddleware(10), (req, res, next) => {
   initGoogleStrategy();
   passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
