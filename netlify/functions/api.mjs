@@ -683,12 +683,47 @@ app.get(["/download-cv", "/secure/download", "/.netlify/functions/api/download-c
 });
 
 // Route pour telecharger le fichier CV (protegee par auth)
+// Utilise une page HTML intermediaire pour maintenir la session
 app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req, res) => {
   if (!req.isAuthenticated() || req.session.twoFA !== true) {
     return res.status(401).json({ error: "Non autorise" });
   }
-  // Rediriger vers le fichier statique
-  res.redirect("/cv-viktor-morel.docx");
+  // Page HTML qui telecharge automatiquement le fichier
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Telechargement en cours...</title>
+  <style>
+    body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:linear-gradient(135deg,#667eea,#764ba2)}
+    .card{background:white;padding:40px;border-radius:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+    h1{color:#1f2937;margin-bottom:12px}
+    p{color:#6b7280}
+    .spinner{width:50px;height:50px;border:4px solid #e5e7eb;border-top-color:#667eea;border-radius:50%;animation:spin 1s linear infinite;margin:20px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h1>Telechargement en cours</h1>
+    <p>Le CV va se telecharger automatiquement...</p>
+  </div>
+  <script>
+    // Telecharger via un lien invisible
+    const link = document.createElement('a');
+    link.href = '/cv-viktor-morel.docx';
+    link.download = 'CV-Viktor-Morel.docx';
+    document.body.appendChild(link);
+    link.click();
+    // Rediriger vers la page de download apres 2 secondes
+    setTimeout(() => {
+      window.location.href = '/.netlify/functions/api/download-cv';
+    }, 2000);
+  </script>
+</body>
+</html>`);
 });
 
 // Console admin securisee - Design premium avec animations

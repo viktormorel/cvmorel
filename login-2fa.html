@@ -326,7 +326,11 @@
         credentials: 'include'
       });
       const j = await res.json();
-      emailStatus.textContent = j.success ? 'Code envoye !' : (j.error || 'Erreur');
+      if (j.success) {
+        emailStatus.innerHTML = '✅ Code envoye !<br><small style="opacity:0.8">⚠️ Pense a verifier tes spams si tu ne le vois pas</small>';
+      } else {
+        emailStatus.textContent = j.error || 'Erreur';
+      }
       emailStatus.className = 'status-msg ' + (j.success ? 'success' : 'error');
     } catch (e) {
       emailStatus.textContent = 'Erreur reseau';
