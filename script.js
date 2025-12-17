@@ -385,4 +385,113 @@ document.addEventListener("DOMContentLoaded", () => {
   skillBubbles.forEach((bubble, index) => {
     bubble.style.animationDelay = `${index * 0.1}s`;
   });
+
+  // ============================================
+  // BARRE DE PROGRESSION DE LECTURE
+  // ============================================
+  const readingProgress = document.getElementById('readingProgress');
+
+  const updateReadingProgress = () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    if (readingProgress) {
+      readingProgress.style.width = `${Math.min(progress, 100)}%`;
+    }
+  };
+
+  window.addEventListener('scroll', () => {
+    requestAnimationFrame(updateReadingProgress);
+  }, { passive: true });
+
+  // ============================================
+  // BOUTON RETOUR EN HAUT
+  // ============================================
+  const scrollToTopBtn = document.getElementById('scrollToTop');
+
+  const toggleScrollToTop = () => {
+    if (scrollToTopBtn) {
+      if (window.scrollY > 400) {
+        scrollToTopBtn.classList.add('visible');
+      } else {
+        scrollToTopBtn.classList.remove('visible');
+      }
+    }
+  };
+
+  window.addEventListener('scroll', () => {
+    requestAnimationFrame(toggleScrollToTop);
+  }, { passive: true });
+
+  if (scrollToTopBtn) {
+    scrollToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // ============================================
+  // CURSEUR PERSONNALISE
+  // ============================================
+  const cursor = document.getElementById('cursor');
+  const cursorDot = document.getElementById('cursorDot');
+
+  // Detecter si c'est un appareil avec souris
+  const hasFinePonter = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (hasFinePonter && cursor && cursorDot) {
+    document.body.classList.add('cursor-active');
+
+    let cursorX = 0, cursorY = 0;
+    let dotX = 0, dotY = 0;
+
+    // Mouvement fluide avec lerp
+    const animateCursor = () => {
+      // Le cercle suit avec un leger delai
+      cursorX += (dotX - cursorX) * 0.15;
+      cursorY += (dotY - cursorY) * 0.15;
+
+      cursor.style.left = `${cursorX}px`;
+      cursor.style.top = `${cursorY}px`;
+      cursorDot.style.left = `${dotX}px`;
+      cursorDot.style.top = `${dotY}px`;
+
+      requestAnimationFrame(animateCursor);
+    };
+    animateCursor();
+
+    document.addEventListener('mousemove', (e) => {
+      dotX = e.clientX;
+      dotY = e.clientY;
+    }, { passive: true });
+
+    // Elements interactifs
+    const interactiveElements = document.querySelectorAll('a, button, input, textarea, [role="button"], .btn, .nav-link, .skill-bubble, .timeline-item, .contact-card, .copy-btn');
+
+    interactiveElements.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        document.body.classList.add('cursor-hover');
+      });
+      el.addEventListener('mouseleave', () => {
+        document.body.classList.remove('cursor-hover');
+      });
+    });
+
+    // Effet au clic
+    document.addEventListener('mousedown', () => {
+      document.body.classList.add('cursor-click');
+    });
+    document.addEventListener('mouseup', () => {
+      document.body.classList.remove('cursor-click');
+    });
+
+    // Cacher quand la souris quitte la fenetre
+    document.addEventListener('mouseleave', () => {
+      cursor.style.opacity = '0';
+      cursorDot.style.opacity = '0';
+    });
+    document.addEventListener('mouseenter', () => {
+      cursor.style.opacity = '1';
+      cursorDot.style.opacity = '1';
+    });
+  }
 });
