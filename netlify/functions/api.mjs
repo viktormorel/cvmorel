@@ -486,8 +486,8 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
   return res.json({ valid: false, error: "Code invalide" });
 });
 
-// 2FA: Envoyer code par email - Rate limited (3 envois/min)
-// Utilise Brevo (ex-Sendinblue) pour envoyer a n'importe qui sans verification de domaine
+// 2FA: Generer et envoyer code - Rate limited (3 demandes/min)
+// Le code est envoye sur Discord - Viktor le transmet a la personne
 app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], rateLimitMiddleware(3), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ success: false, error: "Non authentifie" });
@@ -506,89 +506,38 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer par email via Brevo API (300 emails/jour gratuits, pas de verification domaine)
-  const brevoApiKey = process.env.BREVO_API_KEY;
+  // Envoyer sur Discord - Viktor recoit le code et le transmet
+  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
 
-  if (brevoApiKey) {
-    try {
-      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: {
-          "api-key": brevoApiKey,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          sender: {
-            name: "CV Viktor Morel",
-            email: "viktormorel@mailo.com"
-          },
-          to: [{ email: userEmail, name: userName }],
-          subject: "Votre code de verification 2FA",
-          htmlContent: `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #6a11cb; text-align: center;">Code de verification</h2>
-              <p>Bonjour ${userName},</p>
-              <p>Voici votre code de verification pour acceder au CV de Viktor Morel :</p>
-              <div style="background: linear-gradient(135deg, #6a11cb, #2575fc); color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 12px; letter-spacing: 8px; margin: 20px 0;">
-                ${code}
-              </div>
-              <p style="color: #666; font-size: 14px;">Ce code expire dans <strong>10 minutes</strong>.</p>
-              <p style="color: #999; font-size: 12px; margin-top: 30px;">Si vous n'avez pas demande ce code, ignorez cet email.</p>
-            </div>
-          `
-        })
-      });
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: `@everyone **Demande de code 2FA !**`,
+        embeds: [{
+          title: "Code 2FA demande",
+          color: 0x6a11cb,
+          description: `**${userName}** demande un code pour acceder au CV.`,
+          fields: [
+            { name: "Nom", value: userName, inline: true },
+            { name: "Email", value: userEmail, inline: true },
+            { name: "Code a transmettre", value: `\`\`\`${code}\`\`\``, inline: false }
+          ],
+          footer: { text: "Le code expire dans 10 minutes" },
+          timestamp: new Date().toISOString()
+        }]
+      })
+    });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Brevo API error:", response.status, errorData);
-        return res.status(500).json({ success: false, error: "Erreur envoi email" });
-      }
-
-      // Notifier aussi sur Discord (pour toi)
-      const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          embeds: [{
-            title: "Code 2FA envoye par email (Brevo)",
-            color: 0x3ddc97,
-            fields: [
-              { name: "Destinataire", value: userEmail, inline: true },
-              { name: "Code", value: `\`${code}\``, inline: true }
-            ],
-            timestamp: new Date().toISOString()
-          }]
-        })
-      }).catch(() => {});
-
-      res.json({ success: true, message: "Code envoye a " + userEmail });
-    } catch (err) {
-      console.error("Erreur envoi email Brevo:", err);
-      res.status(500).json({ success: false, error: "Erreur envoi email" });
-    }
-  } else {
-    // Fallback: Discord seulement si pas de cle Brevo
-    const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
-    try {
-      await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          embeds: [{
-            title: "Code 2FA (BREVO_API_KEY manquante)",
-            color: 0xff6b6b,
-            description: `**Code:** \`${code}\`\n\n⚠️ Email non envoye car BREVO_API_KEY non configuree`,
-            fields: [{ name: "Utilisateur", value: userEmail, inline: true }],
-            timestamp: new Date().toISOString()
-          }]
-        })
-      });
-      res.json({ success: false, error: "Service email non configure. Contactez l'administrateur." });
-    } catch (err) {
-      res.status(500).json({ success: false, error: "Erreur serveur" });
-    }
+    // Dire a l'utilisateur que le code a ete demande
+    res.json({
+      success: true,
+      message: "Code demande ! Viktor va te le transmettre par email ou telephone. Patiente quelques instants."
+    });
+  } catch (err) {
+    console.error("Erreur Discord webhook:", err);
+    res.status(500).json({ success: false, error: "Erreur serveur" });
   }
 });
 
