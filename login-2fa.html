@@ -2,258 +2,499 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Verification • CV Viktor Morel</title>
+  <title>Vérification • CV Viktor Morel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg: #0f0f23;
+      --card: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
     body {
-      margin: 0;
-      font-family: 'Montserrat', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
-      color: var(--text);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
-    .container-2fa {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      max-width: 360px;
+
+    /* Animated background */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.3), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.2), transparent),
+        radial-gradient(ellipse 50% 30% at 0% 100%, rgba(59, 130, 246, 0.15), transparent);
+      z-index: 0;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: 0;
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      animation: float 20s ease-in-out infinite;
+      z-index: 0;
+    }
+    .orb-1 { width: 400px; height: 400px; background: #6366f1; top: -100px; right: -100px; }
+    .orb-2 { width: 300px; height: 300px; background: #8b5cf6; bottom: -50px; left: -50px; animation-delay: -10s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* Card */
+    .card {
+      position: relative;
+      z-index: 1;
       width: 100%;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      animation: fadeIn .5s ease;
+      max-width: 420px;
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .container-2fa h1 {
-      font-size: 1.4rem;
-      margin: 0 0 8px;
-      text-align: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .subtitle {
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .method-tabs {
+
+    /* Logo/Icon */
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      border-radius: 16px;
       display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+      animation: pulse-glow 3s ease-in-out infinite;
     }
-    .method-tab {
-      flex: 1;
-      padding: 12px 8px;
-      border-radius: 10px;
-      border: 2px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      transition: all .2s ease;
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); }
+      50% { box-shadow: 0 8px 48px rgba(99, 102, 241, 0.5); }
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
       text-align: center;
-      font-size: 0.85rem;
+      color: var(--text);
+      margin-bottom: 8px;
     }
-    .method-tab:hover {
-      border-color: var(--primary2);
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 32px;
     }
-    .method-tab.active {
+
+    /* Method selector */
+    .method-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .method-btn {
+      flex: 1;
+      padding: 16px 12px;
+      border-radius: 16px;
+      border: 2px solid var(--card-border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .method-btn:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .method-btn.active {
       border-color: var(--primary);
-      background: rgba(106,17,203,0.08);
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--text);
     }
-    .method-tab .icon {
-      font-size: 1.5rem;
-      display: block;
-      margin-bottom: 4px;
+
+    .method-btn .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s ease;
     }
+
+    .method-btn.active .icon {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    .method-btn span:last-child {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Panels */
     .panel {
       display: none;
+      animation: fadeIn 0.3s ease;
     }
-    .panel.active {
-      display: block;
-    }
-    .btn-action {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--primary);
-      background: transparent;
-      color: var(--primary);
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all .2s ease;
-      margin-bottom: 16px;
-    }
-    .btn-action:hover {
-      background: rgba(106,17,203,0.1);
-    }
-    .btn-action:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .status-msg {
-      font-size: 0.8rem;
-      text-align: center;
-      margin-bottom: 12px;
-      padding: 8px;
-      border-radius: 6px;
-      display: none;
-    }
-    .status-msg.success {
-      display: block;
-      background: rgba(61,220,151,0.1);
-      color: #3ddc97;
-    }
-    .status-msg.error {
-      display: block;
-      background: rgba(255,107,107,0.1);
-      color: #ff6b6b;
-    }
-    #qr-result {
-      display: none;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    #qr-result img {
-      max-width: 140px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    #qr-result .secret {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 6px;
-      word-break: break-all;
-    }
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 1.1rem;
-      text-align: center;
-      letter-spacing: 4px;
-      box-sizing: border-box;
-      transition: border-color .2s ease;
-    }
-    .form-group input:focus {
-      border-color: var(--primary2);
-      outline: none;
-    }
-    .error-msg {
-      color: #ff6b6b;
-      font-size: 0.75rem;
-      margin-top: 4px;
-      min-height: 1em;
-    }
-    .btn-submit {
-      width: 100%;
-      padding: 12px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(135deg, var(--primary), var(--primary2));
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform .2s ease, filter .2s ease;
-    }
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.1);
-    }
-    .admin-zone {
-      display: none;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-    .admin-zone.visible {
-      display: block;
-    }
-    .admin-code-box {
-      display: none;
-      background: rgba(255,107,107,0.08);
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 10px;
-    }
-    .admin-code-box.visible {
-      display: block;
-    }
-    .admin-code-box .code {
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: 6px;
-      color: #ff6b6b;
-      font-family: monospace;
-    }
-    .admin-code-box small {
-      display: block;
-      color: var(--muted);
-      font-size: 0.7rem;
-      margin-top: 4px;
-    }
-    .btn-admin {
-      padding: 8px 16px;
-      border-radius: 6px;
-      border: 1px solid #ff6b6b;
-      background: transparent;
-      color: #ff6b6b;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all .2s ease;
-    }
-    .btn-admin:hover {
-      background: rgba(255,107,107,0.1);
-    }
+    .panel.active { display: block; }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Action button */
+    .btn-action {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-action .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status message */
+    .status-msg {
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .status-msg.success {
+      display: block;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .status-msg.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    /* QR Result */
+    #qr-result {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+
+    #qr-result img {
+      width: 160px;
+      height: 160px;
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+    }
+
+    #qr-result .secret {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      font-family: monospace;
+      word-break: break-all;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .code-input-wrapper {
+      position: relative;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 18px 20px;
+      border-radius: 14px;
+      border: 2px solid var(--card-border);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 12px;
+      font-family: 'Inter', monospace;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 12px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    }
+
+    .error-msg {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #8b5cf6, var(--primary));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-submit:hover::before { opacity: 1; }
+
+    .btn-submit span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Admin zone */
+    .admin-zone {
+      display: none;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .admin-zone.visible { display: block; }
+
+    .btn-admin {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.05);
+      color: var(--error);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-admin:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .admin-code-box {
+      display: none;
+      margin-top: 16px;
+      padding: 20px;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .admin-code-box.visible { display: block; }
+
+    .admin-code-box .code {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: monospace;
+      letter-spacing: 8px;
+      color: var(--error);
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .admin-code-box small {
+      display: block;
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    /* Back link */
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .card { padding: 28px 20px; }
+      .form-group input { font-size: 1.25rem; letter-spacing: 8px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container-2fa">
-    <h1>Verification</h1>
-    <p class="subtitle">Choisissez votre methode</p>
+  <div class="bg-gradient"></div>
+  <div class="bg-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
 
-    <div class="method-tabs">
-      <button class="method-tab active" data-method="email" type="button">
+  <div class="card">
+    <div class="logo">🔐</div>
+    <h1>Vérification 2FA</h1>
+    <p class="subtitle">Une dernière étape pour accéder au CV</p>
+
+    <div class="method-selector">
+      <button class="method-btn active" data-method="email" type="button">
         <span class="icon">📧</span>
-        Email
+        <span>Email</span>
       </button>
-      <button class="method-tab" data-method="qrcode" type="button">
+      <button class="method-btn" data-method="qrcode" type="button">
         <span class="icon">📱</span>
-        App
+        <span>Authenticator</span>
       </button>
     </div>
 
     <!-- Panel Email -->
     <div id="panel-email" class="panel active">
-      <button id="send-email" class="btn-action" type="button">Envoyer le code</button>
+      <button id="send-email" class="btn-action" type="button">
+        <span>📤</span> Envoyer le code par email
+      </button>
       <div id="email-status" class="status-msg"></div>
     </div>
 
     <!-- Panel QR Code -->
     <div id="panel-qrcode" class="panel">
-      <button id="gen-qr" class="btn-action" type="button">Generer QR Code</button>
+      <button id="gen-qr" class="btn-action" type="button">
+        <span>🔄</span> Générer le QR Code
+      </button>
       <div id="qr-result">
-        <img id="qr-img" src="" alt="QR">
+        <img id="qr-img" src="" alt="QR Code">
         <div id="qr-secret" class="secret"></div>
       </div>
     </div>
@@ -261,21 +502,25 @@
     <!-- Formulaire -->
     <form id="form-2fa">
       <div class="form-group">
-        <label for="code">Code a 6 chiffres</label>
-        <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+        <label for="code">Code de vérification</label>
+        <div class="code-input-wrapper">
+          <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+        </div>
         <div id="error-code" class="error-msg"></div>
       </div>
-      <button type="submit" class="btn-submit">Valider</button>
+      <button type="submit" class="btn-submit"><span>Vérifier et continuer</span></button>
     </form>
 
     <!-- Admin -->
     <div id="admin-zone" class="admin-zone">
-      <button id="btn-admin" class="btn-admin" type="button">Code Admin</button>
+      <button id="btn-admin" class="btn-admin" type="button">🔑 Accès Admin - Voir le code</button>
       <div id="admin-code-box" class="admin-code-box">
         <div class="code" id="admin-code">------</div>
-        <small>Valide 10 min</small>
+        <small>⏱️ Valide pendant 10 minutes</small>
       </div>
     </div>
+
+    <a href="/" class="back-link">← Retour au CV</a>
   </div>
 
   <script>
@@ -304,10 +549,10 @@
     .catch(() => {});
 
   // Tabs
-  document.querySelectorAll('.method-tab').forEach(tab => {
+  document.querySelectorAll('.method-btn').forEach(tab => {
     tab.addEventListener('click', () => {
       currentMethod = tab.dataset.method;
-      document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.method-btn').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       document.getElementById('panel-' + currentMethod).classList.add('active');
@@ -317,7 +562,7 @@
   // Send email
   sendEmailBtn.addEventListener('click', async () => {
     sendEmailBtn.disabled = true;
-    sendEmailBtn.textContent = 'Envoi...';
+    sendEmailBtn.innerHTML = '<span class="spinner"></span> Envoi en cours...';
     emailStatus.className = 'status-msg';
 
     try {
@@ -327,24 +572,25 @@
       });
       const j = await res.json();
       if (j.success) {
-        emailStatus.innerHTML = '✅ Code envoye !<br><small style="opacity:0.8">⚠️ Pense a verifier tes spams si tu ne le vois pas</small>';
+        emailStatus.innerHTML = '✅ Code envoyé !<br><small style="opacity:0.7; font-size: 0.8em;">💡 Vérifie aussi tes spams si tu ne le vois pas</small>';
+        emailStatus.className = 'status-msg success';
       } else {
-        emailStatus.textContent = j.error || 'Erreur';
+        emailStatus.textContent = '❌ ' + (j.error || 'Erreur');
+        emailStatus.className = 'status-msg error';
       }
-      emailStatus.className = 'status-msg ' + (j.success ? 'success' : 'error');
     } catch (e) {
-      emailStatus.textContent = 'Erreur reseau';
+      emailStatus.textContent = '❌ Erreur réseau';
       emailStatus.className = 'status-msg error';
     } finally {
       sendEmailBtn.disabled = false;
-      sendEmailBtn.textContent = 'Renvoyer';
+      sendEmailBtn.innerHTML = '<span>📤</span> Renvoyer le code';
     }
   });
 
   // Generate QR
   genQrBtn.addEventListener('click', async () => {
     genQrBtn.disabled = true;
-    genQrBtn.textContent = 'Generation...';
+    genQrBtn.innerHTML = '<span class="spinner"></span> Génération...';
 
     try {
       const res = await fetch('/.netlify/functions/api/2fa/generate', {
@@ -361,7 +607,7 @@
       alert('Erreur: ' + e.message);
     } finally {
       genQrBtn.disabled = false;
-      genQrBtn.textContent = 'Regenerer';
+      genQrBtn.innerHTML = '<span>🔄</span> Régénérer';
     }
   });
 
@@ -374,9 +620,8 @@
       if (j.code) {
         adminCode.textContent = j.code;
         adminCodeBox.classList.add('visible');
-        // Switch to email method
         currentMethod = 'email';
-        document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.method-btn').forEach(t => t.classList.remove('active'));
         document.querySelector('[data-method="email"]').classList.add('active');
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.getElementById('panel-email').classList.add('active');
@@ -385,7 +630,7 @@
     btnAdmin.disabled = false;
   });
 
-  // Input filter
+  // Input filter + auto-focus
   codeInput.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
     errorMsg.textContent = '';
@@ -396,9 +641,14 @@
     e.preventDefault();
     const token = codeInput.value.trim();
     if (token.length !== 6) {
-      errorMsg.textContent = 'Code a 6 chiffres requis';
+      errorMsg.textContent = '⚠️ Le code doit contenir 6 chiffres';
+      codeInput.focus();
       return;
     }
+
+    const btn = form.querySelector('.btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
 
     try {
       const res = await fetch('/.netlify/functions/api/2fa/verify', {
@@ -409,12 +659,18 @@
       });
       const j = await res.json();
       if (j.valid && j.redirect) {
-        window.location.href = j.redirect;
+        btn.innerHTML = '<span>✅ Vérifié !</span>';
+        btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        setTimeout(() => window.location.href = j.redirect, 500);
       } else {
-        errorMsg.textContent = j.error || 'Code invalide';
+        errorMsg.textContent = '❌ ' + (j.error || 'Code invalide');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Vérifier et continuer</span>';
       }
     } catch (err) {
-      errorMsg.textContent = 'Erreur reseau';
+      errorMsg.textContent = '❌ Erreur réseau';
+      btn.disabled = false;
+      btn.innerHTML = '<span>Vérifier et continuer</span>';
     }
   });
   </script>

@@ -666,6 +666,60 @@ app.post(["/api/track-visit", "/track-visit", "/.netlify/functions/api/track-vis
   res.json({ success: true, visits: stats.visits });
 });
 
+// Formulaire de contact - envoie vers Discord (webhook protege cote serveur)
+app.post(["/api/contact", "/contact", "/.netlify/functions/api/contact"], rateLimitMiddleware(5), async (req, res) => {
+  const { name, email, message } = req.body;
+
+  // Validation basique
+  if (!name || !email || !message) {
+    return res.status(400).json({ success: false, error: "Tous les champs sont requis" });
+  }
+
+  // Validation email simple
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, error: "Email invalide" });
+  }
+
+  // Anti-spam: limite la taille des champs
+  if (name.length > 100 || email.length > 100 || message.length > 2000) {
+    return res.status(400).json({ success: false, error: "Message trop long" });
+  }
+
+  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
+
+  try {
+    const payload = {
+      embeds: [{
+        title: "📩 Nouveau message de contact",
+        color: 0x6a11cb,
+        fields: [
+          { name: "Nom", value: name.slice(0, 100), inline: true },
+          { name: "Email", value: email.slice(0, 100), inline: true },
+          { name: "Message", value: message.slice(0, 1000) }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      res.json({ success: true, message: "Message envoye avec succes" });
+    } else {
+      console.error("Discord webhook error:", response.status);
+      res.status(500).json({ success: false, error: "Erreur lors de l'envoi" });
+    }
+  } catch (err) {
+    console.error("Contact form error:", err);
+    res.status(500).json({ success: false, error: "Erreur serveur" });
+  }
+});
+
 // Auth check
 app.get(["/auth-check", "/api/auth-check", "/.netlify/functions/api/auth-check"], (req, res) => {
   if (req.isAuthenticated() && req.session.twoFA === true) return res.json({ authenticated: true });
@@ -678,8 +732,349 @@ app.get(["/download-cv", "/secure/download", "/.netlify/functions/api/download-c
     return res.redirect("/");
   }
   const isAdminUser = isAdmin(req);
+  const userName = req.user?.displayName?.split(' ')[0] || 'Utilisateur';
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Telechargement - CV Viktor Morel</title><link rel="stylesheet" href="/styles.css"><style>body{-webkit-user-select:none;user-select:none}.download-hero{padding:80px 20px;text-align:center}.download-card{max-width:760px;margin:20px auto;padding:28px;border-radius:16px}.download-title{font-size:1.6rem;margin:0 0 12px}.download-sub{color:var(--muted);margin-bottom:18px}.big-download{font-size:1.05rem;padding:14px 20px;border-radius:12px}.btn-admin{background:linear-gradient(135deg,#ff6b6b,#ee5a24);margin-top:12px}</style></head><body class="centered-layout" oncontextmenu="return false"><main class="download-hero"><div class="download-card glass gradient-border"><h1 class="download-title">Acces securise</h1><p class="download-sub">Bravo - tu t'es authentifie avec succes via Google et valide la 2FA.</p><div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:18px"><a class="btn primary big-download" href="/.netlify/functions/api/download-cv/file">Telecharger le CV (DOCX)</a></div>${isAdminUser ? '<div style="margin-top:20px"><a class="btn btn-admin big-download" href="/.netlify/functions/api/admin-console">Console Administration</a></div>' : ''}<p style="margin-top:6px;color:var(--muted)">Contact: <a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a></p></div></main><script>document.addEventListener("keydown",e=>{if(e.key==="F12"||(e.ctrlKey&&e.shiftKey)||(e.ctrlKey&&e.key==="u"))e.preventDefault()});</script></body></html>`);
+  res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acces Securise - CV Viktor Morel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f0f23;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Animated background */
+    .bg-animation {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      top: -150px;
+      left: -100px;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -10s;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -30px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(20px, 30px) scale(1.02); }
+    }
+
+    /* Grid pattern */
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: 1;
+    }
+
+    /* Main card */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Success icon */
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 10px 60px rgba(16, 185, 129, 0.6); }
+    }
+
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+
+    .title {
+      color: white;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .greeting {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .greeting strong {
+      color: #a78bfa;
+    }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 18px 24px;
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-admin {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-admin:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Contact */
+    .contact {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .contact p {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+
+    .contact a {
+      color: #a78bfa;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .contact a:hover {
+      color: #c4b5fd;
+    }
+
+    /* Back link */
+    .back-link {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(-4px);
+    }
+
+    .back-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Security badge */
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 12px;
+      color: #10b981;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .security-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+  </style>
+</head>
+<body oncontextmenu="return false">
+  <div class="bg-animation">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="grid-pattern"></div>
+
+  <a href="/" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    Retour au CV
+  </a>
+
+  <div class="card">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+
+    <h1 class="title">Acces Autorise</h1>
+    <p class="greeting">Bienvenue <strong>${userName}</strong> ! Tu t'es authentifie avec succes via Google et as valide la verification 2FA.</p>
+
+    <a href="/.netlify/functions/api/download-cv/file" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Telecharger le CV
+    </a>
+
+    ${isAdminUser ? `
+    <a href="/.netlify/functions/api/admin-console" class="btn btn-admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Console Administration
+    </a>
+    ` : ''}
+
+    <div class="security-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Connexion securisee verifiee
+    </div>
+
+    <div class="contact">
+      <p>Contact : <a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("keydown", e => {
+      if (e.key === "F12" || (e.ctrlKey && e.shiftKey) || (e.ctrlKey && e.key === "u")) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>`);
 });
 
 // Route pour telecharger le fichier CV (protegee par auth)
@@ -694,33 +1089,254 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req,
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Telechargement en cours...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telechargement en cours - CV Viktor Morel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:linear-gradient(135deg,#667eea,#764ba2)}
-    .card{background:white;padding:40px;border-radius:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-    h1{color:#1f2937;margin-bottom:12px}
-    p{color:#6b7280}
-    .spinner{width:50px;height:50px;border:4px solid #e5e7eb;border-top-color:#667eea;border-radius:50%;animation:spin 1s linear infinite;margin:20px auto}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f0f23;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    .bg-animation {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      top: -150px;
+      left: -100px;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -30px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(20px, 30px) scale(1.02); }
+    }
+
+    /* Grid pattern */
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: 1;
+    }
+
+    /* Main card */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Download animation */
+    .download-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+
+    .download-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    .download-arrow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: downloadBounce 1.5s ease-in-out infinite;
+    }
+
+    .download-arrow svg {
+      width: 40px;
+      height: 40px;
+      color: #a78bfa;
+    }
+
+    @keyframes downloadBounce {
+      0%, 100% { transform: translate(-50%, -50%); }
+      50% { transform: translate(-50%, -30%); }
+    }
+
+    /* Progress bar */
+    .progress-container {
+      margin: 24px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2, #a78bfa);
+      background-size: 200% 100%;
+      border-radius: 3px;
+      animation: progressAnim 2s ease-in-out forwards, gradientShift 1s ease infinite;
+    }
+
+    @keyframes progressAnim {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .title {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Success state */
+    .card.success .download-circle {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+      border-color: rgba(16, 185, 129, 0.4);
+      animation: none;
+    }
+
+    .card.success .download-arrow svg {
+      color: #10b981;
+    }
+
+    .card.success .progress-fill {
+      background: linear-gradient(90deg, #10b981, #059669);
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="spinner"></div>
-    <h1>Telechargement en cours</h1>
-    <p>Le CV va se telecharger automatiquement...</p>
+  <div class="bg-animation">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
   </div>
+  <div class="grid-pattern"></div>
+
+  <div class="card" id="card">
+    <div class="download-icon">
+      <div class="download-circle"></div>
+      <div class="download-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+    </div>
+
+    <h1 class="title" id="title">Telechargement en cours</h1>
+    <p class="subtitle" id="subtitle">Preparation du fichier CV...</p>
+
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Telecharger via un lien invisible
-    const link = document.createElement('a');
-    link.href = '/cv-viktor-morel.docx';
-    link.download = 'CV-Viktor-Morel.docx';
-    document.body.appendChild(link);
-    link.click();
-    // Rediriger vers la page de download apres 2 secondes
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.href = '/cv-viktor-morel.docx';
+      link.download = 'CV-Viktor-Morel.docx';
+      document.body.appendChild(link);
+      link.click();
+
+      // Afficher succes
+      document.getElementById('card').classList.add('success');
+      document.getElementById('title').textContent = 'Telechargement termine !';
+      document.getElementById('subtitle').textContent = 'Redirection en cours...';
+
+      // Changer l'icone en check
+      document.querySelector('.download-arrow').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    }, 500);
+
+    // Rediriger vers la page de download apres 2.5 secondes
     setTimeout(() => {
       window.location.href = '/.netlify/functions/api/download-cv';
-    }, 2000);
+    }, 2500);
   </script>
 </body>
 </html>`);

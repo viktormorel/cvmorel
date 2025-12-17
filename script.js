@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (themeToggle) themeToggle.addEventListener('click', cycleTheme, { passive: true });
 
   // Smooth scroll navbar - optimisé avec passive où possible
-  document.querySelectorAll('.navbar a').forEach(a => {
+  document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
     a.addEventListener('click', e => {
       const href = a.getAttribute('href');
       if (href && href.startsWith('#')) {
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     f.addEventListener('blur', () => validateField(f), { passive: true });
   });
 
-  // Soumission vers Discord webhook avec feedback visuel
+  // Soumission via API backend (webhook protege cote serveur)
   async function handleContactSubmit(e) {
     e.preventDefault();
 
@@ -165,18 +165,17 @@ document.addEventListener("DOMContentLoaded", () => {
       email: form.email.value.trim(),
       message: form.message.value.trim()
     };
-    const payload = {
-      content: `📩 Nouveau message :\n**Nom :** ${data.name}\n**Email :** ${data.email}\n**Message :** ${data.message}`
-    };
 
     try {
-      const res = await fetch("https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7", {
+      const res = await fetch("/.netlify/functions/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(data)
       });
 
-      if (res.ok) {
+      const result = await res.json();
+
+      if (res.ok && result.success) {
         submitBtn.textContent = '✓ Envoyé !';
         submitBtn.style.background = 'linear-gradient(135deg, #3ddc97, #16c79a)';
         form.reset();
@@ -187,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
           submitBtn.disabled = false;
         }, 2500);
       } else {
-        throw new Error('Erreur serveur');
+        throw new Error(result.error || 'Erreur serveur');
       }
     } catch (err) {
       console.error(err);
