@@ -337,6 +337,7 @@ app.use((req, res, next) => {
   console.log(`[API] ${req.method} ${req.path} (originalUrl: ${req.originalUrl})`);
 
   const allowedOrigins = [
+    "https://viktor-morel.netlify.app",
     "https://cv-viktor-morel.netlify.app",
     "https://viktormorel.com" // Si tu as un domaine custom
   ];
@@ -356,7 +357,7 @@ app.use((req, res, next) => {
 
 // Google OAuth - initialisation différée
 // IMPORTANT: L'URL doit correspondre EXACTEMENT à celle dans Google Cloud Console
-const CALLBACK_URL = "https://cv-viktor-morel.netlify.app/.netlify/functions/api/auth/google/callback";
+const CALLBACK_URL = "https://viktor-morel.netlify.app/.netlify/functions/api/auth/google/callback";
 
 app.use(passport.initialize());
 app.use(passport.session());
