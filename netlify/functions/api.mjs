@@ -486,8 +486,7 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
   return res.json({ valid: false, error: "Code invalide" });
 });
 
-// 2FA: Generer et envoyer code - Rate limited (3 demandes/min)
-// Le code est envoye sur Discord - Viktor le transmet a la personne
+// 2FA: Generer et envoyer code par email via Brevo - Rate limited (3 demandes/min)
 app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], rateLimitMiddleware(3), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ success: false, error: "Non authentifie" });
@@ -506,37 +505,56 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer sur Discord - Viktor recoit le code et le transmet
-  const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
+  // Envoyer l'email via Brevo API
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (!brevoApiKey) {
+    console.error("BREVO_API_KEY non configure");
+    return res.status(500).json({ success: false, error: "Service email non configure" });
+  }
 
   try {
-    await fetch(webhookUrl, {
+    const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "accept": "application/json",
+        "api-key": brevoApiKey,
+        "content-type": "application/json"
+      },
       body: JSON.stringify({
-        content: `@everyone **Demande de code 2FA !**`,
-        embeds: [{
-          title: "Code 2FA demande",
-          color: 0x6a11cb,
-          description: `**${userName}** demande un code pour acceder au CV.`,
-          fields: [
-            { name: "Nom", value: userName, inline: true },
-            { name: "Email", value: userEmail, inline: true },
-            { name: "Code a transmettre", value: `\`\`\`${code}\`\`\``, inline: false }
-          ],
-          footer: { text: "Le code expire dans 10 minutes" },
-          timestamp: new Date().toISOString()
-        }]
+        sender: { name: "Viktor Morel - CV", email: "noreply@viktormorel.fr" },
+        to: [{ email: userEmail, name: userName }],
+        subject: "Votre code de verification - CV Viktor Morel",
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 30px; border-radius: 12px; text-align: center;">
+              <h1 style="color: white; margin: 0 0 10px;">Code de verification</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 0;">Pour acceder au CV de Viktor Morel</p>
+            </div>
+            <div style="padding: 30px; background: #f8f9fa; border-radius: 0 0 12px 12px;">
+              <p style="color: #333; font-size: 16px;">Bonjour ${userName},</p>
+              <p style="color: #666; font-size: 14px;">Voici votre code de verification :</p>
+              <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; color: white; letter-spacing: 8px;">${code}</span>
+              </div>
+              <p style="color: #999; font-size: 12px; text-align: center;">Ce code expire dans 10 minutes.</p>
+            </div>
+          </div>
+        `
       })
     });
 
-    // Dire a l'utilisateur que le code a ete demande
+    if (!emailResponse.ok) {
+      const errorData = await emailResponse.text();
+      console.error("Erreur Brevo:", errorData);
+      return res.status(500).json({ success: false, error: "Erreur envoi email" });
+    }
+
     res.json({
       success: true,
-      message: "Code demande ! Viktor va te le transmettre par email ou telephone. Patiente quelques instants."
+      message: "Code envoye par email ! Verifie ta boite de reception (et les spams)."
     });
   } catch (err) {
-    console.error("Erreur Discord webhook:", err);
+    console.error("Erreur envoi email:", err);
     res.status(500).json({ success: false, error: "Erreur serveur" });
   }
 });
