@@ -505,47 +505,49 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
   req.session.emailCode = code;
   req.session.emailCodeExpiry = Date.now() + 10 * 60 * 1000;
 
-  // Envoyer l'email via Brevo API
-  const brevoApiKey = process.env.BREVO_API_KEY;
-  if (!brevoApiKey) {
-    console.error("BREVO_API_KEY non configure");
+  // Envoyer l'email via Mailjet API
+  const mjApiKey = process.env.MAILJET_API_KEY;
+  const mjSecretKey = process.env.MAILJET_SECRET_KEY;
+  if (!mjApiKey || !mjSecretKey) {
+    console.error("MAILJET keys non configurees");
     return res.status(500).json({ success: false, error: "Service email non configure" });
   }
 
   try {
-    const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const emailResponse = await fetch("https://api.mailjet.com/v3.1/send", {
       method: "POST",
       headers: {
-        "accept": "application/json",
-        "api-key": brevoApiKey,
-        "content-type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + Buffer.from(`${mjApiKey}:${mjSecretKey}`).toString("base64")
       },
       body: JSON.stringify({
-        sender: { name: "Viktor Morel - CV", email: "noreply@viktormorel.fr" },
-        to: [{ email: userEmail, name: userName }],
-        subject: "Votre code de verification - CV Viktor Morel",
-        htmlContent: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 30px; border-radius: 12px; text-align: center;">
-              <h1 style="color: white; margin: 0 0 10px;">Code de verification</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 0;">Pour acceder au CV de Viktor Morel</p>
-            </div>
-            <div style="padding: 30px; background: #f8f9fa; border-radius: 0 0 12px 12px;">
-              <p style="color: #333; font-size: 16px;">Bonjour ${userName},</p>
-              <p style="color: #666; font-size: 14px;">Voici votre code de verification :</p>
-              <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-                <span style="font-size: 32px; font-weight: bold; color: white; letter-spacing: 8px;">${code}</span>
+        Messages: [{
+          From: { Email: "viktormorel.pro@gmail.com", Name: "Viktor Morel - CV" },
+          To: [{ Email: userEmail, Name: userName }],
+          Subject: "Votre code de verification - CV Viktor Morel",
+          HTMLPart: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 30px; border-radius: 12px; text-align: center;">
+                <h1 style="color: white; margin: 0 0 10px;">Code de verification</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 0;">Pour acceder au CV de Viktor Morel</p>
               </div>
-              <p style="color: #999; font-size: 12px; text-align: center;">Ce code expire dans 10 minutes.</p>
+              <div style="padding: 30px; background: #f8f9fa; border-radius: 0 0 12px 12px;">
+                <p style="color: #333; font-size: 16px;">Bonjour ${userName},</p>
+                <p style="color: #666; font-size: 14px;">Voici votre code de verification :</p>
+                <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                  <span style="font-size: 32px; font-weight: bold; color: white; letter-spacing: 8px;">${code}</span>
+                </div>
+                <p style="color: #999; font-size: 12px; text-align: center;">Ce code expire dans 10 minutes.</p>
+              </div>
             </div>
-          </div>
-        `
+          `
+        }]
       })
     });
 
     if (!emailResponse.ok) {
       const errorData = await emailResponse.text();
-      console.error("Erreur Brevo:", errorData);
+      console.error("Erreur Mailjet:", errorData);
       return res.status(500).json({ success: false, error: "Erreur envoi email" });
     }
 
