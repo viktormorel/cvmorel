@@ -682,6 +682,15 @@ app.get(["/download-cv", "/secure/download", "/.netlify/functions/api/download-c
   res.send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Telechargement - CV Viktor Morel</title><link rel="stylesheet" href="/styles.css"><style>body{-webkit-user-select:none;user-select:none}.download-hero{padding:80px 20px;text-align:center}.download-card{max-width:760px;margin:20px auto;padding:28px;border-radius:16px}.download-title{font-size:1.6rem;margin:0 0 12px}.download-sub{color:var(--muted);margin-bottom:18px}.big-download{font-size:1.05rem;padding:14px 20px;border-radius:12px}.btn-admin{background:linear-gradient(135deg,#ff6b6b,#ee5a24);margin-top:12px}</style></head><body class="centered-layout" oncontextmenu="return false"><main class="download-hero"><div class="download-card glass gradient-border"><h1 class="download-title">Acces securise</h1><p class="download-sub">Bravo - tu t'es authentifie avec succes via Google et valide la 2FA.</p><div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:18px"><a class="btn primary big-download" href="/.netlify/functions/api/download-cv/file">Telecharger le CV (DOCX)</a></div>${isAdminUser ? '<div style="margin-top:20px"><a class="btn btn-admin big-download" href="/.netlify/functions/api/admin-console">Console Administration</a></div>' : ''}<p style="margin-top:6px;color:var(--muted)">Contact: <a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a></p></div></main><script>document.addEventListener("keydown",e=>{if(e.key==="F12"||(e.ctrlKey&&e.shiftKey)||(e.ctrlKey&&e.key==="u"))e.preventDefault()});</script></body></html>`);
 });
 
+// Route pour telecharger le fichier CV (protegee par auth)
+app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req, res) => {
+  if (!req.isAuthenticated() || req.session.twoFA !== true) {
+    return res.status(401).json({ error: "Non autorise" });
+  }
+  // Rediriger vers le fichier statique
+  res.redirect("/cv-viktor-morel.docx");
+});
+
 // Console admin securisee - Design premium avec animations
 app.get(["/admin-console", "/secure/admin", "/.netlify/functions/api/admin-console"], (req, res) => {
   if (!req.isAuthenticated() || req.session.twoFA !== true || !isAdmin(req)) {
