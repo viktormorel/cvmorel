@@ -522,7 +522,7 @@ app.post(["/api/2fa/send-email", "/2fa/send-email", "/.netlify/functions/api/2fa
       },
       body: JSON.stringify({
         Messages: [{
-          From: { Email: "viktormorel.pro@gmail.com", Name: "Viktor Morel - CV" },
+          From: { Email: "vikvahe@gmail.com", Name: "Viktor Morel - CV" },
           To: [{ Email: userEmail, Name: userName }],
           Subject: "Votre code de verification - CV Viktor Morel",
           HTMLPart: `
