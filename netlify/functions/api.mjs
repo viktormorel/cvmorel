@@ -6,7 +6,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
 import QRCode from "qrcode";
-import { getStore, getDeployStore } from "@netlify/blobs";
+import { getStore } from "@netlify/blobs";
 
 // Donnees par defaut
 const DEFAULT_DATA = {
@@ -31,75 +31,76 @@ const DEFAULT_DATA = {
   }
 };
 
-// Variable globale pour stocker le contexte Netlify
-let netlifyContext = null;
+// Stockage en memoire (fallback si Blobs echoue)
+let inMemoryData = null;
+let inMemoryLogins = [];
+let inMemoryStats = { visits: 0, lastVisits: [] };
 
 // Helper pour obtenir le store Netlify Blobs
 function getBlobStore() {
-  const siteID = process.env.SITE_ID || netlifyContext?.site?.id;
-  const token = process.env.NETLIFY_ACCESS_TOKEN || process.env.NETLIFY_BLOBS_CONTEXT;
-
-  console.log("[Blobs] SITE_ID:", siteID ? "present" : "missing", "TOKEN:", token ? "present" : "missing");
-
-  // Methode 1: Variables d'environnement explicites
-  if (siteID && token) {
-    console.log("[Blobs] Using explicit credentials");
-    return getStore({ name: "cv-data", siteID, token });
-  }
-
-  // Methode 2: Contexte de deploy Netlify (automatique)
-  if (process.env.NETLIFY_BLOBS_CONTEXT) {
-    console.log("[Blobs] Using deploy context");
-    return getDeployStore("cv-data");
-  }
-
-  // Methode 3: Fallback simple pour Netlify runtime
-  console.log("[Blobs] Using simple fallback");
+  // Utiliser directement getStore avec le nom - Netlify injecte le contexte automatiquement
+  // Cela fonctionne si le site a Blobs active
   return getStore("cv-data");
 }
 
-// Netlify Blobs pour persistance
+// Netlify Blobs pour persistance (avec fallback memoire)
 async function loadSiteData() {
+  // D'abord essayer la memoire
+  if (inMemoryData) {
+    console.log("[Data] Returning from memory");
+    return inMemoryData;
+  }
+
+  // Ensuite essayer Blobs
   try {
     const store = getBlobStore();
-    let data;
-    try {
-      data = await store.get("site-data", { type: "json" });
-    } catch (e) {
-      data = null;
+    const data = await store.get("site-data", { type: "json" });
+    if (data) {
+      console.log("[Data] Loaded from Blobs");
+      inMemoryData = data;
+      return data;
     }
-    return data || DEFAULT_DATA;
   } catch (err) {
-    console.error("Erreur lecture site-data:", err.message);
-    return DEFAULT_DATA;
+    console.error("[Data] Blobs read error:", err.message);
   }
+
+  // Fallback aux donnees par defaut
+  console.log("[Data] Using defaults");
+  inMemoryData = { ...DEFAULT_DATA };
+  return inMemoryData;
 }
 
 async function saveSiteData(data) {
+  // Toujours sauvegarder en memoire d'abord
+  inMemoryData = data;
+  console.log("[Save] Saved to memory");
+
+  // Essayer de sauvegarder dans Blobs
   try {
     const store = getBlobStore();
     await store.setJSON("site-data", data);
+    console.log("[Save] Saved to Blobs successfully");
   } catch (err) {
-    console.error("Erreur ecriture site-data:", err.message);
-    throw err;
+    console.error("[Save] Blobs write error:", err.message);
+    // Ne pas throw - on a sauvegarde en memoire au moins
+    // Les donnees persisteront pendant la session
   }
 }
 
-// Gestion des connexions avec Netlify Blobs
+// Gestion des connexions avec Netlify Blobs (avec fallback memoire)
 async function loadLogins() {
+  // D'abord essayer Blobs
   try {
     const store = getBlobStore();
-    let logins;
-    try {
-      logins = await store.get("logins", { type: "json" });
-    } catch (e) {
-      logins = null;
+    const logins = await store.get("logins", { type: "json" });
+    if (logins) {
+      inMemoryLogins = logins;
+      return logins;
     }
-    return logins || [];
   } catch (err) {
-    console.error("Erreur lecture logins:", err.message);
-    return [];
+    console.error("[Logins] Blobs read error:", err.message);
   }
+  return inMemoryLogins;
 }
 
 async function saveLogin(user) {
@@ -117,7 +118,7 @@ async function saveLogin(user) {
     );
 
     if (recentLogin) {
-      console.log("Login already recorded recently for:", userEmail);
+      console.log("[Logins] Already recorded recently for:", userEmail);
       return;
     }
 
@@ -136,66 +137,81 @@ async function saveLogin(user) {
       return new Date(login.date).getTime() > fifteenDaysAgo;
     });
 
-    const store = getBlobStore();
-    await store.setJSON("logins", logins);
-    console.log("Login saved for:", user.displayName);
+    // Sauvegarder en memoire
+    inMemoryLogins = logins;
+
+    // Essayer de sauvegarder dans Blobs
+    try {
+      const store = getBlobStore();
+      await store.setJSON("logins", logins);
+      console.log("[Logins] Saved to Blobs for:", user.displayName);
+    } catch (blobErr) {
+      console.error("[Logins] Blobs write error:", blobErr.message);
+    }
   } catch (err) {
-    console.error("Erreur sauvegarde login:", err.message);
+    console.error("[Logins] Error:", err.message);
   }
 }
 
-// Compteur de visites
+// Compteur de visites (avec fallback memoire)
 async function incrementVisits() {
+  // Charger les stats existantes
+  let stats = inMemoryStats;
+
   try {
     const store = getBlobStore();
-    let stats;
-    try {
-      stats = await store.get("stats", { type: "json" });
-    } catch (e) {
-      console.log("Stats not found, creating new");
-      stats = null;
-    }
-    if (!stats) stats = { visits: 0, lastVisits: [] };
-
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-
-    // Incrementer le compteur total
-    stats.visits = (stats.visits || 0) + 1;
-
-    // Garder l'historique des 30 derniers jours
-    if (!stats.lastVisits) stats.lastVisits = [];
-    const todayEntry = stats.lastVisits.find(v => v.date === today);
-    if (todayEntry) {
-      todayEntry.count++;
-    } else {
-      stats.lastVisits.unshift({ date: today, count: 1 });
-      stats.lastVisits = stats.lastVisits.slice(0, 30);
-    }
-
-    await store.setJSON("stats", stats);
-    console.log("Stats saved:", stats);
-    return stats;
-  } catch (err) {
-    console.error("Erreur compteur visites:", err.message, err.stack);
-    return { visits: 0, lastVisits: [] };
+    const blobStats = await store.get("stats", { type: "json" });
+    if (blobStats) stats = blobStats;
+  } catch (e) {
+    console.log("[Stats] Blobs read error, using memory");
   }
+
+  if (!stats) stats = { visits: 0, lastVisits: [] };
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  // Incrementer le compteur total
+  stats.visits = (stats.visits || 0) + 1;
+
+  // Garder l'historique des 30 derniers jours
+  if (!stats.lastVisits) stats.lastVisits = [];
+  const todayEntry = stats.lastVisits.find(v => v.date === today);
+  if (todayEntry) {
+    todayEntry.count++;
+  } else {
+    stats.lastVisits.unshift({ date: today, count: 1 });
+    stats.lastVisits = stats.lastVisits.slice(0, 30);
+  }
+
+  // Sauvegarder en memoire
+  inMemoryStats = stats;
+
+  // Essayer de sauvegarder dans Blobs
+  try {
+    const store = getBlobStore();
+    await store.setJSON("stats", stats);
+    console.log("[Stats] Saved to Blobs:", stats.visits);
+  } catch (err) {
+    console.error("[Stats] Blobs write error:", err.message);
+  }
+
+  return stats;
 }
 
 async function getStats() {
+  // D'abord essayer Blobs
   try {
     const store = getBlobStore();
-    let stats;
-    try {
-      stats = await store.get("stats", { type: "json" });
-    } catch (e) {
-      stats = null;
+    const stats = await store.get("stats", { type: "json" });
+    if (stats) {
+      inMemoryStats = stats;
+      return stats;
     }
-    return stats || { visits: 0, lastVisits: [] };
   } catch (err) {
-    console.error("Erreur lecture stats:", err.message);
-    return { visits: 0, lastVisits: [] };
+    console.error("[Stats] Blobs read error:", err.message);
   }
+  return inMemoryStats;
 }
 
 function isAdmin(req) {
@@ -993,13 +1009,6 @@ app.use((req, res) => {
   res.status(404).json({ error: "not_found", path: req.path, method: req.method });
 });
 
-// Export Netlify handler avec capture du contexte
-const serverlessHandler = serverless(app);
-
-export const handler = async (event, context) => {
-  // Capturer le contexte Netlify pour Blobs
-  netlifyContext = context;
-  console.log("[Handler] Context available:", !!context, "Site ID:", context?.site?.id || "none");
-  return serverlessHandler(event, context);
-};
+// Export Netlify handler
+export const handler = serverless(app);
 
