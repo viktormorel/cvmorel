@@ -134,10 +134,11 @@ body.centered-layout{
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ===== THEME TOGGLE (tout à gauche) ===== */
+/* ===== THEME TOGGLE (bas gauche de la navbar) ===== */
 .theme-toggle {
   position: absolute;
   left: 16px;
+  bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
