@@ -140,17 +140,8 @@
       color: #721c24;
       display: block;
     }
-    .back-link {
-      display: inline-block;
-      color: #ffffff;
-      text-decoration: none;
-      margin-bottom: 20px;
-      padding: 8px 16px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 8px;
-    }
-    .back-link:hover {
-      background: rgba(255,255,255,0.3);
+    .admin-container {
+      padding-top: 80px;
     }
     .tabs {
       display: flex;
@@ -177,12 +168,83 @@
     .tab-content.active {
       display: block;
     }
+    /* Modal d'edition */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal h3 {
+      color: #1f2430;
+      margin: 0 0 20px;
+      font-size: 1.4rem;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-cancel {
+      background: #e0e0e0;
+      color: #333;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .btn-confirm {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .btn-cancel:hover, .btn-confirm:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="centered-layout">
-  <div class="admin-container">
-    <a href="/download-cv" class="back-link">Retour au telechargement</a>
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Navigation">
+    <ul>
+      <li><a href="/#about">À propos</a></li>
+      <li><a href="/#experience">Expérience</a></li>
+      <li><a href="/#skills">Compétences</a></li>
+      <li><a href="/#projects">Centres d'intérêt</a></li>
+      <li><a href="/#education">Formation</a></li>
+      <li><a href="/#contact">Contact</a></li>
+      <li><a href="/download-cv" class="nav-download">Télécharger CV</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/" class="back-to-cv" style="color:white;text-decoration:none;padding:8px 16px;background:rgba(255,255,255,0.2);border-radius:8px;font-size:0.9rem;">← Retour au CV</a>
+    </div>
+  </nav>
 
+  <div class="admin-container">
     <div class="admin-header">
       <h1>Console Administration</h1>
       <p style="color: rgba(255,255,255,0.8);">Modifier le contenu du CV en ligne</p>
@@ -305,6 +367,18 @@
     <button class="btn-save" onclick="saveAll()">Sauvegarder toutes les modifications</button>
   </div>
 
+  <!-- Modal d'edition -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h3 id="modalTitle">Modifier</h3>
+      <div id="modalContent"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+        <button class="btn-confirm" onclick="confirmEdit()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Donnees du site (chargees depuis le serveur)
     let siteData = {
@@ -345,6 +419,7 @@
         <li>
           <span>${skill}</span>
           <div>
+            <button class="btn-small btn-edit" onclick="editSkill(${i})">Modifier</button>
             <button class="btn-small btn-delete" onclick="deleteSkill(${i})">Supprimer</button>
           </div>
         </li>
@@ -357,6 +432,7 @@
         <li>
           <span>${interest}</span>
           <div>
+            <button class="btn-small btn-edit" onclick="editInterest(${i})">Modifier</button>
             <button class="btn-small btn-delete" onclick="deleteInterest(${i})">Supprimer</button>
           </div>
         </li>
@@ -369,6 +445,7 @@
         <li>
           <span><strong>${exp.title}</strong> - ${exp.company}</span>
           <div>
+            <button class="btn-small btn-edit" onclick="editExperience(${i})">Modifier</button>
             <button class="btn-small btn-delete" onclick="deleteExperience(${i})">Supprimer</button>
           </div>
         </li>
@@ -433,6 +510,106 @@
       siteData.experiences.splice(index, 1);
       renderExperiences();
     }
+
+    // Modal d'edition
+    let currentEditType = null;
+    let currentEditIndex = null;
+
+    function openModal(title, content) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalContent').innerHTML = content;
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.remove('active');
+      currentEditType = null;
+      currentEditIndex = null;
+    }
+
+    function editSkill(index) {
+      currentEditType = 'skill';
+      currentEditIndex = index;
+      const skill = siteData.skills[index];
+      openModal('Modifier la competence', `
+        <div class="form-group">
+          <label>Competence</label>
+          <input type="text" id="edit-skill" value="${skill}" placeholder="Ex: Python, Reseaux, etc.">
+        </div>
+      `);
+    }
+
+    function editInterest(index) {
+      currentEditType = 'interest';
+      currentEditIndex = index;
+      const interest = siteData.interests[index];
+      openModal("Modifier le centre d'interet", `
+        <div class="form-group">
+          <label>Centre d'interet</label>
+          <input type="text" id="edit-interest" value="${interest}" placeholder="Ex: Sport, Musique, etc.">
+        </div>
+      `);
+    }
+
+    function editExperience(index) {
+      currentEditType = 'experience';
+      currentEditIndex = index;
+      const exp = siteData.experiences[index];
+      openModal("Modifier l'experience", `
+        <div class="form-group">
+          <label>Titre du poste/stage</label>
+          <input type="text" id="edit-exp-title" value="${exp.title || ''}" placeholder="Ex: Stage developpeur">
+        </div>
+        <div class="form-group">
+          <label>Entreprise</label>
+          <input type="text" id="edit-exp-company" value="${exp.company || ''}" placeholder="Ex: France Televisions">
+        </div>
+        <div class="form-group">
+          <label>Tag/Categorie</label>
+          <input type="text" id="edit-exp-tag" value="${exp.tag || ''}" placeholder="Ex: Audiovisuel">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="text" id="edit-exp-date" value="${exp.date || ''}" placeholder="Ex: Janvier 2025">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-exp-description" placeholder="Description du poste...">${exp.description || ''}</textarea>
+        </div>
+      `);
+    }
+
+    function confirmEdit() {
+      if (currentEditType === 'skill') {
+        const newValue = document.getElementById('edit-skill').value.trim();
+        if (newValue) {
+          siteData.skills[currentEditIndex] = newValue;
+          renderSkills();
+        }
+      } else if (currentEditType === 'interest') {
+        const newValue = document.getElementById('edit-interest').value.trim();
+        if (newValue) {
+          siteData.interests[currentEditIndex] = newValue;
+          renderInterests();
+        }
+      } else if (currentEditType === 'experience') {
+        const title = document.getElementById('edit-exp-title').value.trim();
+        const company = document.getElementById('edit-exp-company').value.trim();
+        const tag = document.getElementById('edit-exp-tag').value.trim();
+        const date = document.getElementById('edit-exp-date').value.trim();
+        const description = document.getElementById('edit-exp-description').value.trim();
+        if (title && company) {
+          siteData.experiences[currentEditIndex] = { title, company, tag, date, description };
+          renderExperiences();
+        }
+      }
+      closeModal();
+    }
+
+    // Fermer le modal en cliquant a l'exterieur
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
 
     // Sauvegarder
     async function saveAll() {
