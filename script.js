@@ -405,31 +405,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }, { passive: true });
 
   // ============================================
-  // BOUTON RETOUR EN HAUT
-  // ============================================
-  const scrollToTopBtn = document.getElementById('scrollToTop');
-
-  const toggleScrollToTop = () => {
-    if (scrollToTopBtn) {
-      if (window.scrollY > 400) {
-        scrollToTopBtn.classList.add('visible');
-      } else {
-        scrollToTopBtn.classList.remove('visible');
-      }
-    }
-  };
-
-  window.addEventListener('scroll', () => {
-    requestAnimationFrame(toggleScrollToTop);
-  }, { passive: true });
-
-  if (scrollToTopBtn) {
-    scrollToTopBtn.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  // ============================================
   // CURSEUR PERSONNALISE
   // ============================================
   const cursor = document.getElementById('cursor');
