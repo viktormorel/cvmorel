@@ -311,6 +311,122 @@
       padding: 0 20px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
+
+    /* Menu sidebar */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+      padding-top: 60px;
+    }
+    .sidebar {
+      width: 280px;
+      background: rgba(255,255,255,0.98);
+      border-radius: 0 24px 24px 0;
+      padding: 24px 16px;
+      box-shadow: 4px 0 30px rgba(0,0,0,0.1);
+      position: fixed;
+      left: 0;
+      top: 60px;
+      bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .sidebar-header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #eef2ff;
+      margin-bottom: 20px;
+    }
+    .sidebar-header h2 {
+      color: #1f2430;
+      font-size: 1.3rem;
+      margin: 0 0 4px;
+    }
+    .sidebar-header p {
+      color: #5a6376;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    .menu-section {
+      margin-bottom: 24px;
+    }
+    .menu-section-title {
+      color: #5a6376;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding-left: 12px;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 6px;
+      color: #5a6376;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    .menu-item:hover {
+      background: linear-gradient(135deg, #f8f9fc 0%, #eef2ff 100%);
+      color: #6a11cb;
+      transform: translateX(4px);
+    }
+    .menu-item.active {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(106,17,203,0.3);
+    }
+    .menu-item svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .menu-item .badge {
+      margin-left: auto;
+      background: #ff4757;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .menu-item.active .badge {
+      background: rgba(255,255,255,0.3);
+    }
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+    }
+    .admin-container {
+      padding-top: 20px;
+      max-width: 100%;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        border-radius: 0;
+        padding: 16px;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .admin-layout {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body class="centered-layout">
@@ -330,54 +446,65 @@
     </div>
   </nav>
 
-  <div class="admin-container">
-    <div class="admin-header">
-      <h1>Console Administration</h1>
-      <p style="color: rgba(255,255,255,0.8);">Modifier le contenu du CV en ligne</p>
-    </div>
-
-    <div id="message" class="message"></div>
-
-    <!-- Stats rapides -->
-    <div class="admin-section" style="margin-bottom:20px;">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
-        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#6a11cb,#2575fc);border-radius:12px;color:white;">
-          <div style="font-size:2rem;font-weight:700;" id="total-visits">-</div>
-          <div style="font-size:0.85rem;opacity:0.9;">Visites totales</div>
-        </div>
-        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#2575fc,#6a11cb);border-radius:12px;color:white;">
-          <div style="font-size:2rem;font-weight:700;" id="today-visits">-</div>
-          <div style="font-size:0.85rem;opacity:0.9;">Aujourd'hui</div>
-        </div>
-        <div style="text-align:center;padding:15px 30px;background:linear-gradient(135deg,#3ddc97,#00b894);border-radius:12px;color:white;">
-          <div style="font-size:2rem;font-weight:700;" id="total-logins">-</div>
-          <div style="font-size:0.85rem;opacity:0.9;">Connexions (15j)</div>
-        </div>
+  <div class="admin-layout">
+    <!-- Sidebar Menu -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Console Admin</h2>
+        <p>Gestion du CV</p>
       </div>
-    </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="showTab('skills')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        Competences
-      </button>
-      <button class="tab-btn" onclick="showTab('interests')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        Interets
-      </button>
-      <button class="tab-btn" onclick="showTab('experience')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-        Experiences
-      </button>
-      <button class="tab-btn" onclick="showTab('contact')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        Contact
-      </button>
-      <button class="tab-btn" onclick="showTab('logins')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Connexions
-      </button>
-    </div>
+      <div class="menu-section">
+        <div class="menu-section-title">Contenu</div>
+        <button class="menu-item active" onclick="showTab('skills')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Competences
+        </button>
+        <button class="menu-item" onclick="showTab('interests')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Centres d'interet
+        </button>
+        <button class="menu-item" onclick="showTab('experience')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Experiences
+        </button>
+        <button class="menu-item" onclick="showTab('contact')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Contact
+        </button>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Statistiques</div>
+        <button class="menu-item" onclick="showTab('stats')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Visites
+          <span class="badge" id="visits-badge">-</span>
+        </button>
+        <button class="menu-item" onclick="showTab('logins')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Connexions
+          <span class="badge" id="logins-badge">-</span>
+        </button>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Navigation</div>
+        <a href="/" class="menu-item" style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Retour au CV
+        </a>
+        <a href="/download-cv" class="menu-item" style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Telecharger CV
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="admin-container">
+        <div id="message" class="message"></div>
 
     <!-- Competences -->
     <div id="tab-skills" class="tab-content active">
@@ -453,6 +580,24 @@
       </div>
     </div>
 
+    <!-- Stats -->
+    <div id="tab-stats" class="tab-content">
+      <div class="admin-section">
+        <h2>Statistiques de visites</h2>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+          <div style="flex:1;min-width:200px;text-align:center;padding:24px;background:linear-gradient(135deg,#6a11cb,#2575fc);border-radius:16px;color:white;">
+            <div style="font-size:2.5rem;font-weight:700;" id="total-visits">-</div>
+            <div style="font-size:0.9rem;opacity:0.9;">Visites totales</div>
+          </div>
+          <div style="flex:1;min-width:200px;text-align:center;padding:24px;background:linear-gradient(135deg,#2575fc,#6a11cb);border-radius:16px;color:white;">
+            <div style="font-size:2.5rem;font-weight:700;" id="today-visits">-</div>
+            <div style="font-size:0.9rem;opacity:0.9;">Aujourd'hui</div>
+          </div>
+        </div>
+        <button class="btn-add" onclick="loadStats()" style="background:linear-gradient(135deg,#2575fc,#6a11cb);">Actualiser les stats</button>
+      </div>
+    </div>
+
     <!-- Connexions -->
     <div id="tab-logins" class="tab-content">
       <div class="admin-section">
@@ -469,6 +614,8 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Sauvegarder les modifications
     </button>
+      </div>
+    </main>
   </div>
 
   <!-- Modal d'edition -->
@@ -749,9 +896,11 @@
     // Gestion des onglets
     function showTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
-      event.target.classList.add('active');
+      if (event && event.target) {
+        event.target.closest('.menu-item').classList.add('active');
+      }
     }
 
     // Charger les stats
@@ -760,18 +909,22 @@
         const response = await fetch('/api/admin/stats');
         if (response.ok) {
           const stats = await response.json();
-          document.getElementById('total-visits').textContent = stats.visits || 0;
+          const totalVisits = stats.visits || 0;
+          document.getElementById('total-visits').textContent = totalVisits;
+          document.getElementById('visits-badge').textContent = totalVisits;
           const today = new Date().toISOString().split('T')[0];
           const todayStats = stats.lastVisits?.find(v => v.date === today);
           document.getElementById('today-visits').textContent = todayStats?.count || 0;
         } else {
           document.getElementById('total-visits').textContent = 0;
           document.getElementById('today-visits').textContent = 0;
+          document.getElementById('visits-badge').textContent = '0';
         }
       } catch (err) {
         console.error('Erreur chargement stats:', err);
         document.getElementById('total-visits').textContent = 0;
         document.getElementById('today-visits').textContent = 0;
+        document.getElementById('visits-badge').textContent = '0';
       }
     }
 
@@ -783,7 +936,7 @@
         const response = await fetch('/api/admin/logins');
         if (response.ok) {
           const logins = await response.json();
-          document.getElementById('total-logins').textContent = logins.length;
+          document.getElementById('logins-badge').textContent = logins.length;
           if (logins.length === 0) {
             container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
           } else {
@@ -801,15 +954,15 @@
             `).join('') + '</ul>';
           }
         } else if (response.status === 403) {
-          document.getElementById('total-logins').textContent = '-';
+          document.getElementById('logins-badge').textContent = '-';
           container.innerHTML = '<p style="color:#888;">Connectez-vous en admin pour voir les connexions.</p>';
         } else {
-          document.getElementById('total-logins').textContent = 0;
+          document.getElementById('logins-badge').textContent = 0;
           container.innerHTML = '<p style="color:#ff4757;">Erreur lors du chargement.</p>';
         }
       } catch (err) {
         console.error('Erreur chargement connexions:', err);
-        document.getElementById('total-logins').textContent = 0;
+        document.getElementById('logins-badge').textContent = 0;
         container.innerHTML = '<p style="color:#ff4757;">Erreur reseau.</p>';
       }
     }
