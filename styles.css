@@ -41,8 +41,9 @@ html {
 }
 
 /* GPU acceleration globale pour elements animes */
+/* ATTENTION: Ne pas mettre .navbar ici car transform casse position:fixed */
 .btn, .card, .skill-bubble, .project-card, .contact-card, .timeline-item, .avatar,
-.navbar, .hero, .section, .copy-btn, .gradient-border::before {
+.hero, .section, .copy-btn, .gradient-border::before {
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -172,29 +173,34 @@ body.centered-layout{
 
 /* ===== BOUTON MAISON (a cote du theme toggle) ===== */
 .nav-home {
-  position: absolute !important;
-  left: 70px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 42px !important;
-  height: 42px !important;
-  background: rgba(255, 255, 255, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: 10px !important;
-  font-size: 1.3rem !important;
-  color: #fff !important;
-  text-decoration: none !important;
-  cursor: pointer !important;
-  transition: all 0.25s ease !important;
+  position: absolute;
+  left: 70px;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  font-size: 1.3rem;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  /* Position de base avec transform */
+  transform: translateY(-50%);
+  /* Transition SANS !important pour que hover fonctionne */
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.25s ease,
+              box-shadow 0.25s ease;
 }
 
 .nav-home:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(calc(-50% - 4px)) !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(255, 255, 255, 0.3);
+  /* Monte de 4px par rapport a la position centree */
+  transform: translateY(calc(-50% - 4px));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* ===== NAVIGATION LINKS (centre) ===== */
@@ -273,6 +279,14 @@ body.centered-layout{
     height: 36px;
     font-size: 1rem;
   }
+}
+
+/* Assurer que la navbar reste TOUJOURS visible */
+.navbar {
+  position: fixed !important;
+  top: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Hero */
