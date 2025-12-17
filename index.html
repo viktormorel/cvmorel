@@ -7,18 +7,33 @@
   <meta name="description" content="Portfolio CV premium : stages, compétences et contact." />
 
   <!-- Preconnect pour accelerer le chargement des fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Preload de la font critique pour eviter FOIT -->
+  <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Preload des ressources critiques -->
   <link rel="preload" href="styles.css" as="style">
-  <link rel="preload" href="script.js" as="script">
+  <link rel="preload" href="avatar.webp" as="image" type="image/webp">
 
   <!-- DNS prefetch pour les API externes -->
   <link rel="dns-prefetch" href="https://discord.com">
 
   <!-- Fonts avec display=swap pour eviter le FOIT -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font fallback inline pour le premier rendu -->
+  <style>
+    /* Font fallback pendant le chargement */
+    @font-face {
+      font-family: 'Montserrat';
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: local('Montserrat'), local('Montserrat-Regular');
+    }
+  </style>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -38,7 +53,11 @@
   <!-- Hero -->
   <header class="hero" id="hero" data-parallax>
     <div class="hero-bg" aria-hidden="true"></div>
-    <img src="WhatsApp Image 2025-10-18 à 17.43.59_9444101c.jpg" alt="Photo de profil de Viktor Morel" class="avatar" loading="eager" decoding="async" fetchpriority="high" />
+    <!-- Image optimisee WebP avec fallback JPG -->
+    <picture>
+      <source srcset="avatar.webp" type="image/webp">
+      <img src="WhatsApp Image 2025-10-18 à 17.43.59_9444101c.jpg" alt="Photo de profil de Viktor Morel" class="avatar" loading="eager" decoding="async" fetchpriority="high" width="168" height="168" />
+    </picture>
     <h1>Viktor Morel</h1>
     <p>Terminale CIEL • Bac pro Cybersécurité, Informatique et Réseaux Électroniques</p>
   <div class="hero-actions"></div>

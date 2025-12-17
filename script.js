@@ -42,6 +42,31 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(localStorage.getItem('themeMode') || 'auto');
   if (themeToggle) themeToggle.addEventListener('click', cycleTheme, { passive: true });
 
+  // ============================================
+  // NAVBAR SCROLL EFFECT
+  // ============================================
+  const navbar = document.querySelector('.navbar');
+  let ticking = false;
+
+  const updateNavbar = () => {
+    const scrollY = window.scrollY;
+    if (navbar) {
+      if (scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    }
+    ticking = false;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateNavbar);
+      ticking = true;
+    }
+  }, { passive: true });
+
   // Smooth scroll navbar - optimisé avec passive où possible
   document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
     a.addEventListener('click', e => {
@@ -50,7 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         const target = document.querySelector(href);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Offset pour compenser la navbar fixe
+          const navbarHeight = navbar ? navbar.offsetHeight : 66;
+          const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight;
+          window.scrollTo({ top: targetPosition, behavior: 'smooth' });
         }
       }
     });
