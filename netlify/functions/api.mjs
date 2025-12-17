@@ -6,7 +6,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
 import QRCode from "qrcode";
-import { getStore } from "@netlify/blobs";
+import { getStore, getDeployStore } from "@netlify/blobs";
 
 // Donnees par defaut
 const DEFAULT_DATA = {
@@ -31,25 +31,31 @@ const DEFAULT_DATA = {
   }
 };
 
+// Variable globale pour stocker le contexte Netlify
+let netlifyContext = null;
+
 // Helper pour obtenir le store Netlify Blobs
 function getBlobStore() {
-  // En production sur Netlify, utiliser les variables d'environnement injectées
-  const siteID = process.env.SITE_ID;
-  const token = process.env.NETLIFY_ACCESS_TOKEN;
+  const siteID = process.env.SITE_ID || netlifyContext?.site?.id;
+  const token = process.env.NETLIFY_ACCESS_TOKEN || process.env.NETLIFY_BLOBS_CONTEXT;
 
-  console.log("[Blobs] SITE_ID present:", !!siteID, "TOKEN present:", !!token);
+  console.log("[Blobs] SITE_ID:", siteID ? "present" : "missing", "TOKEN:", token ? "present" : "missing");
 
+  // Methode 1: Variables d'environnement explicites
   if (siteID && token) {
+    console.log("[Blobs] Using explicit credentials");
     return getStore({ name: "cv-data", siteID, token });
   }
-  // Fallback pour le contexte de fonction native Netlify (deploy context)
-  // Cela fonctionne automatiquement si deploye sur Netlify
-  try {
-    return getStore("cv-data");
-  } catch (e) {
-    console.error("[Blobs] Fallback getStore failed:", e.message);
-    throw new Error("Netlify Blobs non configure. Verifiez SITE_ID et NETLIFY_ACCESS_TOKEN dans les variables d'environnement Netlify.");
+
+  // Methode 2: Contexte de deploy Netlify (automatique)
+  if (process.env.NETLIFY_BLOBS_CONTEXT) {
+    console.log("[Blobs] Using deploy context");
+    return getDeployStore("cv-data");
   }
+
+  // Methode 3: Fallback simple pour Netlify runtime
+  console.log("[Blobs] Using simple fallback");
+  return getStore("cv-data");
 }
 
 // Netlify Blobs pour persistance
@@ -987,6 +993,13 @@ app.use((req, res) => {
   res.status(404).json({ error: "not_found", path: req.path, method: req.method });
 });
 
-// Export Netlify handler
-export const handler = serverless(app);
+// Export Netlify handler avec capture du contexte
+const serverlessHandler = serverless(app);
+
+export const handler = async (event, context) => {
+  // Capturer le contexte Netlify pour Blobs
+  netlifyContext = context;
+  console.log("[Handler] Context available:", !!context, "Site ID:", context?.site?.id || "none");
+  return serverlessHandler(event, context);
+};
 
