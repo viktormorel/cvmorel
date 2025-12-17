@@ -3,6 +3,9 @@
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Activer les animations reveal (apres que le contenu soit pret)
+  document.body.classList.add('js-loaded');
+
   // Tracker la visite uniquement sur la page d'accueil (une seule fois par jour)
   const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
   const lastVisit = localStorage.getItem('lastVisit');

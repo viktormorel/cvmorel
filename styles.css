@@ -567,22 +567,30 @@ body.centered-layout{
 footer { padding: 34px 0; color: #5a6376; background: #eef2ff; }
 
 /* Reveal animations ameliorees */
+/* Par defaut visible, JS ajoute .js-loaded au body pour activer les animations */
 .reveal {
-  opacity: 0;
-  transform: translateY(40px) translateZ(0);
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Quand JS est charge, cacher les elements non-visibles */
+.js-loaded .reveal:not(.visible) {
+  opacity: 0;
+  transform: translateY(40px) translateZ(0);
   will-change: opacity, transform;
 }
-.reveal.visible {
+
+.js-loaded .reveal.visible {
   opacity: 1;
   transform: translateY(0) translateZ(0);
 }
 
 /* Stagger effect pour les enfants */
-.reveal.visible > *:nth-child(1) { animation: fadeInUp 0.5s 0.1s both; }
-.reveal.visible > *:nth-child(2) { animation: fadeInUp 0.5s 0.2s both; }
-.reveal.visible > *:nth-child(3) { animation: fadeInUp 0.5s 0.3s both; }
+.js-loaded .reveal.visible > *:nth-child(1) { animation: fadeInUp 0.5s 0.1s both; }
+.js-loaded .reveal.visible > *:nth-child(2) { animation: fadeInUp 0.5s 0.2s both; }
+.js-loaded .reveal.visible > *:nth-child(3) { animation: fadeInUp 0.5s 0.3s both; }
 
 @keyframes fadeInUp {
   from {
