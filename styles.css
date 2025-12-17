@@ -192,8 +192,8 @@ body.centered-layout{
 }
 
 .nav-home:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(calc(-50% - 2px));
 }
 
 /* ===== NAVIGATION LINKS (centre) ===== */
