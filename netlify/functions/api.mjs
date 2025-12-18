@@ -433,7 +433,7 @@ passport.deserializeUser((obj, done) => done(null, obj));
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Public data - accessible sans auth (pour le site public)
-app.get("/public-data", async (req, res) => {
+app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-data"], async (req, res) => {
   try {
     const data = await loadSiteData();
     // Retourner seulement les donnees publiques (pas les logins/stats)
@@ -669,7 +669,21 @@ app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"]
 app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, async (req, res) => {
   try {
     console.log("[Save] Donnees recues:", JSON.stringify(req.body).slice(0, 200));
-    await saveSiteData(req.body);
+
+    // Charger les donnees existantes pour preserver logins/stats
+    const existingData = await loadSiteData();
+
+    // Fusionner : garder logins/stats existants, mettre a jour le reste
+    const newData = {
+      skills: req.body.skills || existingData.skills || [],
+      interests: req.body.interests || existingData.interests || [],
+      experiences: req.body.experiences || existingData.experiences || [],
+      contact: req.body.contact || existingData.contact || {},
+      logins: existingData.logins || [],
+      stats: existingData.stats || { visits: 0, lastVisits: [] }
+    };
+
+    await saveSiteData(newData);
     console.log("[Save] Sauvegarde reussie");
     res.json({ success: true });
   } catch (err) {
