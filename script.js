@@ -24,6 +24,83 @@ document.addEventListener("DOMContentLoaded", () => {
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  // ============================================
+  // CHARGER LES DONNEES DYNAMIQUES DEPUIS L'API
+  // ============================================
+  async function loadSiteData() {
+    try {
+      const res = await fetch('/api/public-data');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Contact
+      if (data.contact) {
+        const emailEl = document.getElementById('contact-email');
+        const phoneEl = document.getElementById('contact-phone');
+        const linkedinEl = document.getElementById('contact-linkedin');
+
+        if (emailEl && data.contact.email) {
+          emailEl.textContent = data.contact.email;
+          emailEl.href = 'mailto:' + data.contact.email;
+        }
+        if (phoneEl && data.contact.phone) {
+          phoneEl.textContent = data.contact.phone;
+        }
+        if (linkedinEl && data.contact.linkedin) {
+          linkedinEl.textContent = data.contact.linkedin;
+          linkedinEl.href = 'https://linkedin.com/in/' + data.contact.linkedin;
+        }
+      }
+
+      // Competences
+      if (data.skills && data.skills.length > 0) {
+        const skillsContainer = document.getElementById('skills-container');
+        if (skillsContainer) {
+          skillsContainer.innerHTML = data.skills.map(skill =>
+            `<span class="skill-bubble">${skill}</span>`
+          ).join('');
+        }
+      }
+
+      // Centres d'interet
+      if (data.interests && data.interests.length > 0) {
+        const interestsContainer = document.getElementById('interests-container');
+        if (interestsContainer) {
+          interestsContainer.innerHTML = data.interests.map(interest => {
+            const [title, ...descParts] = interest.split(' - ');
+            const desc = descParts.join(' - ') || '';
+            return `<div class="project-card glass">
+              <h3>${title}</h3>
+              ${desc ? `<p>${desc}</p>` : ''}
+            </div>`;
+          }).join('');
+        }
+      }
+
+      // Experiences
+      if (data.experiences && data.experiences.length > 0) {
+        const timelineContainer = document.getElementById('timeline-container');
+        if (timelineContainer) {
+          timelineContainer.innerHTML = data.experiences.map(exp =>
+            `<div class="timeline-item reveal">
+              <span class="dot"></span>
+              <div class="timeline-content">
+                <span class="date">${exp.date || ''}</span>
+                <h3>${exp.title || ''}</h3>
+                <p>${exp.description || ''}</p>
+              </div>
+            </div>`
+          ).join('');
+        }
+      }
+    } catch (e) {
+      console.log('[Data] Using static content');
+    }
+  }
+
+  // Charger les donnees au demarrage
+  loadSiteData();
+
   // Thème persistant (auto/dark/light) - appliqué immédiatement
   const themeToggle = document.getElementById('themeToggle');
   function applyTheme(mode) {

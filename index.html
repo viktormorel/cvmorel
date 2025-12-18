@@ -86,7 +86,7 @@
   <!-- Expérience -->
   <section id="experience" class="section reveal" data-animate="fade">
     <h2>Expérience</h2>
-    <div class="timeline alt" role="list">
+    <div class="timeline alt" role="list" id="timeline-container">
 
       <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
         <span class="dot" aria-hidden="true"></span>
@@ -237,10 +237,10 @@
   <!-- Compétences -->
   <section id="skills" class="section reveal" data-animate="fade">
     <h2>Compétences</h2>
-    <div class="skills-grid">
+    <div class="skills-grid" id="skills-container">
       <div class="skill-bubble">Anglais (LV)</div>
       <div class="skill-bubble">Certification Pix (3e)</div>
-      <div class="skill-bubble">Rénovation d’ordinateurs</div>
+      <div class="skill-bubble">Rénovation d'ordinateurs</div>
       <div class="skill-bubble">Diagnostics matériels</div>
       <div class="skill-bubble">Bases réseaux</div>
       <div class="skill-bubble">Sens du service</div>
@@ -248,12 +248,10 @@
   </section>
 
   <section id="interests" class="section reveal">
-  <h2>Centres d’intérêt</h2>
-
-  <!-- Bulles de compétences -->
-  <div class="skills-grid">
+  <h2>Centres d'intérêt</h2>
+  <div class="skills-grid" id="interests-container">
     <div class="skill-bubble">Sport — Ultimate, tennis, natation</div>
-    <div class="skill-bubble">Gaming en réseau — Jeux en équipe et communication (3e)(1ère)</div>
+    <div class="skill-bubble">Gaming en réseau — Jeux en équipe et communication</div>
     <div class="skill-bubble">Réseaux sociaux — TikTok, Instagram, YouTube</div>
   </div>
 </section>
@@ -296,7 +294,7 @@
         </div>
         <h3>Email</h3>
         <p>
-          <a href="mailto:viktormorel@mailo.com">viktormorel@mailo.com</a>
+          <a href="mailto:viktormorel@mailo.com" id="contact-email">viktormorel@mailo.com</a>
           <button type="button" class="copy-btn" onclick="copyEmail(event)" title="Copier l'email" aria-label="Copier l'adresse email">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -313,7 +311,7 @@
         </div>
         <h3>Téléphone</h3>
         <p>
-          <span>06.14.09.93.55</span>
+          <span id="contact-phone">06.14.09.93.55</span>
           <button type="button" class="copy-btn" onclick="copyPhone(event)" title="Copier le téléphone" aria-label="Copier le numéro de téléphone">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -330,7 +328,7 @@
         </div>
         <h3>LinkedIn</h3>
         <p>
-          <a href="#" target="_blank" rel="noopener">viktormorel</a>
+          <a href="https://linkedin.com/in/viktormorel" target="_blank" rel="noopener" id="contact-linkedin">viktormorel</a>
           <button type="button" class="copy-btn" onclick="copyLinkedin(event)" title="Copier le profil LinkedIn" aria-label="Copier le nom LinkedIn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

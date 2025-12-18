@@ -432,6 +432,23 @@ passport.deserializeUser((obj, done) => done(null, obj));
 // Health
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+// Public data - accessible sans auth (pour le site public)
+app.get("/public-data", async (req, res) => {
+  try {
+    const data = await loadSiteData();
+    // Retourner seulement les donnees publiques (pas les logins/stats)
+    res.json({
+      skills: data.skills || [],
+      interests: data.interests || [],
+      experiences: data.experiences || [],
+      contact: data.contact || {}
+    });
+  } catch (err) {
+    console.error("[Public] Error:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 // Auth start - Rate limited (10 tentatives/min)
 app.get(["/auth/google", "/.netlify/functions/api/auth/google"], rateLimitMiddleware(10), (req, res, next) => {
   initGoogleStrategy();
