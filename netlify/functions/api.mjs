@@ -143,25 +143,16 @@ async function saveSiteData(data) {
   }
 }
 
-// Gestion des connexions avec Netlify Blobs (avec fallback memoire)
+// Gestion des connexions (utilise le meme fichier GitHub)
 async function loadLogins() {
-  // D'abord essayer Blobs
-  try {
-    const store = getBlobStore();
-    const logins = await store.get("logins", { type: "json" });
-    if (logins) {
-      inMemoryLogins = logins;
-      return logins;
-    }
-  } catch (err) {
-    console.error("[Logins] Blobs read error:", err.message);
-  }
-  return inMemoryLogins;
+  const data = await loadSiteData();
+  return data.logins || [];
 }
 
 async function saveLogin(user) {
   try {
-    let logins = await loadLogins();
+    const data = await loadSiteData();
+    let logins = data.logins || [];
     const userEmail = user.emails?.[0]?.value || "";
     const now = Date.now();
 
@@ -193,36 +184,19 @@ async function saveLogin(user) {
       return new Date(login.date).getTime() > fifteenDaysAgo;
     });
 
-    // Sauvegarder en memoire
-    inMemoryLogins = logins;
-
-    // Essayer de sauvegarder dans Blobs
-    try {
-      const store = getBlobStore();
-      await store.setJSON("logins", logins);
-      console.log("[Logins] Saved to Blobs for:", user.displayName);
-    } catch (blobErr) {
-      console.error("[Logins] Blobs write error:", blobErr.message);
-    }
+    // Sauvegarder
+    data.logins = logins;
+    await saveSiteData(data);
+    console.log("[Logins] Saved for:", user.displayName);
   } catch (err) {
     console.error("[Logins] Error:", err.message);
   }
 }
 
-// Compteur de visites (avec fallback memoire)
+// Compteur de visites
 async function incrementVisits() {
-  // Charger les stats existantes
-  let stats = inMemoryStats;
-
-  try {
-    const store = getBlobStore();
-    const blobStats = await store.get("stats", { type: "json" });
-    if (blobStats) stats = blobStats;
-  } catch (e) {
-    console.log("[Stats] Blobs read error, using memory");
-  }
-
-  if (!stats) stats = { visits: 0, lastVisits: [] };
+  const data = await loadSiteData();
+  let stats = data.stats || { visits: 0, lastVisits: [] };
 
   const now = new Date();
   const today = now.toISOString().split('T')[0];
@@ -240,34 +214,17 @@ async function incrementVisits() {
     stats.lastVisits = stats.lastVisits.slice(0, 30);
   }
 
-  // Sauvegarder en memoire
-  inMemoryStats = stats;
-
-  // Essayer de sauvegarder dans Blobs
-  try {
-    const store = getBlobStore();
-    await store.setJSON("stats", stats);
-    console.log("[Stats] Saved to Blobs:", stats.visits);
-  } catch (err) {
-    console.error("[Stats] Blobs write error:", err.message);
-  }
+  // Sauvegarder
+  data.stats = stats;
+  await saveSiteData(data);
+  console.log("[Stats] Updated:", stats.visits);
 
   return stats;
 }
 
 async function getStats() {
-  // D'abord essayer Blobs
-  try {
-    const store = getBlobStore();
-    const stats = await store.get("stats", { type: "json" });
-    if (stats) {
-      inMemoryStats = stats;
-      return stats;
-    }
-  } catch (err) {
-    console.error("[Stats] Blobs read error:", err.message);
-  }
-  return inMemoryStats;
+  const data = await loadSiteData();
+  return data.stats || { visits: 0, lastVisits: [] };
 }
 
 function isAdmin(req) {

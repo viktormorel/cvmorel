@@ -17,5 +17,10 @@
     "email": "viktormorel@mailo.com",
     "phone": "06.14.09.93.55",
     "linkedin": "viktormorel"
+  },
+  "logins": [],
+  "stats": {
+    "visits": 0,
+    "lastVisits": []
   }
 }
