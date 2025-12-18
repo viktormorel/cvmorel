@@ -1,4 +1,4 @@
-/* CV Viktor Morel - v2.3 */
+/* CV Viktor Morel - v2.4 */
 :root {
   --bg: linear-gradient(180deg,#eef2ff 0%, #f7fbff 100%);
   --surface: #0f1724;
@@ -30,6 +30,16 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+
+/* ============================================
+   TRANSITION FLUIDE MODE SOMBRE/CLAIR
+   ============================================ */
+body, body *, body *::before, body *::after {
+  transition: background-color 0.4s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
 
 /* ============================================
    OPTIMISATIONS DE PERFORMANCE ULTRA-FLUIDES
@@ -231,75 +241,144 @@ body.centered-layout{
 }
 
 /* ============================================
+   BOUTON HAMBURGER - Cache sur desktop
+   ============================================ */
+.hamburger {
+  display: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 8px;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  transition: background 0.3s ease;
+}
+
+.hamburger:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Animation hamburger -> X */
+.hamburger.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ============================================
    NAVBAR RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column;
-    padding: 10px 16px;
-    gap: 8px;
+    padding: 12px 16px;
+    justify-content: flex-start;
   }
 
   /* Boutons theme et maison en haut a gauche */
   .theme-toggle {
-    position: absolute;
-    left: 10px;
-    top: 10px;
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
     width: 36px;
     height: 36px;
     font-size: 1rem;
   }
 
   .nav-home {
-    position: absolute;
-    left: 54px;
-    top: 10px;
+    position: relative;
+    left: auto;
+    top: auto;
     width: 36px;
     height: 36px;
     font-size: 1rem;
     transform: none;
+    margin-left: 8px;
   }
 
   .nav-home:hover {
     transform: translateY(-3px);
   }
 
-  /* Liens de navigation en grille propre */
+  /* Afficher le hamburger */
+  .hamburger {
+    display: flex;
+    top: 12px;
+    transform: none;
+  }
+
+  /* Menu cache par defaut sur mobile */
   .nav-links {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    gap: 6px;
-    margin-top: 40px;
-    justify-content: center;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: linear-gradient(135deg, rgba(106, 17, 203, 0.98) 0%, rgba(37, 117, 252, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    padding: 16px;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    animation: slideDown 0.3s ease;
+  }
+
+  /* Menu ouvert */
+  .nav-links.open {
+    display: flex;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .nav-link {
-    padding: 8px 10px;
-    font-size: 0.8rem;
+    padding: 12px 16px;
+    font-size: 1rem;
     text-align: center;
-    white-space: nowrap;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-link:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 }
 
 @media (max-width: 480px) {
-  .navbar {
-    padding: 8px 12px;
-  }
-
-  /* Grille 2 colonnes sur tres petit ecran */
-  .nav-links {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-    margin-top: 44px;
-    width: 100%;
-  }
-
-  .nav-link {
-    padding: 8px 6px;
-    font-size: 0.75rem;
-    justify-content: center;
-  }
-
   .theme-toggle {
     width: 32px;
     height: 32px;
@@ -307,9 +386,19 @@ body.centered-layout{
   }
 
   .nav-home {
-    left: 48px;
     width: 32px;
     height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .hamburger {
+    width: 36px;
+    height: 36px;
+    right: 12px;
+  }
+
+  .nav-link {
+    padding: 10px 14px;
     font-size: 0.9rem;
   }
 }

@@ -14,7 +14,7 @@
   <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Preload des ressources critiques -->
-  <link rel="preload" href="styles.css?v=2.3" as="style">
+  <link rel="preload" href="styles.css?v=2.4" as="style">
   <link rel="preload" href="avatar.webp" as="image" type="image/webp">
 
   <!-- DNS prefetch pour les API externes -->
@@ -35,7 +35,7 @@
     }
   </style>
 
-  <link rel="stylesheet" href="styles.css?v=2.3" />
+  <link rel="stylesheet" href="styles.css?v=2.4" />
 </head>
 <body class="centered-layout" data-theme="auto">
   <!-- Barre de progression de lecture -->
@@ -49,7 +49,13 @@
   <nav class="navbar" role="navigation" aria-label="Navigation">
     <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">◐</button>
     <a href="#hero" class="nav-home" aria-label="Retour en haut">🏠</a>
-    <div class="nav-links">
+    <!-- Bouton hamburger mobile -->
+    <button class="hamburger" id="hamburger" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+    <div class="nav-links" id="navLinks">
       <a href="#about" class="nav-link">👤 À propos</a>
       <a href="#experience" class="nav-link">💼 Expérience</a>
       <a href="#skills" class="nav-link">⚡ Compétences</a>

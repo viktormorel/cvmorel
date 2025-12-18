@@ -67,6 +67,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { passive: true });
 
+  // ============================================
+  // MENU HAMBURGER MOBILE
+  // ============================================
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.getElementById('navLinks');
+
+  if (hamburger && navLinks) {
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      navLinks.classList.toggle('open');
+      const isOpen = navLinks.classList.contains('open');
+      hamburger.setAttribute('aria-expanded', isOpen);
+      hamburger.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
+
+    // Fermer le menu quand on clique sur un lien
+    navLinks.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.setAttribute('aria-label', 'Ouvrir le menu');
+      });
+    });
+
+    // Fermer le menu si on clique en dehors
+    document.addEventListener('click', (e) => {
+      if (!navbar.contains(e.target) && navLinks.classList.contains('open')) {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
   // Smooth scroll navbar - optimisé avec passive où possible
   document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
     a.addEventListener('click', e => {
@@ -83,6 +118,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // ============================================
+  // LAZY LOADING IMAGES
+  // ============================================
+  if ('IntersectionObserver' in window) {
+    const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+    const imageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+          img.classList.add('loaded');
+          imageObserver.unobserve(img);
+        }
+      });
+    }, { rootMargin: '100px' });
+
+    lazyImages.forEach(img => imageObserver.observe(img));
+  }
 
   // ============================================
   // INTERSECTION OBSERVER OPTIMISE
