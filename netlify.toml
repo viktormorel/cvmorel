@@ -119,27 +119,31 @@
 
 # ============================================
 # PROTECTION DES PAGES SENSIBLES
-# Rediriger vers accueil si pas authentifié
+# force = true pour ignorer le fichier physique
 # ============================================
 [[redirects]]
   from = "/admin"
   to = "/"
   status = 302
+  force = true
 
 [[redirects]]
   from = "/admin.html"
   to = "/"
   status = 302
+  force = true
 
 [[redirects]]
   from = "/download.html"
   to = "/"
   status = 302
+  force = true
 
 [[redirects]]
   from = "/setup-2fa.html"
   to = "/"
   status = 302
+  force = true
 
 # Pages qui nécessitent le flow OAuth
 [[redirects]]
