@@ -6,7 +6,11 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
 import QRCode from "qrcode";
-import { getStore } from "@netlify/blobs";
+
+// Config GitHub pour persistance
+const GITHUB_OWNER = "viktormorel";
+const GITHUB_REPO = "cvmorel";
+const DATA_FILE_PATH = "data/site-data.json";
 
 // Donnees par defaut
 const DEFAULT_DATA = {
@@ -31,37 +35,45 @@ const DEFAULT_DATA = {
   }
 };
 
-// Stockage en memoire (fallback si Blobs echoue)
+// Stockage en memoire (cache)
 let inMemoryData = null;
 let inMemoryLogins = [];
 let inMemoryStats = { visits: 0, lastVisits: [] };
+let lastGitHubSha = null;
 
-// Helper pour obtenir le store Netlify Blobs
-function getBlobStore() {
-  // Utiliser directement getStore avec le nom - Netlify injecte le contexte automatiquement
-  // Cela fonctionne si le site a Blobs active
-  return getStore("cv-data");
-}
-
-// Netlify Blobs pour persistance (avec fallback memoire)
+// Charger les donnees depuis GitHub
 async function loadSiteData() {
-  // D'abord essayer la memoire
+  // D'abord essayer la memoire (cache)
   if (inMemoryData) {
-    console.log("[Data] Returning from memory");
+    console.log("[Data] Returning from memory cache");
     return inMemoryData;
   }
 
-  // Ensuite essayer Blobs
-  try {
-    const store = getBlobStore();
-    const data = await store.get("site-data", { type: "json" });
-    if (data) {
-      console.log("[Data] Loaded from Blobs");
-      inMemoryData = data;
-      return data;
+  // Essayer de charger depuis GitHub
+  const token = process.env.GITHUB_TOKEN;
+  if (token) {
+    try {
+      const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "User-Agent": "CV-Admin"
+        }
+      });
+
+      if (response.ok) {
+        const fileData = await response.json();
+        lastGitHubSha = fileData.sha;
+        const content = Buffer.from(fileData.content, "base64").toString("utf-8");
+        const data = JSON.parse(content);
+        console.log("[Data] Loaded from GitHub");
+        inMemoryData = data;
+        return data;
+      }
+    } catch (err) {
+      console.error("[Data] GitHub read error:", err.message);
     }
-  } catch (err) {
-    console.error("[Data] Blobs read error:", err.message);
   }
 
   // Fallback aux donnees par defaut
@@ -70,20 +82,64 @@ async function loadSiteData() {
   return inMemoryData;
 }
 
+// Sauvegarder les donnees sur GitHub
 async function saveSiteData(data) {
   // Toujours sauvegarder en memoire d'abord
   inMemoryData = data;
-  console.log("[Save] Saved to memory");
+  console.log("[Save] Saved to memory cache");
 
-  // Essayer de sauvegarder dans Blobs
+  // Essayer de sauvegarder sur GitHub
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.error("[Save] GITHUB_TOKEN not configured - data saved to memory only");
+    return;
+  }
+
   try {
-    const store = getBlobStore();
-    await store.setJSON("site-data", data);
-    console.log("[Save] Saved to Blobs successfully");
+    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
+
+    // Obtenir le SHA actuel si on ne l'a pas
+    if (!lastGitHubSha) {
+      const getResponse = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "User-Agent": "CV-Admin"
+        }
+      });
+      if (getResponse.ok) {
+        const fileData = await getResponse.json();
+        lastGitHubSha = fileData.sha;
+      }
+    }
+
+    // Sauvegarder le fichier
+    const content = Buffer.from(JSON.stringify(data, null, 2)).toString("base64");
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "CV-Admin",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Update site data from admin panel",
+        content: content,
+        sha: lastGitHubSha
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      lastGitHubSha = result.content.sha;
+      console.log("[Save] Saved to GitHub successfully");
+    } else {
+      const error = await response.text();
+      console.error("[Save] GitHub save failed:", response.status, error);
+    }
   } catch (err) {
-    console.error("[Save] Blobs write error:", err.message);
-    // Ne pas throw - on a sauvegarde en memoire au moins
-    // Les donnees persisteront pendant la session
+    console.error("[Save] GitHub write error:", err.message);
   }
 }
 
