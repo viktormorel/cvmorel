@@ -1,4 +1,4 @@
-/* CV Viktor Morel - v2.5 */
+/* CV Viktor Morel - v2.6 */
 :root {
   --bg: linear-gradient(180deg,#eef2ff 0%, #f7fbff 100%);
   --surface: #0f1724;
@@ -294,43 +294,43 @@ body.centered-layout{
    ============================================ */
 @media (max-width: 768px) {
   .navbar {
-    padding: 12px 16px;
-    justify-content: flex-start;
-    gap: 8px;
+    padding: 12px 16px !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
   }
 
   /* Boutons theme et maison cote a cote */
   .theme-toggle {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-    flex-shrink: 0;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+    flex-shrink: 0 !important;
   }
 
   .nav-home {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-    transform: none;
-    flex-shrink: 0;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+    transform: none !important;
+    flex-shrink: 0 !important;
   }
 
   .nav-home:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) !important;
   }
 
   /* Afficher le hamburger */
   .hamburger {
-    display: flex;
-    top: 12px;
-    transform: none;
+    display: flex !important;
+    top: 12px !important;
+    transform: none !important;
   }
 
   /* Menu cache par defaut sur mobile */
