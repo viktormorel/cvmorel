@@ -20,7 +20,12 @@
   },
   "logins": [],
   "stats": {
-    "visits": 0,
-    "lastVisits": []
+    "visits": 1,
+    "lastVisits": [
+      {
+        "date": "2025-12-18",
+        "count": 1
+      }
+    ]
   }
 }
