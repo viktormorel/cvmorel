@@ -117,7 +117,31 @@
   to = "/.netlify/functions/api/health"
   status = 200
 
-# Pages statiques
+# ============================================
+# PROTECTION DES PAGES SENSIBLES
+# Rediriger vers accueil si pas authentifié
+# ============================================
+[[redirects]]
+  from = "/admin"
+  to = "/"
+  status = 302
+
+[[redirects]]
+  from = "/admin.html"
+  to = "/"
+  status = 302
+
+[[redirects]]
+  from = "/download.html"
+  to = "/"
+  status = 302
+
+[[redirects]]
+  from = "/setup-2fa.html"
+  to = "/"
+  status = 302
+
+# Pages qui nécessitent le flow OAuth
 [[redirects]]
   from = "/login-2fa"
   to = "/login-2fa.html"
@@ -125,18 +149,13 @@
 
 [[redirects]]
   from = "/download-cv"
-  to = "/download.html"
-  status = 200
-
-[[redirects]]
-  from = "/admin"
-  to = "/admin.html"
-  status = 200
+  to = "/.netlify/functions/api/auth/google"
+  status = 302
 
 [[redirects]]
   from = "/setup-2fa"
-  to = "/setup-2fa.html"
-  status = 200
+  to = "/.netlify/functions/api/auth/google"
+  status = 302
 
 # Correction : /2fa doit pointer vers login-2fa.html
 [[redirects]]
@@ -144,10 +163,10 @@
   to = "/login-2fa.html"
   status = 200
 
-# Téléchargement CV
+# Téléchargement CV - protégé par fonction
 [[redirects]]
   from = "/download-cv/file"
-  to = "/cv-viktor-morel.docx"
+  to = "/.netlify/functions/api/download-cv"
   status = 200
 
 

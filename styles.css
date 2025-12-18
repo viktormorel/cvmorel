@@ -1,4 +1,4 @@
-/* CV Viktor Morel - v2.6 */
+/* CV Viktor Morel - v2.9 - Performance optimized */
 :root {
   --bg: linear-gradient(180deg,#eef2ff 0%, #f7fbff 100%);
   --surface: #0f1724;
@@ -33,12 +33,21 @@ html, body { margin: 0; padding: 0; }
 
 /* ============================================
    TRANSITION FLUIDE MODE SOMBRE/CLAIR
+   Optimise: applique uniquement aux elements qui changent de theme
    ============================================ */
-body, body *, body *::before, body *::after {
-  transition: background-color 0.4s ease,
-              color 0.3s ease,
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
+body,
+.navbar,
+.section,
+.card,
+.contact-card,
+.skill-bubble,
+.hero,
+footer,
+.contact-form input,
+.contact-form textarea {
+  transition: background-color 0.3s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
 }
 
 /* ============================================
@@ -440,6 +449,7 @@ body.centered-layout{
   z-index:2;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
   animation: avatarFloat 5s ease-in-out infinite;
+  contain: layout style;
 }
 .avatar:hover {
   transform: scale(1.08) translateY(-5px);
@@ -449,7 +459,7 @@ body.centered-layout{
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
-.hero::before{content:"";position:absolute;top:50%;left:50%;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.25), transparent);transform:translate(-50%,-50%);animation:pulse 6s infinite;z-index:1}
+.hero::before{content:"";position:absolute;top:50%;left:50%;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.25), transparent);transform:translate(-50%,-50%);animation:pulse 6s infinite;z-index:1;contain:layout style}
 @keyframes pulse {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
   50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.35; }
@@ -478,6 +488,7 @@ body.centered-layout{
   box-shadow:0 10px 30px rgba(106,17,203,0.25);
   background-size: 200% 200%;
   animation: gradientShift 3s ease infinite;
+  contain: layout style;
 }
 @keyframes gradientShift {
   0%, 100% { background-position: 0% 50%; }
@@ -508,8 +519,13 @@ body.centered-layout{
 .bg-primary-contrast, .bg-primary-contrast * { color: #ffffff !important; }
 
 
-/* Sections */
-.section { padding: 72px 20px; background: #eef2ff; }
+/* Sections - optimise avec content-visibility pour le rendu hors ecran */
+.section {
+  padding: 72px 20px;
+  background: #eef2ff;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
 .section h2 {
   margin: 0 0 18px;
   font-size: 1.9rem;
@@ -612,6 +628,7 @@ body.centered-layout{
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent);
   animation: dotPulse 2s ease-in-out infinite;
+  contain: layout style;
 }
 
 /* Point pour items impairs (gauche) - positionne a droite de la carte, sur la ligne */
@@ -743,6 +760,7 @@ body.centered-layout{
 
 .skill-bubble:nth-child(odd) { animation: floatBubble 4s ease-in-out infinite; }
 .skill-bubble:nth-child(even) { animation: floatBubble 4s ease-in-out infinite 0.5s; }
+.skill-bubble { contain: layout style; }
 @keyframes floatBubble {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
@@ -1151,6 +1169,7 @@ footer { padding: 34px 0; color: #5a6376; background: #eef2ff; }
   z-index: 1001;
   transition: width 0.1s ease-out;
   box-shadow: 0 0 10px rgba(61, 220, 151, 0.5), 0 0 20px rgba(37, 117, 252, 0.3);
+  contain: layout style;
 }
 
 @keyframes progressGradient {
@@ -1158,103 +1177,8 @@ footer { padding: 34px 0; color: #5a6376; background: #eef2ff; }
   50% { background-position: 100% 50%; }
 }
 
-/* ============================================
-   CURSEUR PERSONNALISE
-   ============================================ */
-.custom-cursor {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border: 2px solid rgba(106, 17, 203, 0.5);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-  mix-blend-mode: difference;
-  opacity: 0;
-}
-
-.custom-cursor-dot {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 10000;
-  transform: translate(-50%, -50%);
-  transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease;
-  opacity: 0;
-}
-
-/* Curseur actif */
-body.cursor-active .custom-cursor,
-body.cursor-active .custom-cursor-dot {
-  opacity: 1;
-}
-
-/* Effet au survol des liens/boutons */
-body.cursor-hover .custom-cursor {
-  width: 60px;
-  height: 60px;
-  border-color: var(--accent);
-  background: rgba(61, 220, 151, 0.1);
-}
-
-body.cursor-hover .custom-cursor-dot {
-  transform: translate(-50%, -50%) scale(0.5);
-  background: var(--accent);
-}
-
-/* Effet au clic */
-body.cursor-click .custom-cursor {
-  transform: translate(-50%, -50%) scale(0.8);
-}
-
-body.cursor-click .custom-cursor-dot {
-  transform: translate(-50%, -50%) scale(1.5);
-}
-
-/* Cacher le curseur par défaut sur desktop */
-@media (hover: hover) and (pointer: fine) {
-  body.cursor-active {
-    cursor: none;
-  }
-
-  body.cursor-active a,
-  body.cursor-active button,
-  body.cursor-active input,
-  body.cursor-active textarea,
-  body.cursor-active [role="button"],
-  body.cursor-active .btn,
-  body.cursor-active .nav-link,
-  body.cursor-active .skill-bubble,
-  body.cursor-active .timeline-item,
-  body.cursor-active .contact-card {
-    cursor: none;
-  }
-}
-
-/* Désactiver sur mobile/tablette */
-@media (hover: none), (pointer: coarse) {
-  .custom-cursor,
-  .custom-cursor-dot {
-    display: none !important;
-  }
-}
-
 /* Dark mode adjustments */
 [data-theme="dark"] .reading-progress {
   background: linear-gradient(90deg, #4ade80, #3b82f6, #8b5cf6);
   box-shadow: 0 0 10px rgba(74, 222, 128, 0.5), 0 0 20px rgba(139, 92, 246, 0.3);
-}
-
-[data-theme="dark"] .custom-cursor {
-  border-color: rgba(139, 92, 246, 0.5);
-}
-
-[data-theme="dark"] body.cursor-hover .custom-cursor {
-  border-color: #4ade80;
-  background: rgba(74, 222, 128, 0.1);
 }
