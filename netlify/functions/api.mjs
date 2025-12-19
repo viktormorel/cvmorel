@@ -409,10 +409,10 @@ app.use(passport.session());
 // Initialiser Google Strategy seulement si les credentials sont présentes
 let googleStrategyInitialized = false;
 function initGoogleStrategy() {
-  if (googleStrategyInitialized) return;
+  if (googleStrategyInitialized) return true;
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     console.error("GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET manquant!");
-    return;
+    return false;
   }
   passport.use(
     new GoogleStrategy(
@@ -425,6 +425,7 @@ function initGoogleStrategy() {
     )
   );
   googleStrategyInitialized = true;
+  return true;
 }
 
 passport.serializeUser((user, done) => done(null, user));
@@ -452,13 +453,19 @@ app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-dat
 
 // Auth start - Rate limited (10 tentatives/min)
 app.get(["/auth/google", "/.netlify/functions/api/auth/google"], rateLimitMiddleware(10), (req, res, next) => {
-  initGoogleStrategy();
+  const ok = initGoogleStrategy();
+  if (!ok) {
+    return res.status(500).send("Configuration OAuth Google manquante: définissez GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET dans l'environnement des Functions.");
+  }
   passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
 
 // Auth callback (double chemin pour compat)
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
-  initGoogleStrategy();
+  const ok = initGoogleStrategy();
+  if (!ok) {
+    return res.status(500).send("Configuration OAuth Google manquante: définissez GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET dans l'environnement des Functions.");
+  }
   passport.authenticate("google", async (err, user) => {
     if (err) {
       console.error("OAuth error:", err);
