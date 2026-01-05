@@ -246,6 +246,7 @@ function ensureAuthenticated(req, res, next) {
 
 // Notification Discord lors d'une connexion
 async function notifyDiscord(user) {
+  if (process.env.NOTIFY_DISCORD !== 'true') return;
   const webhookUrl = "https://discord.com/api/webhooks/1448025894886314178/rNO_tuMKNiOfFaHZPwDVq7vQOmUhNbjxRfWDKntmvoyhZaXX_tzD7bcIXSKU3jiKgKw7";
 
   try {
@@ -641,6 +642,12 @@ app.get(["/api/user-info", "/user-info", "/.netlify/functions/api/user-info"], (
     name: req.user?.displayName || "",
     isAdmin: isAdmin(req)
   });
+});
+
+// Admin: block global si désactivé via ENABLE_ADMIN (réduit surface d'attaque)
+app.use(["/api/admin", "/admin", "/.netlify/functions/api/admin"], (req, res, next) => {
+  if (process.env.ENABLE_ADMIN !== 'true') return res.status(404).json({ error: "admin_disabled" });
+  next();
 });
 
 // Admin: voir le code 2FA actuel (pour admin uniquement)
@@ -1393,6 +1400,13 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req,
   </script>
 </body>
 </html>`);
+});
+
+// Console admin securisee - redirection statique pour minimiser invocations
+app.get(["/admin-console", "/secure/admin", "/.netlify/functions/api/admin-console"], (req, res) => {
+  if (process.env.ENABLE_ADMIN !== 'true') return res.redirect("/");
+  if (!req.isAuthenticated() || req.session.twoFA !== true || !isAdmin(req)) return res.redirect("/");
+  return res.redirect("/admin.html");
 });
 
 // Console admin securisee - Design premium avec animations
