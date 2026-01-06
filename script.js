@@ -52,7 +52,18 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadSiteData() {
     try {
       const res = await fetch('/api/public-data');
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Affichage d'un message d'erreur utilisateur si l'API échoue
+        const main = document.querySelector('main, body');
+        if (main && !document.getElementById('data-error')) {
+          const err = document.createElement('div');
+          err.id = 'data-error';
+          err.textContent = "Erreur de chargement des données du CV. Veuillez réessayer plus tard.";
+          err.style.cssText = 'background:#ffeded;color:#b71c1c;padding:18px 24px;border-radius:12px;margin:24px auto;text-align:center;max-width:600px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 12px #fbb;';
+          main.prepend(err);
+        }
+        return;
+      }
       const data = await res.json();
 
       // Contact
