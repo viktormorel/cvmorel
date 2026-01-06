@@ -24,7 +24,7 @@
       <p class="download-sub">Bravo — tu t'es authentifie avec succes via Google et valide la 2FA.</p>
 
       <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:18px">
-        <a class="btn primary big-download" href="/download-cv/file" role="button">Telecharger le CV (DOCX)</a>
+        <a id="downloadCVDownload" class="btn primary big-download" href="/download-cv/file" role="button">Telecharger le CV (DOCX)</a>
       </div>
 
       <!-- Bouton Admin (visible uniquement pour l'admin) -->
@@ -36,6 +36,32 @@
     </div>
   </main>
 
-  <script>eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2FkbWluL2NoZWNrJyx7Y3JlZGVudGlhbHM6J2luY2x1ZGUnfSkudGhlbihyPT5yLm9rP3IuanNvbigpOm51bGwpLnRoZW4oZD0+e2lmKGQmJmQuaXNBZG1pbilkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYWRtaW4tYnRuJykuY2xhc3NMaXN0LmFkZCgndmlzaWJsZScpO30pLmNhdGNoKCgpPT57fSk7'));</script>
+  <script>
+    // Force la vérification de session avant de permettre le téléchargement direct
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('downloadCVDownload');
+      if (btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Vérifie la session côté backend
+          fetch('/.netlify/functions/api/user-info', { credentials: 'include' })
+            .then(res => {
+              if (!res.ok) throw new Error();
+              return res.json();
+            })
+            .then(data => {
+              if (data && data.email) {
+                window.location.href = '/download-cv/file';
+              } else {
+                window.location.href = '/.netlify/functions/api/auth/google';
+              }
+            })
+            .catch(() => {
+              window.location.href = '/.netlify/functions/api/auth/google';
+            });
+        }, { passive: true });
+      }
+    });
+  </script>
 </body>
 </html>
