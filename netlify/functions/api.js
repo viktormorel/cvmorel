@@ -115,7 +115,7 @@ app.use((req, res, next) => {
 // Routes
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get(["/auth/google", "/.netlify/functions/api/auth/google"], passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
   passport.authenticate("google", (err, user) => {
