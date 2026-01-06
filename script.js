@@ -476,10 +476,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Bouton Télécharger le CV → déclenche OAuth + 2FA
+  // Bouton Télécharger le CV → force passage par Google OAuth avant 2FA
   const downloadBtn = document.getElementById('downloadCV');
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Toujours forcer l'auth Google, même si déjà connecté (le backend gère la redirection vers 2FA si session ok)
       window.location.href = "/.netlify/functions/api/auth/google";
     }, { passive: true });
   }
