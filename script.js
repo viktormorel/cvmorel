@@ -3,30 +3,28 @@
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Correction bouton Accès Admin - Voir le code
-    setTimeout(() => {
-      const adminBtn = Array.from(document.querySelectorAll('button, a, div, span')).find(el =>
-        el && typeof el.textContent === 'string' && /Accès Admin/i.test(el.textContent)
-      );
-      if (adminBtn) {
-        adminBtn.style.cursor = 'pointer';
-        adminBtn.onclick = async () => {
-          try {
-            const res = await fetch('/.netlify/functions/api/admin/2fa-code');
-            if (!res.ok) throw new Error('API error');
-            const data = await res.json();
-            if (data && data.code) {
-              await navigator.clipboard.writeText(data.code);
-              alert('Code admin : ' + data.code + '\n(Copié dans le presse-papier)');
-            } else {
-              alert('Impossible de récupérer le code admin.');
-            }
-          } catch (e) {
-            alert('Erreur lors de la récupération du code admin.');
+  // Correction bouton Accès Admin - Voir le code (ciblage par id)
+  setTimeout(() => {
+    const adminBtn = document.getElementById('admin-btn');
+    if (adminBtn) {
+      adminBtn.style.cursor = 'pointer';
+      adminBtn.onclick = async () => {
+        try {
+          const res = await fetch('/.netlify/functions/api/admin/2fa-code');
+          if (!res.ok) throw new Error('API error');
+          const data = await res.json();
+          if (data && data.code) {
+            await navigator.clipboard.writeText(data.code);
+            alert('Code admin : ' + data.code + '\n(Copié dans le presse-papier)');
+          } else {
+            alert('Impossible de récupérer le code admin.');
           }
-        };
-      }
-    }, 300);
+        } catch (e) {
+          alert('Erreur lors de la récupération du code admin.');
+        }
+      };
+    }
+  }, 300);
   // Activer les animations reveal (apres que le contenu soit pret)
   document.body.classList.add('js-loaded');
 
