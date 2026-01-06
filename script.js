@@ -42,9 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('lastVisit', today);
   }
 
-  // Année dynamique
-  const yearEl = document.getElementById('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  // Année dynamique (robuste)
+  try {
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+  } catch (e) {
+    // Ne rien faire si erreur
+  }
 
   // ============================================
   // CHARGER LES DONNEES DYNAMIQUES DEPUIS L'API
