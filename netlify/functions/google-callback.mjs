@@ -1,4 +1,4 @@
-// netlify/functions/google-callback.js
+// netlify/functions/google-callback.mjs
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 
@@ -14,7 +14,7 @@ export const handler = async (event) => {
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    let redirectUri = process.env.GOOGLE_CALLBACK_URL;
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL || "https://viktor-vahe-morel-cv.netlify.app/.netlify/functions/api/auth/google/callback";
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
@@ -24,6 +24,7 @@ export const handler = async (event) => {
       };
     }
 
+    // Nettoyage de l’URL de redirection
     redirectUri = redirectUri.trim().replace(/\/$/, "");
 
     // Échange du code contre un token
@@ -60,7 +61,7 @@ export const handler = async (event) => {
       };
     }
 
-    // JWT initial
+    // Création du JWT de session
     const sessionToken = jwt.sign(
       { email: userData.email, googleId: userData.id, twoFA: false },
       jwtSecret,
@@ -76,12 +77,14 @@ export const handler = async (event) => {
       body: JSON.stringify({ success: true, redirect: "/login-2fa.html" })
     };
   } catch (err) {
+    console.error("google-callback error:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Internal Server Error", details: err.message })
     };
   }
 };
+
 
 
 

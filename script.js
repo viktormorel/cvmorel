@@ -3,6 +3,30 @@
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Correction bouton Accès Admin - Voir le code
+    setTimeout(() => {
+      const adminBtn = Array.from(document.querySelectorAll('button, a, div, span')).find(el =>
+        el && typeof el.textContent === 'string' && /Accès Admin/i.test(el.textContent)
+      );
+      if (adminBtn) {
+        adminBtn.style.cursor = 'pointer';
+        adminBtn.onclick = async () => {
+          try {
+            const res = await fetch('/.netlify/functions/api/admin/2fa-code');
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            if (data && data.code) {
+              await navigator.clipboard.writeText(data.code);
+              alert('Code admin : ' + data.code + '\n(Copié dans le presse-papier)');
+            } else {
+              alert('Impossible de récupérer le code admin.');
+            }
+          } catch (e) {
+            alert('Erreur lors de la récupération du code admin.');
+          }
+        };
+      }
+    }, 300);
   // Activer les animations reveal (apres que le contenu soit pret)
   document.body.classList.add('js-loaded');
 
@@ -59,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
           skillsContainer.innerHTML = data.skills.map(skill =>
             `<span class="skill-bubble">${skill}</span>`
           ).join('');
+          // Ajout du stagger après injection dynamique
+          const skillBubbles = skillsContainer.querySelectorAll('.skill-bubble');
+          skillBubbles.forEach((bubble, index) => {
+            bubble.style.animationDelay = `${index * 0.1}s`;
+          });
         }
       }
 
@@ -122,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // NAVBAR SCROLL EFFECT
   // ============================================
-  const navbar = document.querySelector('.navbar');
+  const navbar1 = document.querySelector('.navbar');
   let ticking = false;
 
   const updateNavbar = () => {
@@ -149,8 +178,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
+  const navbar2 = document.querySelector('.navbar');
 
-  if (hamburger && navLinks) {
+  if (hamburger && navLinks && navbar) {
     hamburger.addEventListener('click', () => {
       hamburger.classList.toggle('active');
       navLinks.classList.toggle('open');
@@ -159,7 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
       hamburger.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
     });
 
-    // Fermer le menu quand on clique sur un lien
     navLinks.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', () => {
         hamburger.classList.remove('active');
@@ -169,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Fermer le menu si on clique en dehors
     document.addEventListener('click', (e) => {
       if (!navbar.contains(e.target) && navLinks.classList.contains('open')) {
         hamburger.classList.remove('active');
@@ -180,21 +208,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Smooth scroll navbar - optimisé avec passive où possible
-  document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
-    a.addEventListener('click', e => {
-      const href = a.getAttribute('href');
-      if (href && href.startsWith('#')) {
-        e.preventDefault();
-        const target = document.querySelector(href);
-        if (target) {
-          // Offset pour compenser la navbar fixe
-          const navbarHeight = navbar ? navbar.offsetHeight : 66;
-          const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight;
-          window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+  if (navbar) {
+    document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
+      a.addEventListener('click', e => {
+        const href = a.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            const navbarHeight = navbar ? navbar.offsetHeight : 66;
+            const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+          }
         }
-      }
+      });
     });
-  });
+  }
 
   // ============================================
   // LAZY LOADING IMAGES
@@ -279,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   function validateField(field) {
-    const errorEl = field.parentElement.querySelector('.error');
+    const errorEl = field.parentElement ? field.parentElement.querySelector('.error') : null;
     let error = '';
     const value = field.value.trim();
     if (!value) {
@@ -310,22 +339,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // Soumission via API backend (webhook protege cote serveur)
   async function handleContactSubmit(e) {
     e.preventDefault();
-
+    if (!form) return;
     const submitBtn = form.querySelector('button[type="submit"]');
+    if (!submitBtn) return;
     const originalText = submitBtn.textContent;
 
     let allValid = true;
     fields.forEach(f => { if (!validateField(f)) allValid = false; });
-    if (!allValid) return;
+    if (!allValid) {
+      submitBtn.disabled = false;
+      return;
+    }
 
-    // Feedback visuel
     submitBtn.textContent = 'Envoi...';
     submitBtn.disabled = true;
 
     const data = {
-      name: form.name.value.trim(),
-      email: form.email.value.trim(),
-      message: form.message.value.trim()
+      name: form.name ? form.name.value.trim() : '',
+      email: form.email ? form.email.value.trim() : '',
+      message: form.message ? form.message.value.trim() : ''
     };
 
     try {
@@ -465,7 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const avatar = document.querySelector('.avatar');
 
   if (hero && heroBg) {
-    let ticking = false;
+    let tickingParallax = false;
 
     const updateParallax = () => {
       const scrollY = window.scrollY;
@@ -486,9 +518,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.addEventListener('scroll', () => {
-      if (!ticking) {
+      if (!tickingParallax) {
         requestAnimationFrame(updateParallax);
-        ticking = true;
+        tickingParallax = true;
       }
     }, { passive: true });
   }
@@ -515,8 +547,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // EFFET STAGGER SUR LES SKILL BUBBLES
   // ============================================
-  const skillBubbles = document.querySelectorAll('.skill-bubble');
-  skillBubbles.forEach((bubble, index) => {
+  // (Déjà corrigé plus haut pour le cas dynamique, ici on protège le cas statique)
+  const skillBubblesStatic = document.querySelectorAll('.skill-bubble');
+  skillBubblesStatic.forEach((bubble, index) => {
     bubble.style.animationDelay = `${index * 0.1}s`;
   });
 
@@ -524,16 +557,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // BARRE DE PROGRESSION DE LECTURE
   // ============================================
   const readingProgress = document.getElementById('readingProgress');
-
   const updateReadingProgress = () => {
     const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const docHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
     const progress = (scrollTop / docHeight) * 100;
     if (readingProgress) {
       readingProgress.style.width = `${Math.min(progress, 100)}%`;
     }
   };
-
   window.addEventListener('scroll', () => {
     requestAnimationFrame(updateReadingProgress);
   }, { passive: true });

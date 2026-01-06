@@ -1,9 +1,12 @@
-// netlify/functions/api/2fa/verify.js
-const speakeasy = require("speakeasy");
-const jwt = require("jsonwebtoken");
+// netlify/functions/2fa-verify.mjs
+import speakeasy from "speakeasy";
+import jwt from "jsonwebtoken";
 
-exports.handler = async (event) => {
+import { Handler, HandlerEvent, HandlerResponse } from '@netlify/functions';
+
+export const handler: Handler = async (event: HandlerEvent): Promise<HandlerResponse> => {
   try {
+    // Autoriser uniquement POST
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -12,20 +15,27 @@ exports.handler = async (event) => {
       };
     }
 
-    const { token } = JSON.parse(event.body || "{}");
-    if (!token || !/^\d{6}$/.test(token)) {
+    // Lecture du body
+    let body;
+    try {
+      body = JSON.parse(event.body || "{}");
+    } catch {
+      return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
+    }
+
+    const token = String(body.token || "").trim();
+    if (!/^\d{6}$/.test(token)) {
       return { statusCode: 400, body: JSON.stringify({ error: "Code invalide" }) };
     }
 
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing JWT_SECRET environment variable" }) };
+      return { statusCode: 500, body: JSON.stringify({ error: "Missing JWT_SECRET" }) };
     }
 
-    // 🔎 Lecture du cookie JWT existant
+    // Lecture du cookie JWT
     const rawCookies = event.headers.cookie || "";
-    const cookies = rawCookies.split(";").map(c => c.trim()).filter(Boolean);
-    const sessionPair = cookies.find(c => c.startsWith("session="));
+    const sessionPair = rawCookies.split(";").map((c: string) => c.trim()).find((c: string) => c.startsWith("session="));
     if (!sessionPair) {
       return { statusCode: 401, body: JSON.stringify({ error: "No session cookie found" }) };
     }
@@ -34,11 +44,11 @@ exports.handler = async (event) => {
     let payload;
     try {
       payload = jwt.verify(oldToken, jwtSecret);
-    } catch (err) {
+    } catch {
       return { statusCode: 401, body: JSON.stringify({ error: "Invalid session token" }) };
     }
 
-    // ✅ Vérification du code TOTP avec le secret stocké dans le JWT
+    // Vérification du code TOTP
     if (!payload.twoFASecret) {
       return { statusCode: 400, body: JSON.stringify({ error: "No 2FA secret in session" }) };
     }
@@ -54,14 +64,13 @@ exports.handler = async (event) => {
       return { statusCode: 401, body: JSON.stringify({ error: "Invalid 2FA code" }) };
     }
 
-    // 🔑 Création d’un nouveau JWT avec twoFA:true (secret retiré)
+    // Nouveau JWT avec twoFA validé
     const newToken = jwt.sign(
       { email: payload.email, googleId: payload.googleId, twoFA: true },
       jwtSecret,
       { expiresIn: "15m" }
     );
 
-    // ✅ Réponse JSON + nouveau cookie
     return {
       statusCode: 200,
       headers: {
@@ -72,10 +81,19 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
-    console.error("❌ Erreur dans verify.js:", err);
-    return { statusCode: 500, body: JSON.stringify({ error: "Erreur vérification", details: err.message }) };
+    console.error("Erreur 2FA verify:", err);
+    let message = "";
+    if (err instanceof Error) {
+      message = err.message;
+    } else if (typeof err === "string") {
+      message = err;
+    } else {
+      message = JSON.stringify(err);
+    }
+    return { statusCode: 500, body: JSON.stringify({ error: "Erreur vérification", details: message }) };
   }
 };
+
 
 
 
