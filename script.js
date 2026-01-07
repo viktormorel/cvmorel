@@ -96,14 +96,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       const data = await res.json();
+      console.log('[Data] 📦 Données reçues de l\'API:', data);
       
       // Vérifier que les données sont valides
       if (!data || typeof data !== 'object') {
-        console.warn('[Data] Données invalides reçues, utilisation du contenu statique');
+        console.warn('[Data] ⚠️ Données invalides reçues, utilisation du contenu statique');
         return; // Ne pas remplacer le contenu statique si les données sont invalides
       }
       
-      console.log('[Data] Données chargées:', {
+      console.log('[Data] ✅ Données valides:', {
         skills: data.skills?.length || 0,
         interests: data.interests?.length || 0,
         experiences: data.experiences?.length || 0,
@@ -129,10 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Competences - Ne remplacer que si on a des données valides
-      if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
-        const skillsContainer = document.getElementById('skills-container');
-        if (skillsContainer) {
+      // Competences - Toujours remplacer avec les données de l'API (même si vides, on garde le contenu statique)
+      const skillsContainer = document.getElementById('skills-container');
+      if (skillsContainer) {
+        if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
+          // Remplacer avec les données de l'API
           skillsContainer.innerHTML = data.skills.map(skill =>
             `<div class="skill-bubble">${String(skill).replace(/[<>]/g, '')}</div>`
           ).join('');
@@ -141,25 +143,29 @@ document.addEventListener("DOMContentLoaded", () => {
           skillBubbles.forEach((bubble, index) => {
             bubble.style.animationDelay = `${index * 0.1}s`;
           });
+          console.log('[Data] Compétences chargées depuis l\'API:', data.skills.length);
+        } else {
+          // Si pas de données, garder le contenu statique (ne rien faire)
+          console.log('[Data] Pas de compétences dans l\'API, conservation du contenu statique');
         }
-      } else {
-        console.log('[Data] Pas de compétences à charger, utilisation du contenu statique');
       }
 
-      // Centres d'interet - Ne remplacer que si on a des données valides
-      if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
-        const interestsContainer = document.getElementById('interests-container');
-        if (interestsContainer) {
+      // Centres d'interet - Toujours remplacer avec les données de l'API (même si vides, on garde le contenu statique)
+      const interestsContainer = document.getElementById('interests-container');
+      if (interestsContainer) {
+        if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
+          // Remplacer avec les données de l'API
           interestsContainer.innerHTML = data.interests.map(interest => {
             const cleanInterest = String(interest).replace(/[<>]/g, '');
-            const [title, ...descParts] = cleanInterest.split(' — ');
-            const desc = descParts.join(' — ') || '';
-            const cleanTitle = title.trim();
-            return `<div class="skill-bubble">${cleanTitle}${desc ? ` — ${desc.trim()}` : ''}</div>`;
+            // Gérer les deux formats : " - " et " — "
+            const parts = cleanInterest.split(/[—\-]/).map(p => p.trim()).filter(p => p);
+            return `<div class="skill-bubble">${cleanInterest}</div>`;
           }).join('');
+          console.log('[Data] Centres d\'intérêt chargés depuis l\'API:', data.interests.length);
+        } else {
+          // Si pas de données, garder le contenu statique (ne rien faire)
+          console.log('[Data] Pas de centres d\'intérêt dans l\'API, conservation du contenu statique');
         }
-      } else {
-        console.log('[Data] Pas de centres d\'intérêt à charger, utilisation du contenu statique');
       }
 
       // Experiences - Ne PAS remplacer le contenu statique, il reste toujours visible
@@ -223,7 +229,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Charger les donnees au demarrage
-  loadSiteData();
+  console.log('[Data] 🚀 Démarrage du chargement des données...');
+  loadSiteData().then(() => {
+    console.log('[Data] ✅ Chargement terminé');
+  }).catch(err => {
+    console.error('[Data] ❌ Erreur lors du chargement:', err);
+    // Le contenu statique reste visible en cas d'erreur
+  });
 
   // Thème persistant (auto/dark/light) - appliqué immédiatement
   const themeToggle = document.getElementById('themeToggle');
