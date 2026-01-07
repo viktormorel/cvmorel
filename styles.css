@@ -939,15 +939,21 @@ footer { padding: 34px 0; color: #5a6376; background: #eef2ff; }
   transform: translateY(0) translateZ(0);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* FORCER la visibilité par défaut */
+  display: block !important;
+  visibility: visible !important;
 }
 
-/* Quand JS est charge, cacher les elements non-visibles */
+/* Quand JS est charge, NE PAS cacher les éléments - les laisser visibles */
 .js-loaded .reveal:not(.visible) {
-  opacity: 0;
-  transform: translateY(40px) translateZ(0);
+  /* Ne pas cacher - garder visible pour éviter la page blanche */
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
   will-change: opacity, transform;
 }
 
+/* Rendre visible immédiatement les éléments dans le viewport au chargement */
+.reveal.visible,
 .js-loaded .reveal.visible {
   opacity: 1;
   transform: translateY(0) translateZ(0);

@@ -25,8 +25,34 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
   }, 300);
-  // Activer les animations reveal (apres que le contenu soit pret)
-  document.body.classList.add('js-loaded');
+  // Rendre visibles IMMÉDIATEMENT toutes les sections au chargement
+  // pour éviter la page blanche - ne pas attendre l'IntersectionObserver
+  const allReveals = document.querySelectorAll('.reveal, .timeline-item');
+  allReveals.forEach(el => {
+    // Rendre visible immédiatement toutes les sections dans le viewport initial
+    const rect = el.getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight + 300 && rect.bottom > -300;
+    if (isInViewport) {
+      el.classList.add('visible');
+    }
+  });
+  
+  // Activer les animations reveal APRÈS avoir rendu les éléments visibles
+  // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
+  requestAnimationFrame(() => {
+    // Rendre visibles toutes les sections qui sont déjà dans le viewport
+    allReveals.forEach(el => {
+      if (!el.classList.contains('visible')) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 500 && rect.bottom > -500) {
+          el.classList.add('visible');
+        }
+      }
+    });
+    
+    // Maintenant ajouter js-loaded pour activer les animations
+    document.body.classList.add('js-loaded');
+  });
 
   // Tracker la visite uniquement sur la page d'accueil (une seule fois par jour)
   const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
