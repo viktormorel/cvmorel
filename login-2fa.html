@@ -616,6 +616,13 @@
     btnAdmin.disabled = true;
     btnAdmin.innerHTML = '<span class="spinner"></span> Chargement...';
     try {
+      // Définir la redirection vers admin après 2FA
+      await fetch('/.netlify/functions/api/admin/set-redirect', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Récupérer le code admin
       const res = await fetch('/.netlify/functions/api/admin/2fa-code', { credentials: 'include' });
       const j = await res.json();
       if (res.ok && j.code) {

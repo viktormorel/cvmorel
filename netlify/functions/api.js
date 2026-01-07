@@ -6,6 +6,8 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
 import QRCode from "qrcode";
+import fs from "fs";
+import path from "path";
 
 // Config GitHub pour persistance
 const GITHUB_OWNER = "viktormorel";
@@ -332,10 +334,14 @@ app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
   });
   if (verified) {
     req.session.twoFA = true;
-      // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-      const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
-      delete req.session.redirectAfter2FA;
-      return res.redirect(redirectTo);
+    // Rediriger selon l'intention ou si admin
+    let redirectTo = req.session.redirectAfter2FA;
+    if (!redirectTo) {
+      // Si admin, rediriger vers admin, sinon download-cv
+      redirectTo = isAdmin(req) ? "/.netlify/functions/api/admin" : "/.netlify/functions/api/download-cv";
+    }
+    delete req.session.redirectAfter2FA;
+    return res.redirect(redirectTo);
   }
   res.send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
 });
@@ -432,8 +438,12 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
       delete req.session.emailCode;
       delete req.session.emailCodeExpiry;
       console.log("Code email vérifié avec succès");
-      // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-      const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
+      // Rediriger selon l'intention ou si admin
+      let redirectTo = req.session.redirectAfter2FA;
+      if (!redirectTo) {
+        // Si admin, rediriger vers admin, sinon download-cv
+        redirectTo = isAdmin(req) ? "/.netlify/functions/api/admin" : "/.netlify/functions/api/download-cv";
+      }
       delete req.session.redirectAfter2FA;
       return res.json({ valid: true, redirect: redirectTo });
     }
@@ -446,8 +456,12 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
   if (verified) {
     req.session.twoFA = true;
     console.log("Code TOTP vérifié avec succès");
-    // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-    const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
+    // Rediriger selon l'intention ou si admin
+    let redirectTo = req.session.redirectAfter2FA;
+    if (!redirectTo) {
+      // Si admin, rediriger vers admin, sinon download-cv
+      redirectTo = isAdmin(req) ? "/.netlify/functions/api/admin" : "/.netlify/functions/api/download-cv";
+    }
     delete req.session.redirectAfter2FA;
     return res.json({ valid: true, redirect: redirectTo });
   }
@@ -470,6 +484,15 @@ app.get(["/api/user-info", "/user-info", "/.netlify/functions/api/user-info"], (
 });
 
 // Admin 2FA Code (API)
+// Route pour définir la redirection admin après 2FA
+app.post(["/api/admin/set-redirect", "/.netlify/functions/api/admin/set-redirect"], ensureAuthenticated, (req, res) => {
+  if (!isAdmin(req)) {
+    return res.status(403).json({ error: "Non autorisé" });
+  }
+  req.session.redirectAfter2FA = "/.netlify/functions/api/admin";
+  res.json({ success: true, redirect: "/.netlify/functions/api/admin" });
+});
+
 app.get(["/api/admin/2fa-code", "/admin/2fa-code", "/.netlify/functions/api/admin/2fa-code"], (req, res) => {
   if (!req.isAuthenticated()) {
     console.error("Admin code request - Non authentifié");
@@ -782,7 +805,7 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
       </svg>
       Télécharger le CV
     </a>
-    ${isAdminUser ? `<a href="/admin.html" class="btn btn-admin">
+    ${isAdminUser ? `<a href="/.netlify/functions/api/admin" class="btn btn-admin">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
       </svg>
@@ -800,6 +823,75 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req,
   }
   // Rediriger vers le fichier statique
   res.redirect("/cv-viktor-morel.docx");
+});
+
+// Route Admin - servir admin.html de manière sécurisée
+app.get(["/admin", "/.netlify/functions/api/admin"], ensureAdmin, async (req, res) => {
+  try {
+    // Sur Netlify, les fichiers sont dans le répertoire de déploiement
+    // Essayer plusieurs chemins possibles pour admin.html
+    const possiblePaths = [
+      path.join(process.cwd(), "admin.html"),
+      path.join(process.cwd(), "..", "admin.html"),
+      path.join(process.cwd(), "..", "..", "admin.html"),
+      "/var/task/admin.html",
+      path.join(__dirname, "..", "..", "admin.html"),
+      path.join(__dirname, "..", "admin.html")
+    ];
+    
+    let adminContent = null;
+    for (const adminPath of possiblePaths) {
+      try {
+        if (fs.existsSync(adminPath)) {
+          adminContent = fs.readFileSync(adminPath, "utf8");
+          console.log("admin.html trouvé à:", adminPath);
+          break;
+        }
+      } catch (err) {
+        // Continuer avec le prochain chemin
+        continue;
+      }
+    }
+    
+    if (adminContent) {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(adminContent);
+    } else {
+      // Si le fichier n'est pas trouvé, essayer de le charger depuis GitHub ou servir une version basique
+      console.error("admin.html non trouvé, chemins testés:", possiblePaths);
+      console.error("process.cwd():", process.cwd());
+      console.error("__dirname:", __dirname);
+      
+      // Fallback : charger depuis GitHub si disponible
+      const token = process.env.GITHUB_TOKEN;
+      if (token) {
+        try {
+          const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/admin.html`;
+          const response = await fetch(url, {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Accept": "application/vnd.github.v3+json",
+              "User-Agent": "CV-Admin"
+            }
+          });
+          if (response.ok) {
+            const fileData = await response.json();
+            adminContent = Buffer.from(fileData.content, "base64").toString("utf-8");
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.send(adminContent);
+            return;
+          }
+        } catch (err) {
+          console.error("Erreur chargement depuis GitHub:", err);
+        }
+      }
+      
+      res.status(404).send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Admin introuvable</title></head><body><h1>Page admin introuvable</h1><p>Le fichier admin.html n'a pas pu être chargé.</p><p><a href="/">Retour au CV</a></p></body></html>`);
+    }
+  } catch (err) {
+    console.error("Erreur chargement admin.html:", err);
+    res.status(500).send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erreur</title></head><body><h1>Erreur serveur</h1><p>${err.message}</p><p><a href="/">Retour au CV</a></p></body></html>`);
+  }
 });
 
 // Formulaire de contact - envoie vers Discord (webhook protégé côté serveur)
