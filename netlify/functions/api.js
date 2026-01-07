@@ -744,6 +744,28 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
       text-decoration: none;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    .btn span, .btn svg {
+      position: relative;
+      z-index: 1;
     }
     .btn-primary {
       background: linear-gradient(135deg, #667eea, #764ba2);
@@ -762,6 +784,12 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
     .btn-admin:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
     }
     .btn svg {
       width: 22px;
@@ -813,20 +841,22 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
     </div>
     <h1 class="title">Accès Autorisé</h1>
     <p class="greeting">Bienvenue <strong>${userName}</strong> ! Tu t'es authentifié avec succès via Google et as validé la vérification 2FA.</p>
-    <a href="/.netlify/functions/api/download-cv/file" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Télécharger le CV
-    </a>
-    ${isAdminUser ? `<a href="/.netlify/functions/api/admin" class="btn btn-admin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
-      </svg>
-      Accéder à l'admin
-    </a>` : ''}
+    <div class="btn-group">
+      <a href="/.netlify/functions/api/download-cv/file" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Télécharger le CV</span>
+      </a>
+      ${isAdminUser ? `<a href="/.netlify/functions/api/admin" class="btn btn-admin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
+        </svg>
+        <span>Accéder à l'admin</span>
+      </a>` : ''}
+    </div>
   </div>
 </body>
 </html>`);
