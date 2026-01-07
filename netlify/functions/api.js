@@ -528,7 +528,12 @@ app.get(["/api/admin/2fa-code", "/admin/2fa-code", "/.netlify/functions/api/admi
 });
 
 // Admin routes
-app.get(["/api/admin/check", "/admin/check", "/.netlify/functions/api/admin/check"], ensureAuthenticated, (req, res) => {
+app.get(["/api/admin/check", "/admin/check", "/.netlify/functions/api/admin/check"], (req, res) => {
+  // Vérifier l'authentification et la 2FA sans rediriger (pour le script JS)
+  // Retourner toujours 200 avec isAdmin: false si non authentifié (pour éviter la redirection immédiate)
+  if (!req.isAuthenticated() || req.session.twoFA !== true) {
+    return res.json({ isAdmin: false });
+  }
   res.json({ isAdmin: isAdmin(req) });
 });
 
