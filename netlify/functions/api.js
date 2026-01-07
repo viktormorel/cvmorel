@@ -297,7 +297,7 @@ app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"
       // Sauvegarder la connexion
       await saveLogin(user);
       // Marquer qu'après 2FA on doit aller vers download-cv (par défaut pour le téléchargement)
-      req.session.redirectAfter2FA = "/download-cv";
+      req.session.redirectAfter2FA = "/.netlify/functions/api/download-cv";
       res.redirect("/login-2fa.html");
     });
   })(req, res, next);
@@ -315,7 +315,7 @@ app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
       delete req.session.emailCode;
       delete req.session.emailCodeExpiry;
       // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-      const redirectTo = req.session.redirectAfter2FA || "/download-cv";
+      const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
       delete req.session.redirectAfter2FA;
       return res.redirect(redirectTo);
     }
@@ -332,10 +332,10 @@ app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
   });
   if (verified) {
     req.session.twoFA = true;
-    // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-    const redirectTo = req.session.redirectAfter2FA || "/download-cv";
-    delete req.session.redirectAfter2FA;
-    return res.redirect(redirectTo);
+      // Rediriger vers download-cv si on vient du téléchargement, sinon admin
+      const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
+      delete req.session.redirectAfter2FA;
+      return res.redirect(redirectTo);
   }
   res.send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
 });
@@ -433,7 +433,7 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
       delete req.session.emailCodeExpiry;
       console.log("Code email vérifié avec succès");
       // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-      const redirectTo = req.session.redirectAfter2FA || "/download-cv";
+      const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
       delete req.session.redirectAfter2FA;
       return res.json({ valid: true, redirect: redirectTo });
     }
@@ -447,7 +447,7 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
     req.session.twoFA = true;
     console.log("Code TOTP vérifié avec succès");
     // Rediriger vers download-cv si on vient du téléchargement, sinon admin
-    const redirectTo = req.session.redirectAfter2FA || "/download-cv";
+    const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
     delete req.session.redirectAfter2FA;
     return res.json({ valid: true, redirect: redirectTo });
   }
