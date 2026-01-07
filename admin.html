@@ -650,6 +650,11 @@
         if (response.ok) {
           siteData = await response.json();
           renderAll();
+        } else if (response.status === 403) {
+          // Rediriger vers la page d'accueil si non autorisé
+          window.location.replace('/');
+        } else {
+          console.error('Erreur chargement données:', response.status);
         }
       } catch (err) {
         console.error('Erreur chargement:', err);
@@ -869,6 +874,7 @@
       siteData.contact.phone = document.getElementById('contact-phone').value.trim();
       siteData.contact.linkedin = document.getElementById('contact-linkedin').value.trim();
 
+      const messageEl = document.getElementById('message');
       try {
         const response = await fetch('/.netlify/functions/api/admin/save', {
           method: 'POST',
@@ -877,12 +883,23 @@
           credentials: 'include'
         });
 
-        const messageEl = document.getElementById('message');
         if (response.ok) {
           messageEl.textContent = 'Modifications sauvegardees avec succes !';
           messageEl.className = 'message success';
+        } else if (response.status === 403) {
+          messageEl.textContent = 'Session expirée. Redirection...';
+          messageEl.className = 'message error';
+          setTimeout(() => window.location.replace('/'), 2000);
+          return;
         } else {
-          messageEl.textContent = 'Erreur lors de la sauvegarde.';
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: `Erreur ${response.status}` };
+          }
+          messageEl.textContent = 'Erreur: ' + (errorData.error || 'Erreur lors de la sauvegarde');
           messageEl.className = 'message error';
         }
 
@@ -891,6 +908,11 @@
         }, 3000);
       } catch (err) {
         console.error('Erreur sauvegarde:', err);
+        messageEl.textContent = 'Erreur reseau: ' + (err.message || 'Erreur de connexion');
+        messageEl.className = 'message error';
+        setTimeout(() => {
+          messageEl.className = 'message';
+        }, 3000);
       }
     }
 
@@ -937,8 +959,8 @@
         const response = await fetch('/.netlify/functions/api/admin/logins', { credentials: 'include' });
         if (response.ok) {
           const logins = await response.json();
-          document.getElementById('logins-badge').textContent = logins.length;
-          if (logins.length === 0) {
+          document.getElementById('logins-badge').textContent = logins.length || 0;
+          if (!logins || logins.length === 0) {
             container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
           } else {
             container.innerHTML = '<ul class="item-list">' + logins.map(login => `
@@ -955,16 +977,25 @@
             `).join('') + '</ul>';
           }
         } else if (response.status === 403) {
+          // Si 403, rediriger vers la page d'accueil car l'utilisateur n'est plus autorisé
           document.getElementById('logins-badge').textContent = '-';
-          container.innerHTML = '<p style="color:#888;">Connectez-vous en admin pour voir les connexions.</p>';
+          container.innerHTML = '<p style="color:#ff4757;">Session expirée. Redirection...</p>';
+          setTimeout(() => window.location.replace('/'), 2000);
         } else {
-          document.getElementById('logins-badge').textContent = 0;
-          container.innerHTML = '<p style="color:#ff4757;">Erreur lors du chargement.</p>';
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: `Erreur ${response.status}` };
+          }
+          document.getElementById('logins-badge').textContent = '-';
+          container.innerHTML = `<p style="color:#ff4757;">Erreur: ${errorData.error || 'Erreur lors du chargement'}</p>`;
         }
       } catch (err) {
         console.error('Erreur chargement connexions:', err);
-        document.getElementById('logins-badge').textContent = 0;
-        container.innerHTML = '<p style="color:#ff4757;">Erreur reseau.</p>';
+        document.getElementById('logins-badge').textContent = '-';
+        container.innerHTML = '<p style="color:#ff4757;">Erreur reseau: ' + (err.message || 'Erreur de connexion') + '</p>';
       }
     }
 
