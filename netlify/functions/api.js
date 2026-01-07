@@ -146,14 +146,30 @@ async function loadSiteData() {
         const fileData = await response.json();
         lastGitHubSha = fileData.sha;
         const content = Buffer.from(fileData.content, "base64").toString("utf-8");
-        const data = JSON.parse(content);
+        let data;
+        try {
+          data = JSON.parse(content);
+        } catch (parseErr) {
+          console.error("Erreur parsing JSON:", parseErr);
+          // Si le JSON est invalide, utiliser les données par défaut
+          inMemoryData = { ...DEFAULT_DATA };
+          return inMemoryData;
+        }
+        // S'assurer que les données ont la structure attendue
+        if (!data.skills) data.skills = DEFAULT_DATA.skills || [];
+        if (!data.interests) data.interests = DEFAULT_DATA.interests || [];
+        if (!data.experiences) data.experiences = DEFAULT_DATA.experiences || [];
+        if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
         inMemoryData = data;
         return data;
+      } else {
+        console.warn("GitHub API response not OK:", response.status);
       }
     } catch (err) {
       console.error("Erreur lecture site-data.json:", err);
     }
   }
+  // Toujours retourner des données valides (par défaut si nécessaire)
   inMemoryData = { ...DEFAULT_DATA };
   return inMemoryData;
 }
@@ -287,15 +303,22 @@ app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-dat
   try {
     const data = await loadSiteData();
     // Retourner seulement les données publiques (pas les logins/stats)
+    // Toujours retourner un objet valide même si les données sont vides
     res.json({
-      skills: data.skills || [],
-      interests: data.interests || [],
-      experiences: data.experiences || [],
-      contact: data.contact || {}
+      skills: Array.isArray(data.skills) ? data.skills : [],
+      interests: Array.isArray(data.interests) ? data.interests : [],
+      experiences: Array.isArray(data.experiences) ? data.experiences : [],
+      contact: data.contact && typeof data.contact === 'object' ? data.contact : {}
     });
   } catch (err) {
     console.error("[Public] Error:", err);
-    res.status(500).json({ error: "Erreur serveur" });
+    // En cas d'erreur, retourner les données par défaut plutôt qu'une erreur 500
+    res.json({
+      skills: DEFAULT_DATA.skills || [],
+      interests: DEFAULT_DATA.interests || [],
+      experiences: DEFAULT_DATA.experiences || [],
+      contact: DEFAULT_DATA.contact || {}
+    });
   }
 });
 
@@ -303,69 +326,125 @@ app.get(["/auth/google", "/.netlify/functions/api/auth/google"], passport.authen
 
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
   passport.authenticate("google", async (err, user) => {
-    if (err) {
-      console.error("OAuth error:", err);
-      return res.status(500).send("Erreur OAuth");
-    }
-    if (!user) return res.redirect("/");
-    req.logIn(user, async (loginErr) => {
-      if (loginErr) {
-        console.error("Login error:", loginErr);
-        return res.status(500).send("Erreur de connexion.");
+    try {
+      if (err) {
+        console.error("OAuth error:", err);
+        return res.status(500).send("Erreur OAuth");
       }
-      // Sauvegarder la connexion
-      await saveLogin(user);
-      // Toujours rediriger vers download-cv après 2FA (cette page affiche les deux options : CV + Admin si admin)
-      req.session.redirectAfter2FA = "/.netlify/functions/api/download-cv";
-      res.redirect("/login-2fa.html");
-    });
+      if (!user) return res.redirect("/");
+      req.logIn(user, async (loginErr) => {
+        try {
+          if (loginErr) {
+            console.error("Login error:", loginErr);
+            return res.status(500).send("Erreur de connexion.");
+          }
+          // Sauvegarder la connexion
+          await saveLogin(user);
+          // Toujours rediriger vers download-cv après 2FA (cette page affiche les deux options : CV + Admin si admin)
+          req.session.redirectAfter2FA = "/.netlify/functions/api/download-cv";
+          res.redirect("/login-2fa.html");
+        } catch (loginError) {
+          console.error("Erreur lors du login:", loginError);
+          res.status(500).send("Erreur de connexion.");
+        }
+      });
+    } catch (authError) {
+      console.error("Erreur authentification OAuth:", authError);
+      res.status(500).send("Erreur OAuth");
+    }
   })(req, res, next);
 });
 
 // 2FA Verify (form)
 app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
-  const token = req.body.token;
-  if (!token) return res.status(400).send("<h2>Code manquant.</h2>");
+  try {
+    // Validation de l'authentification
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("<h2>Non authentifié.</h2><a href='/login-2fa.html'>Retour</a>");
+    }
 
-  // Vérifier le code email d'abord
-  if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
-    if (req.session.emailCode === token) {
+    const token = String(req.body.token || "").trim();
+    if (!token) return res.status(400).send("<h2>Code manquant.</h2><a href='/login-2fa.html'>Retour</a>");
+    
+    // Validation du format (6 chiffres)
+    if (!/^\d{6}$/.test(token)) {
+      return res.status(400).send("<h2>Code invalide : doit contenir 6 chiffres.</h2><a href='/login-2fa.html'>Retour</a>");
+    }
+
+    // Vérifier le code email d'abord
+    if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
+      if (req.session.emailCode === token) {
+        req.session.twoFA = true;
+        delete req.session.emailCode;
+        delete req.session.emailCodeExpiry;
+        // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
+        const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
+        delete req.session.redirectAfter2FA;
+        return res.redirect(redirectTo);
+      }
+    }
+
+    // Sinon vérifier le TOTP
+    const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
+    if (!secret) {
+      console.error("Secret 2FA manquant pour l'utilisateur:", req.user?.emails?.[0]?.value);
+      return res.status(500).send("<h2>Erreur serveur : secret 2FA manquant.</h2><a href='/login-2fa.html'>Retour</a>");
+    }
+    
+    let verified = false;
+    try {
+      verified = speakeasy.totp.verify({
+        secret,
+        encoding: "base32",
+        token: token,
+        window: 1
+      });
+    } catch (verifyErr) {
+      console.error("Erreur vérification TOTP:", verifyErr);
+      return res.status(500).send("<h2>Erreur lors de la vérification.</h2><a href='/login-2fa.html'>Retour</a>");
+    }
+    
+    if (verified) {
       req.session.twoFA = true;
-      delete req.session.emailCode;
-      delete req.session.emailCodeExpiry;
       // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
       const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
       delete req.session.redirectAfter2FA;
       return res.redirect(redirectTo);
     }
+    
+    res.status(400).send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
+  } catch (err) {
+    console.error("Erreur vérification 2FA (form):", err);
+    res.status(500).send("<h2>Erreur serveur.</h2><a href='/login-2fa.html'>Retour</a>");
   }
-
-  // Sinon vérifier le TOTP
-  const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
-  if (!secret) return res.status(400).send("<h2>Erreur serveur : secret 2FA manquant.</h2>");
-  const verified = speakeasy.totp.verify({
-    secret,
-    encoding: "base32",
-    token: req.body.token,
-    window: 1
-  });
-  if (verified) {
-    req.session.twoFA = true;
-    // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
-    const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
-    delete req.session.redirectAfter2FA;
-    return res.redirect(redirectTo);
-  }
-  res.send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
 });
 
 // 2FA Generate (API)
 app.post(["/api/2fa/generate", "/.netlify/functions/api/2fa/generate"], (req, res) => {
   try {
+    // Validation de l'authentification
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
+
     const secret = speakeasy.generateSecret({ length: 20, name: "ViktorMorel" });
+    if (!secret || !secret.base32) {
+      throw new Error("Erreur génération secret");
+    }
+    
     req.session.twoFASecret = secret.base32;
+    
+    if (!secret.otpauth_url) {
+      return res.status(500).json({ error: "URL OTP manquante" });
+    }
+    
     QRCode.toDataURL(secret.otpauth_url)
-      .then((dataUrl) => res.json({ secret: secret.base32, qrCode: dataUrl }))
+      .then((dataUrl) => {
+        if (!dataUrl) {
+          throw new Error("QR code vide");
+        }
+        res.json({ secret: secret.base32, qrCode: dataUrl });
+      })
       .catch((err) => {
         console.error("QR generation error:", err);
         res.status(500).json({ error: "QR generation failed" });
@@ -441,37 +520,64 @@ app.post(["/api/2fa/send-email", "/.netlify/functions/api/2fa/send-email"], asyn
 
 // 2FA Verify (API)
 app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) => {
-  const token = req.body.token;
-  if (!token) return res.status(400).json({ valid: false, error: "token missing" });
+  try {
+    // Validation de l'authentification
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ valid: false, error: "Non authentifié" });
+    }
 
-  // Vérifier le code email d'abord
-  if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
-    if (req.session.emailCode === token) {
+    const token = String(req.body.token || "").trim();
+    if (!token) return res.status(400).json({ valid: false, error: "token missing" });
+    
+    // Validation du format (6 chiffres)
+    if (!/^\d{6}$/.test(token)) {
+      return res.status(400).json({ valid: false, error: "Code invalide : doit contenir 6 chiffres" });
+    }
+
+    // Vérifier le code email d'abord
+    if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
+      if (req.session.emailCode === token) {
+        req.session.twoFA = true;
+        delete req.session.emailCode;
+        delete req.session.emailCodeExpiry;
+        console.log("Code email vérifié avec succès pour:", req.user?.emails?.[0]?.value);
+        // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
+        const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
+        delete req.session.redirectAfter2FA;
+        return res.json({ valid: true, redirect: redirectTo });
+      }
+    }
+
+    // Sinon vérifier le TOTP
+    const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
+    if (!secret) {
+      console.error("Secret 2FA manquant pour l'utilisateur:", req.user?.emails?.[0]?.value);
+      return res.status(500).json({ valid: false, error: "secret missing" });
+    }
+    
+    let verified = false;
+    try {
+      verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
+    } catch (verifyErr) {
+      console.error("Erreur vérification TOTP:", verifyErr);
+      return res.status(500).json({ valid: false, error: "Erreur lors de la vérification" });
+    }
+    
+    if (verified) {
       req.session.twoFA = true;
-      delete req.session.emailCode;
-      delete req.session.emailCodeExpiry;
-      console.log("Code email vérifié avec succès");
+      console.log("Code TOTP vérifié avec succès pour:", req.user?.emails?.[0]?.value);
       // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
       const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
       delete req.session.redirectAfter2FA;
       return res.json({ valid: true, redirect: redirectTo });
     }
+    
+    console.log("Code invalide pour:", req.user?.emails?.[0]?.value);
+    return res.json({ valid: false, error: "Invalid 2FA code" });
+  } catch (err) {
+    console.error("Erreur vérification 2FA (API):", err);
+    return res.status(500).json({ valid: false, error: "Erreur serveur" });
   }
-
-  // Sinon vérifier le TOTP
-  const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
-  if (!secret) return res.status(400).json({ valid: false, error: "secret missing" });
-  const verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
-  if (verified) {
-    req.session.twoFA = true;
-    console.log("Code TOTP vérifié avec succès");
-    // Toujours rediriger vers download-cv (cette page affiche les deux options : CV + Admin si admin)
-    const redirectTo = req.session.redirectAfter2FA || "/.netlify/functions/api/download-cv";
-    delete req.session.redirectAfter2FA;
-    return res.json({ valid: true, redirect: redirectTo });
-  }
-  console.log("Code invalide:", token);
-  return res.json({ valid: false, error: "Invalid 2FA code" });
 });
 
 // User Info (API)
@@ -554,8 +660,34 @@ app.get(["/api/admin/data", "/admin/data", "/.netlify/functions/api/admin/data"]
 
 app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"], ensureAdmin, async (req, res) => {
   try {
-    await saveSiteData(req.body);
-    console.log("Données admin sauvegardées");
+    // Validation des données
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: "Données invalides" });
+    }
+
+    // Validation de la structure des données
+    const data = {
+      skills: Array.isArray(req.body.skills) ? req.body.skills : [],
+      interests: Array.isArray(req.body.interests) ? req.body.interests : [],
+      experiences: Array.isArray(req.body.experiences) ? req.body.experiences : [],
+      contact: req.body.contact && typeof req.body.contact === 'object' ? req.body.contact : {},
+      logins: Array.isArray(req.body.logins) ? req.body.logins : [],
+      stats: req.body.stats && typeof req.body.stats === 'object' ? req.body.stats : {}
+    };
+
+    // Validation des champs contact
+    if (data.contact.email && typeof data.contact.email !== 'string') {
+      return res.status(400).json({ error: "Email invalide" });
+    }
+    if (data.contact.phone && typeof data.contact.phone !== 'string') {
+      return res.status(400).json({ error: "Téléphone invalide" });
+    }
+    if (data.contact.linkedin && typeof data.contact.linkedin !== 'string') {
+      return res.status(400).json({ error: "LinkedIn invalide" });
+    }
+
+    await saveSiteData(data);
+    console.log("Données admin sauvegardées par:", req.user?.emails?.[0]?.value);
     res.json({ success: true });
   } catch (err) {
     console.error("Erreur sauvegarde admin:", err);
@@ -603,13 +735,17 @@ app.post(["/api/track-visit", "/track-visit", "/.netlify/functions/api/track-vis
 
 // Page download sécurisée - HTML servi uniquement si authentifié
 app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
-  if (!req.isAuthenticated() || req.session.twoFA !== true) {
-    return res.redirect("/");
-  }
-  const isAdminUser = isAdmin(req);
-  const userName = req.user?.displayName?.split(' ')[0] || 'Utilisateur';
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.send(`<!DOCTYPE html>
+  try {
+    if (!req.isAuthenticated() || req.session.twoFA !== true) {
+      return res.redirect("/");
+    }
+    const isAdminUser = isAdmin(req);
+    // Échapper le nom d'utilisateur pour éviter XSS
+    const userName = String(req.user?.displayName?.split(' ')[0] || 'Utilisateur')
+      .replace(/[<>]/g, '');
+    
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -860,15 +996,24 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
   </div>
 </body>
 </html>`);
+  } catch (err) {
+    console.error("Erreur génération page download-cv:", err);
+    res.status(500).send("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Erreur</title></head><body><h1>Erreur serveur</h1><p><a href='/'>Retour au CV</a></p></body></html>");
+  }
 });
 
 // Route pour télécharger le fichier CV (protégée par auth)
 app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req, res) => {
-  if (!req.isAuthenticated() || req.session.twoFA !== true) {
-    return res.status(401).json({ error: "Non autorisé" });
+  try {
+    if (!req.isAuthenticated() || req.session.twoFA !== true) {
+      return res.status(401).json({ error: "Non autorisé" });
+    }
+    // Rediriger vers le fichier statique
+    res.redirect("/cv-viktor-morel.docx");
+  } catch (err) {
+    console.error("Erreur téléchargement CV:", err);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-  // Rediriger vers le fichier statique
-  res.redirect("/cv-viktor-morel.docx");
 });
 
 // Route Admin - servir admin.html de manière sécurisée

@@ -55,20 +55,52 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   async function loadSiteData() {
     try {
-      const res = await fetch('/.netlify/functions/api/public-data');
+      // Créer un AbortController pour le timeout (compatible avec tous les navigateurs)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const res = await fetch('/.netlify/functions/api/public-data', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!res.ok) {
+        // Si l'API retourne une erreur, essayer de parser le JSON d'erreur
+        let errorMessage = "Erreur de chargement des données du CV.";
+        try {
+          const errorData = await res.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // Si on ne peut pas parser l'erreur, utiliser le message par défaut
+        }
+        
         // Affichage d'un message d'erreur utilisateur si l'API échoue
         const main = document.querySelector('main, body');
         if (main && !document.getElementById('data-error')) {
           const err = document.createElement('div');
           err.id = 'data-error';
-          err.textContent = "Erreur de chargement des données du CV. Veuillez réessayer plus tard.";
+          err.textContent = errorMessage + " Veuillez réessayer plus tard.";
           err.style.cssText = 'background:#ffeded;color:#b71c1c;padding:18px 24px;border-radius:12px;margin:24px auto;text-align:center;max-width:600px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 12px #fbb;';
           main.prepend(err);
         }
+        console.error('[Data] API Error:', res.status, errorMessage);
         return;
       }
+      
       const data = await res.json();
+      
+      // Vérifier que les données sont valides
+      if (!data || typeof data !== 'object') {
+        throw new Error('Données invalides reçues du serveur');
+      }
 
       // Contact
       if (data.contact) {
@@ -136,7 +168,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     } catch (e) {
-      console.log('[Data] Using static content');
+      // Gestion d'erreur améliorée
+      if (e.name === 'AbortError' || e.name === 'TimeoutError') {
+        console.error('[Data] Timeout lors du chargement des données');
+        const main = document.querySelector('main, body');
+        if (main && !document.getElementById('data-error')) {
+          const err = document.createElement('div');
+          err.id = 'data-error';
+          err.textContent = "Le chargement des données prend trop de temps. Veuillez réessayer.";
+          err.style.cssText = 'background:#fff3cd;color:#856404;padding:18px 24px;border-radius:12px;margin:24px auto;text-align:center;max-width:600px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 12px #ffc;';
+          main.prepend(err);
+        }
+      } else if (e.name === 'TypeError' && e.message.includes('fetch')) {
+        console.error('[Data] Erreur réseau:', e.message);
+        const main = document.querySelector('main, body');
+        if (main && !document.getElementById('data-error')) {
+          const err = document.createElement('div');
+          err.id = 'data-error';
+          err.textContent = "Erreur de connexion réseau. Vérifiez votre connexion internet.";
+          err.style.cssText = 'background:#fff3cd;color:#856404;padding:18px 24px;border-radius:12px;margin:24px auto;text-align:center;max-width:600px;font-weight:600;font-size:1.1rem;box-shadow:0 2px 12px #ffc;';
+          main.prepend(err);
+        }
+      } else {
+        console.error('[Data] Erreur:', e);
+        console.log('[Data] Using static content');
+      }
     }
   }
 
