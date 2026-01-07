@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   async function loadSiteData() {
     try {
-      const res = await fetch('/api/public-data');
+      const res = await fetch('/.netlify/functions/api/public-data');
       if (!res.ok) {
         // Affichage d'un message d'erreur utilisateur si l'API échoue
         const main = document.querySelector('main, body');

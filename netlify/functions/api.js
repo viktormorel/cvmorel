@@ -282,6 +282,23 @@ app.use((req, res, next) => {
 // Routes
 app.get(["/health", "/.netlify/functions/api/health"], (req, res) => res.json({ status: "ok" }));
 
+// Public data - accessible sans auth (pour le site public)
+app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-data"], async (req, res) => {
+  try {
+    const data = await loadSiteData();
+    // Retourner seulement les données publiques (pas les logins/stats)
+    res.json({
+      skills: data.skills || [],
+      interests: data.interests || [],
+      experiences: data.experiences || [],
+      contact: data.contact || {}
+    });
+  } catch (err) {
+    console.error("[Public] Error:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 app.get(["/auth/google", "/.netlify/functions/api/auth/google"], passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get(["/auth/google/callback", "/.netlify/functions/api/auth/google/callback"], (req, res, next) => {
@@ -485,7 +502,13 @@ app.get(["/api/user-info", "/user-info", "/.netlify/functions/api/user-info"], (
 
 // Admin 2FA Code (API)
 // Route pour définir la redirection admin après 2FA
-app.post(["/api/admin/set-redirect", "/.netlify/functions/api/admin/set-redirect"], ensureAuthenticated, (req, res) => {
+app.post(["/api/admin/set-redirect", "/.netlify/functions/api/admin/set-redirect"], (req, res) => {
+  if (!req.isAuthenticated()) {
+    // Si pas encore authentifié, on accepte quand même (l'utilisateur sera vérifié après 2FA)
+    req.session.redirectAfter2FA = "/.netlify/functions/api/admin";
+    return res.json({ success: true, redirect: "/.netlify/functions/api/admin" });
+  }
+  // Si authentifié, vérifier qu'il est admin
   if (!isAdmin(req)) {
     return res.status(403).json({ error: "Non autorisé" });
   }

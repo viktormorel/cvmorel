@@ -646,7 +646,7 @@
     // Charger les donnees au demarrage
     async function loadData() {
       try {
-        const response = await fetch('/api/admin/data', { credentials: 'include' });
+        const response = await fetch('/.netlify/functions/api/admin/data', { credentials: 'include' });
         if (response.ok) {
           siteData = await response.json();
           renderAll();
@@ -870,7 +870,7 @@
       siteData.contact.linkedin = document.getElementById('contact-linkedin').value.trim();
 
       try {
-        const response = await fetch('/api/admin/save', {
+        const response = await fetch('/.netlify/functions/api/admin/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(siteData),
@@ -907,7 +907,7 @@
     // Charger les stats
     async function loadStats() {
       try {
-        const response = await fetch('/api/admin/stats', { credentials: 'include' });
+        const response = await fetch('/.netlify/functions/api/admin/stats', { credentials: 'include' });
         if (response.ok) {
           const stats = await response.json();
           const totalVisits = stats.visits || 0;
@@ -934,7 +934,7 @@
       const container = document.getElementById('logins-list');
       container.innerHTML = '<p style="color:#888;">Chargement...</p>';
       try {
-        const response = await fetch('/api/admin/logins', { credentials: 'include' });
+        const response = await fetch('/.netlify/functions/api/admin/logins', { credentials: 'include' });
         if (response.ok) {
           const logins = await response.json();
           document.getElementById('logins-badge').textContent = logins.length;

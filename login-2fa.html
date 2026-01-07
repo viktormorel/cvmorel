@@ -570,6 +570,16 @@
         method: 'POST',
         credentials: 'include'
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `Erreur ${res.status}` };
+        }
+        throw new Error(errorData.error || `Erreur ${res.status}`);
+      }
       const j = await res.json();
       if (j.success) {
         emailStatus.innerHTML = '✅ Code envoyé !<br><small style="opacity:0.7; font-size: 0.8em;">💡 Vérifie aussi tes spams si tu ne le vois pas</small>';
@@ -579,7 +589,8 @@
         emailStatus.className = 'status-msg error';
       }
     } catch (e) {
-      emailStatus.textContent = '❌ Erreur réseau';
+      console.error('Erreur envoi email:', e);
+      emailStatus.textContent = '❌ ' + (e.message || 'Erreur réseau');
       emailStatus.className = 'status-msg error';
     } finally {
       sendEmailBtn.disabled = false;
@@ -597,14 +608,27 @@
         method: 'POST',
         credentials: 'include'
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `Erreur ${res.status}` };
+        }
+        throw new Error(errorData.error || `Erreur ${res.status}`);
+      }
       const j = await res.json();
       if (j.qrCode) {
         qrImg.src = j.qrCode;
         qrSecret.textContent = j.secret || '';
         qrResult.style.display = 'block';
+      } else {
+        throw new Error(j.error || 'QR code non généré');
       }
     } catch (e) {
-      alert('Erreur: ' + e.message);
+      console.error('Erreur génération QR:', e);
+      alert('❌ Erreur: ' + (e.message || 'Impossible de générer le QR code'));
     } finally {
       genQrBtn.disabled = false;
       genQrBtn.innerHTML = '<span>🔄</span> Régénérer';
@@ -616,16 +640,32 @@
     btnAdmin.disabled = true;
     btnAdmin.innerHTML = '<span class="spinner"></span> Chargement...';
     try {
-      // Définir la redirection vers admin après 2FA
-      await fetch('/.netlify/functions/api/admin/set-redirect', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      // Définir la redirection vers admin après 2FA (optionnel, ne pas bloquer si ça échoue)
+      try {
+        await fetch('/.netlify/functions/api/admin/set-redirect', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (e) {
+        // Ignorer l'erreur de set-redirect, on continue quand même
+        console.warn('set-redirect échoué (non bloquant):', e);
+      }
       
       // Récupérer le code admin
       const res = await fetch('/.netlify/functions/api/admin/2fa-code', { credentials: 'include' });
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Erreur inconnue' };
+        }
+        throw new Error(errorData.error || `Erreur ${res.status}`);
+      }
+      
       const j = await res.json();
-      if (res.ok && j.code) {
+      if (j.code) {
         adminCode.textContent = j.code;
         adminCodeBox.classList.add('visible');
         currentMethod = 'email';
@@ -637,12 +677,11 @@
         codeInput.value = j.code;
         codeInput.focus();
       } else {
-        console.error('Erreur récupération code admin:', j.error || 'Erreur inconnue');
-        alert('❌ ' + (j.error || 'Impossible de récupérer le code admin.'));
+        throw new Error(j.error || 'Code admin non reçu');
       }
     } catch (e) {
       console.error('Erreur réseau admin code:', e);
-      alert('❌ Erreur réseau lors de la récupération du code admin.');
+      alert('❌ Erreur réseau lors de la récupération du code admin.\n\n' + e.message);
     } finally {
       btnAdmin.disabled = false;
       btnAdmin.innerHTML = '🔑 Accès Admin - Voir le code';
@@ -676,6 +715,17 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, method: currentMethod })
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `Erreur ${res.status}` };
+        }
+        throw new Error(errorData.error || `Erreur ${res.status}`);
+      }
+      
       const j = await res.json();
       if (j.valid && j.redirect) {
         btn.innerHTML = '<span>✅ Vérifié !</span>';
@@ -687,7 +737,8 @@
         btn.innerHTML = '<span>Vérifier et continuer</span>';
       }
     } catch (err) {
-      errorMsg.textContent = '❌ Erreur réseau';
+      console.error('Erreur vérification 2FA:', err);
+      errorMsg.textContent = '❌ ' + (err.message || 'Erreur réseau');
       btn.disabled = false;
       btn.innerHTML = '<span>Vérifier et continuer</span>';
     }
