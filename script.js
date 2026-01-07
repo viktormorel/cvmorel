@@ -359,6 +359,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   const reveals = document.querySelectorAll('.reveal, .timeline-item');
 
+  // Rendre visibles immédiatement les éléments déjà dans le viewport
+  reveals.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight + 100 && rect.bottom > -100;
+    if (isVisible) {
+      el.classList.add('visible');
+    }
+  });
+
   // Options optimisées pour un déclenchement anticipé
   const observerOptions = {
     threshold: 0.05,
@@ -380,7 +389,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }, observerOptions);
 
-  reveals.forEach(el => revealObserver.observe(el));
+  reveals.forEach(el => {
+    // Ne pas observer les éléments déjà visibles
+    if (!el.classList.contains('visible')) {
+      revealObserver.observe(el);
+    }
+  });
 
   // ============================================
   // MODAL OPTIMISE
