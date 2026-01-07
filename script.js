@@ -99,8 +99,16 @@ document.addEventListener("DOMContentLoaded", () => {
       
       // Vérifier que les données sont valides
       if (!data || typeof data !== 'object') {
-        throw new Error('Données invalides reçues du serveur');
+        console.warn('[Data] Données invalides reçues, utilisation du contenu statique');
+        return; // Ne pas remplacer le contenu statique si les données sont invalides
       }
+      
+      console.log('[Data] Données chargées:', {
+        skills: data.skills?.length || 0,
+        interests: data.interests?.length || 0,
+        experiences: data.experiences?.length || 0,
+        hasContact: !!data.contact
+      });
 
       // Contact
       if (data.contact) {
@@ -121,12 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Competences
-      if (data.skills && data.skills.length > 0) {
+      // Competences - Ne remplacer que si on a des données valides
+      if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
         const skillsContainer = document.getElementById('skills-container');
         if (skillsContainer) {
           skillsContainer.innerHTML = data.skills.map(skill =>
-            `<span class="skill-bubble">${skill}</span>`
+            `<div class="skill-bubble">${String(skill).replace(/[<>]/g, '')}</div>`
           ).join('');
           // Ajout du stagger après injection dynamique
           const skillBubbles = skillsContainer.querySelectorAll('.skill-bubble');
@@ -134,38 +142,56 @@ document.addEventListener("DOMContentLoaded", () => {
             bubble.style.animationDelay = `${index * 0.1}s`;
           });
         }
+      } else {
+        console.log('[Data] Pas de compétences à charger, utilisation du contenu statique');
       }
 
-      // Centres d'interet
-      if (data.interests && data.interests.length > 0) {
+      // Centres d'interet - Ne remplacer que si on a des données valides
+      if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
         const interestsContainer = document.getElementById('interests-container');
         if (interestsContainer) {
           interestsContainer.innerHTML = data.interests.map(interest => {
-            const [title, ...descParts] = interest.split(' - ');
-            const desc = descParts.join(' - ') || '';
-            return `<div class="project-card glass">
-              <h3>${title}</h3>
-              ${desc ? `<p>${desc}</p>` : ''}
-            </div>`;
+            const cleanInterest = String(interest).replace(/[<>]/g, '');
+            const [title, ...descParts] = cleanInterest.split(' — ');
+            const desc = descParts.join(' — ') || '';
+            const cleanTitle = title.trim();
+            return `<div class="skill-bubble">${cleanTitle}${desc ? ` — ${desc.trim()}` : ''}</div>`;
           }).join('');
         }
+      } else {
+        console.log('[Data] Pas de centres d\'intérêt à charger, utilisation du contenu statique');
       }
 
-      // Experiences
-      if (data.experiences && data.experiences.length > 0) {
+      // Experiences - Ne PAS remplacer le contenu statique, il reste toujours visible
+      // Le contenu statique des expériences dans le HTML est conservé par défaut
+      if (data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
+        console.log('[Data] Expériences dynamiques disponibles mais le contenu statique est conservé');
+        // On ne remplace pas le contenu statique car il est déjà complet dans le HTML
+        // Si vous voulez ajouter des expériences dynamiques en plus, décommentez ci-dessous :
+        /*
         const timelineContainer = document.getElementById('timeline-container');
         if (timelineContainer) {
-          timelineContainer.innerHTML = data.experiences.map(exp =>
-            `<div class="timeline-item reveal">
-              <span class="dot"></span>
-              <div class="timeline-content">
-                <span class="date">${exp.date || ''}</span>
-                <h3>${exp.title || ''}</h3>
-                <p>${exp.description || ''}</p>
-              </div>
-            </div>`
-          ).join('');
+          const newExperiences = data.experiences.map(exp => {
+            const title = String(exp.title || '').replace(/[<>]/g, '');
+            const description = String(exp.description || '').replace(/[<>]/g, '');
+            const date = String(exp.date || '').replace(/[<>]/g, '');
+            return `
+      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <h3>${title}</h3>
+          </div>
+          ${date ? `<p class="date">${date}</p>` : ''}
+          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
+        </div>
+      </article>`;
+          }).join('');
+          timelineContainer.insertAdjacentHTML('beforeend', newExperiences);
         }
+        */
+      } else {
+        console.log('[Data] Pas d\'expériences dynamiques, utilisation du contenu statique');
       }
     } catch (e) {
       // Gestion d'erreur améliorée
