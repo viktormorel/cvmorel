@@ -614,10 +614,11 @@
   // Admin code
   btnAdmin.addEventListener('click', async () => {
     btnAdmin.disabled = true;
+    btnAdmin.innerHTML = '<span class="spinner"></span> Chargement...';
     try {
       const res = await fetch('/.netlify/functions/api/admin/2fa-code', { credentials: 'include' });
       const j = await res.json();
-      if (j.code) {
+      if (res.ok && j.code) {
         adminCode.textContent = j.code;
         adminCodeBox.classList.add('visible');
         currentMethod = 'email';
@@ -625,9 +626,20 @@
         document.querySelector('[data-method="email"]').classList.add('active');
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.getElementById('panel-email').classList.add('active');
+        // Auto-remplir le code
+        codeInput.value = j.code;
+        codeInput.focus();
+      } else {
+        console.error('Erreur récupération code admin:', j.error || 'Erreur inconnue');
+        alert('❌ ' + (j.error || 'Impossible de récupérer le code admin.'));
       }
-    } catch (e) {}
-    btnAdmin.disabled = false;
+    } catch (e) {
+      console.error('Erreur réseau admin code:', e);
+      alert('❌ Erreur réseau lors de la récupération du code admin.');
+    } finally {
+      btnAdmin.disabled = false;
+      btnAdmin.innerHTML = '🔑 Accès Admin - Voir le code';
+    }
   });
 
   // Input filter + auto-focus

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
       adminBtn.style.cursor = 'pointer';
       adminBtn.onclick = async () => {
         try {
-          const res = await fetch('/.netlify/functions/api/admin/2fa-code');
+          const res = await fetch('/.netlify/functions/api/admin/2fa-code', { credentials: 'include' });
           if (!res.ok) throw new Error('API error');
           const data = await res.json();
           if (data && data.code) {
