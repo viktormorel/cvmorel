@@ -252,7 +252,7 @@ app.use(
 
 const CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
-  "https://viktor-vahe-morel-cv.netlify.app/.netlify/functions/api/auth/google/callback";
+  "https://cvviktorvahemorel.netlify.app/.netlify/functions/api/auth/google/callback";
 
 passport.use(
   new GoogleStrategy(

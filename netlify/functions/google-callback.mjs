@@ -14,7 +14,7 @@ export const handler = async (event) => {
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    let redirectUri = process.env.GOOGLE_CALLBACK_URL || "https://viktor-vahe-morel-cv.netlify.app/.netlify/functions/api/auth/google/callback";
+    let redirectUri = process.env.GOOGLE_CALLBACK_URL || "https://cvviktorvahemorel.netlify.app/.netlify/functions/api/auth/google/callback";
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!clientId || !clientSecret || !redirectUri || !jwtSecret) {
