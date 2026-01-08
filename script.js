@@ -403,35 +403,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Rendre visibles immédiatement les éléments déjà dans le viewport
   reveals.forEach(el => {
     const rect = el.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight + 100 && rect.bottom > -100;
-    if (isVisible) {
+    if (rect.top < window.innerHeight + 200 && rect.bottom > -100) {
       el.classList.add('visible');
     }
   });
 
-  // Options optimisées pour un déclenchement anticipé
-  const observerOptions = {
-    threshold: 0.05,
-    rootMargin: '100px 0px 50px 0px' // Pré-charge 100px avant le viewport
-  };
-
+  // Observer simple pour les éléments restants
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        // Utiliser requestIdleCallback si disponible, sinon RAF
-        const reveal = () => entry.target.classList.add('visible');
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(reveal, { timeout: 100 });
-        } else {
-          requestAnimationFrame(reveal);
-        }
+        entry.target.classList.add('visible');
         revealObserver.unobserve(entry.target);
       }
     });
-  }, observerOptions);
+  }, { threshold: 0.1, rootMargin: '50px' });
 
   reveals.forEach(el => {
-    // Ne pas observer les éléments déjà visibles
     if (!el.classList.contains('visible')) {
       revealObserver.observe(el);
     }
@@ -635,102 +622,58 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
   }
 
-  // ============================================
-  // PREFETCH LIENS AU SURVOL (performance)
-  // ============================================
-  if ('IntersectionObserver' in window) {
-    const prefetchLinks = document.querySelectorAll('a[href^="/"]');
-    prefetchLinks.forEach(link => {
-      link.addEventListener('mouseenter', () => {
-        const href = link.getAttribute('href');
-        if (href && !document.querySelector(`link[href="${href}"]`)) {
-          const prefetch = document.createElement('link');
-          prefetch.rel = 'prefetch';
-          prefetch.href = href;
-          document.head.appendChild(prefetch);
-        }
-      }, { once: true, passive: true });
-    });
-  }
+  // Prefetch desactive pour eviter les requetes inutiles
 
   // ============================================
-  // PARALLAX LEGER SUR LE HERO
+  // PARALLAX LEGER SUR LE HERO (simplifie pour performance)
   // ============================================
   const hero = document.querySelector('.hero');
   const heroBg = document.querySelector('.hero-bg');
-  const avatar = document.querySelector('.avatar');
 
   if (hero && heroBg) {
-    let tickingParallax = false;
+    let lastScrollY = 0;
+    let parallaxTicking = false;
+    const heroHeight = hero.offsetHeight;
 
     const updateParallax = () => {
-      const scrollY = window.scrollY;
-      const heroHeight = hero.offsetHeight;
-
-      if (scrollY < heroHeight) {
-        const parallaxOffset = scrollY * 0.3;
-        const opacity = 1 - (scrollY / heroHeight) * 0.5;
-
-        heroBg.style.transform = `translateY(${parallaxOffset}px) translateZ(0)`;
-
-        if (avatar) {
-          avatar.style.transform = `translateY(${scrollY * 0.15}px) translateZ(0)`;
-          avatar.style.opacity = opacity;
-        }
+      if (lastScrollY < heroHeight) {
+        heroBg.style.transform = `translateY(${lastScrollY * 0.2}px)`;
       }
-      ticking = false;
+      parallaxTicking = false;
     };
 
     window.addEventListener('scroll', () => {
-      if (!tickingParallax) {
+      lastScrollY = window.scrollY;
+      if (!parallaxTicking) {
         requestAnimationFrame(updateParallax);
-        tickingParallax = true;
+        parallaxTicking = true;
       }
     }, { passive: true });
   }
 
-  // ============================================
-  // CURSEUR MAGNETIQUE SUR LES BOUTONS
-  // ============================================
-  const magneticBtns = document.querySelectorAll('.btn.primary');
-
-  magneticBtns.forEach(btn => {
-    btn.addEventListener('mousemove', (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px) scale(1.02)`;
-    }, { passive: true });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = '';
-    }, { passive: true });
-  });
+  // Effet magnetique desactive pour performance
+  // Les boutons gardent leur animation hover CSS native
 
   // ============================================
-  // EFFET STAGGER SUR LES SKILL BUBBLES
-  // ============================================
-  // (Déjà corrigé plus haut pour le cas dynamique, ici on protège le cas statique)
-  const skillBubblesStatic = document.querySelectorAll('.skill-bubble');
-  skillBubblesStatic.forEach((bubble, index) => {
-    bubble.style.animationDelay = `${index * 0.1}s`;
-  });
-
-  // ============================================
-  // BARRE DE PROGRESSION DE LECTURE
+  // BARRE DE PROGRESSION DE LECTURE (optimisee)
   // ============================================
   const readingProgress = document.getElementById('readingProgress');
-  const updateReadingProgress = () => {
-    const scrollTop = window.scrollY;
+  if (readingProgress) {
+    let progressTicking = false;
     const docHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-    const progress = (scrollTop / docHeight) * 100;
-    if (readingProgress) {
+
+    const updateReadingProgress = () => {
+      const progress = (window.scrollY / docHeight) * 100;
       readingProgress.style.width = `${Math.min(progress, 100)}%`;
-    }
-  };
-  window.addEventListener('scroll', () => {
-    requestAnimationFrame(updateReadingProgress);
-  }, { passive: true });
+      progressTicking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!progressTicking) {
+        requestAnimationFrame(updateReadingProgress);
+        progressTicking = true;
+      }
+    }, { passive: true });
+  }
 
 });
