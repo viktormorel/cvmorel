@@ -403,7 +403,7 @@ app.use((req, res, next) => {
 
 // Google OAuth - initialisation différée
 // IMPORTANT: L'URL doit correspondre EXACTEMENT à celle dans Google Cloud Console
-const CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || "https://viktormcv.netlify.app/.netlify/functions/api/auth/google/callback";
+const CALLBACK_URL = "https://cvviktorvahemorel.netlify.app/.netlify/functions/api/auth/google/callback";
 
 app.use(passport.initialize());
 app.use(passport.session());
