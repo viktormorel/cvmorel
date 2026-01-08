@@ -160,7 +160,7 @@
 # Téléchargement CV - protégé par fonction
 [[redirects]]
   from = "/download-cv/file"
-  to = "/.netlify/functions/api/download-cv"
+  to = "/.netlify/functions/api/download-cv/file"
   status = 200
 
 
