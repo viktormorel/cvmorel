@@ -422,7 +422,6 @@ app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
     }
 
     // Vérifier le code email d'abord
-    // Vérifier le code email d'abord
     if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
       if (req.session.emailCode === token) {
         req.session.twoFA = true;
@@ -591,7 +590,6 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
         delete req.session.emailCode;
         delete req.session.emailCodeExpiry;
         console.log("Code email vérifié avec succès pour:", req.user?.emails?.[0]?.value);
-        // Rediriger vers le menu de choix
         // Forcer redirection vers menu-choice.html
         return res.json({ valid: true, redirect: "/menu-choice.html" });
       }
