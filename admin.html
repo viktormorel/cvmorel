@@ -1002,6 +1002,14 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-title">Fichiers</div>
+        <button class="menu-item" onclick="showTab('cv-upload')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/></svg>
+          Mettre a jour le CV
+        </button>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-title">Navigation</div>
         <a href="/" class="menu-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -1194,6 +1202,66 @@
               <div class="spinner" style="margin: 0 auto 16px; border-color: var(--border); border-top-color: var(--primary);"></div>
               <p>Chargement des connexions...</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CV Upload -->
+      <div id="tab-cv-upload" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/></svg>
+              </div>
+              Mettre a jour le CV
+            </h2>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+            Selectionne un nouveau fichier CV (format .docx) pour remplacer l'actuel.
+          </p>
+
+          <div class="upload-zone" id="upload-zone" style="border: 2px dashed var(--border); border-radius: 16px; padding: 40px 20px; text-align: center; transition: all 0.3s; cursor: pointer; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 16px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p style="color: var(--text-primary); font-weight: 600; font-size: 1.1rem; margin-bottom: 8px;">Glisse ton fichier ici</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">ou clique pour selectionner</p>
+            <input type="file" id="cv-file-input" accept=".docx,.doc" style="display: none;">
+          </div>
+
+          <div id="file-preview" style="display: none; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <div style="flex: 1;">
+                <p id="file-name" style="font-weight: 600; color: var(--text-primary);"></p>
+                <p id="file-size" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="clearFileSelection()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button id="upload-cv-btn" class="btn btn-primary btn-full btn-lg" style="margin-top: 20px; display: none;" onclick="uploadCV()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Envoyer le nouveau CV
+          </button>
+
+          <div id="upload-progress" style="display: none; margin-top: 20px;">
+            <div style="background: var(--border); border-radius: 8px; height: 8px; overflow: hidden;">
+              <div id="progress-bar" style="background: var(--gradient-1); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="upload-status" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px; text-align: center;">Envoi en cours...</p>
           </div>
         </div>
       </div>
@@ -1662,6 +1730,142 @@
     document.getElementById('new-interest').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') addInterest();
     });
+
+    // CV Upload functionality
+    let selectedFile = null;
+
+    // Setup upload zone
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('cv-file-input');
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = 'var(--primary)';
+      uploadZone.style.background = 'rgba(99, 102, 241, 0.1)';
+    });
+
+    uploadZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = 'var(--border)';
+      uploadZone.style.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = 'var(--border)';
+      uploadZone.style.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileSelect(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      // Validate file type
+      const validTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+      if (!validTypes.includes(file.type) && !file.name.match(/\.(docx|doc)$/i)) {
+        showToast('Format invalide. Utilise un fichier .docx ou .doc', 'error');
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('Fichier trop volumineux (max 10 Mo)', 'error');
+        return;
+      }
+
+      selectedFile = file;
+      document.getElementById('file-name').textContent = file.name;
+      document.getElementById('file-size').textContent = formatFileSize(file.size);
+      document.getElementById('file-preview').style.display = 'block';
+      document.getElementById('upload-cv-btn').style.display = 'flex';
+      uploadZone.style.display = 'none';
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' octets';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+    }
+
+    function clearFileSelection() {
+      selectedFile = null;
+      fileInput.value = '';
+      document.getElementById('file-preview').style.display = 'none';
+      document.getElementById('upload-cv-btn').style.display = 'none';
+      document.getElementById('upload-progress').style.display = 'none';
+      uploadZone.style.display = 'block';
+    }
+
+    async function uploadCV() {
+      if (!selectedFile) {
+        showToast('Selectionne un fichier d\'abord', 'error');
+        return;
+      }
+
+      const uploadBtn = document.getElementById('upload-cv-btn');
+      const progressDiv = document.getElementById('upload-progress');
+      const progressBar = document.getElementById('progress-bar');
+      const statusText = document.getElementById('upload-status');
+
+      uploadBtn.style.display = 'none';
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      statusText.textContent = 'Preparation...';
+
+      try {
+        // Convert file to base64
+        const base64 = await fileToBase64(selectedFile);
+        progressBar.style.width = '30%';
+        statusText.textContent = 'Envoi en cours...';
+
+        const response = await fetch('/.netlify/functions/api/admin/upload-cv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            filename: selectedFile.name,
+            data: base64
+          })
+        });
+
+        progressBar.style.width = '90%';
+
+        if (response.ok) {
+          progressBar.style.width = '100%';
+          statusText.textContent = 'CV mis a jour avec succes !';
+          showToast('CV mis a jour avec succes !', 'success');
+          setTimeout(() => {
+            clearFileSelection();
+          }, 2000);
+        } else {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Erreur lors de l\'upload');
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        showToast(err.message || 'Erreur lors de l\'upload', 'error');
+        progressDiv.style.display = 'none';
+        uploadBtn.style.display = 'flex';
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
   </script>
 </body>
 </html>

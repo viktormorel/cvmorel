@@ -707,6 +707,47 @@ app.get(["/auth-check", "/.netlify/functions/api/auth-check"], (req, res) => {
   res.json({ authenticated: false });
 });
 
+// Admin: Upload CV file
+app.post(["/api/admin/upload-cv", "/admin/upload-cv", "/.netlify/functions/api/admin/upload-cv"], ensureAdmin, async (req, res) => {
+  try {
+    const { filename, data } = req.body;
+
+    if (!filename || !data) {
+      return res.status(400).json({ error: "Fichier manquant" });
+    }
+
+    // Validate file extension
+    if (!filename.match(/\.(docx|doc)$/i)) {
+      return res.status(400).json({ error: "Format invalide. Utilise .docx ou .doc" });
+    }
+
+    // Extract base64 data (remove data:...;base64, prefix)
+    const base64Data = data.replace(/^data:[^;]+;base64,/, "");
+    const fileBuffer = Buffer.from(base64Data, "base64");
+
+    // Validate file size (max 10MB)
+    if (fileBuffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({ error: "Fichier trop volumineux (max 10 Mo)" });
+    }
+
+    // Store CV in Netlify Blobs
+    const store = getStore(BLOB_STORE_NAME);
+    await store.set("cv-file", fileBuffer, {
+      metadata: {
+        filename: filename,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: req.jwtUser?.email || req.user?.emails?.[0]?.value || "admin"
+      }
+    });
+
+    console.log("CV uploaded successfully:", filename, "by", req.jwtUser?.email || req.user?.emails?.[0]?.value);
+    res.json({ success: true, message: "CV mis a jour avec succes" });
+  } catch (err) {
+    console.error("Erreur upload CV:", err);
+    res.status(500).json({ error: "Erreur lors de l'upload" });
+  }
+});
+
 // Admin: historique des connexions
 app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, async (req, res) => {
   try {
@@ -1010,13 +1051,33 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
 });
 
 // Route pour télécharger le fichier CV (protégée par auth)
-app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req, res) => {
+app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], async (req, res) => {
   try {
     const hasAuth = (req.isAuthenticated() && req.session.twoFA === true) || (req.jwtUser && req.jwtUser.twoFA);
     if (!hasAuth) {
       return res.status(401).json({ error: "Non autorisé" });
     }
-    // Rediriger vers le fichier statique
+
+    // Try to get CV from Netlify Blobs first
+    try {
+      const store = getStore(BLOB_STORE_NAME);
+      const cvData = await store.get("cv-file", { type: "arrayBuffer" });
+
+      if (cvData) {
+        // Get metadata to retrieve original filename
+        const metadata = await store.getMetadata("cv-file");
+        const filename = metadata?.metadata?.filename || "cv-viktor-morel.docx";
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.setHeader("Cache-Control", "no-store");
+        return res.send(Buffer.from(cvData));
+      }
+    } catch (blobErr) {
+      console.log("CV not found in Blobs, falling back to static file:", blobErr.message);
+    }
+
+    // Fallback to static file
     res.redirect("/cv-viktor-morel.docx");
   } catch (err) {
     console.error("Erreur téléchargement CV:", err);
