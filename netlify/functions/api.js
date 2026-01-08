@@ -163,10 +163,11 @@ async function loadSiteData() {
 
     if (data) {
       // S'assurer que les données ont la structure attendue
-      if (!data.skills) data.skills = DEFAULT_DATA.skills || [];
-      if (!data.interests) data.interests = DEFAULT_DATA.interests || [];
-      if (!data.experiences) data.experiences = DEFAULT_DATA.experiences || [];
-      if (!data.formations) data.formations = DEFAULT_DATA.formations || [];
+      // Utiliser DEFAULT_DATA si le champ est absent OU si c'est un tableau vide
+      if (!data.skills || data.skills.length === 0) data.skills = DEFAULT_DATA.skills || [];
+      if (!data.interests || data.interests.length === 0) data.interests = DEFAULT_DATA.interests || [];
+      if (!data.experiences || data.experiences.length === 0) data.experiences = DEFAULT_DATA.experiences || [];
+      if (!data.formations || data.formations.length === 0) data.formations = DEFAULT_DATA.formations || [];
       if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
       inMemoryData = data;
       console.log("Données chargées depuis Netlify Blobs");
