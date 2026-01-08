@@ -156,111 +156,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Competences - Toujours remplacer avec les données de l'API (même si vides, on garde le contenu statique)
-      const skillsContainer = document.getElementById('skills-container');
-      if (skillsContainer) {
-        if (data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
-          // Remplacer avec les données de l'API
-          skillsContainer.innerHTML = data.skills.map(skill =>
-            `<div class="skill-bubble">${String(skill).replace(/[<>]/g, '')}</div>`
-          ).join('');
-          // Ajout du stagger après injection dynamique
-          const skillBubbles = skillsContainer.querySelectorAll('.skill-bubble');
-          skillBubbles.forEach((bubble, index) => {
-            bubble.style.animationDelay = `${index * 0.1}s`;
-          });
-          console.log('[Data] Compétences chargées depuis l\'API:', data.skills.length);
-        } else {
-          // Si pas de données, garder le contenu statique (ne rien faire)
-          console.log('[Data] Pas de compétences dans l\'API, conservation du contenu statique');
-        }
-      }
+      // ============================================
+      // POLITIQUE DE DONNEES : LE CONTENU STATIQUE EST PRIORITAIRE
+      // On ne remplace JAMAIS le contenu statique du HTML
+      // Les données de l'API ne sont utilisées que pour les contacts
+      // ============================================
 
-      // Centres d'interet - Toujours remplacer avec les données de l'API (même si vides, on garde le contenu statique)
-      const interestsContainer = document.getElementById('interests-container');
-      if (interestsContainer) {
-        if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
-          // Remplacer avec les données de l'API
-          interestsContainer.innerHTML = data.interests.map(interest => {
-            const cleanInterest = String(interest).replace(/[<>]/g, '');
-            // Gérer les deux formats : " - " et " — "
-            const parts = cleanInterest.split(/[—\-]/).map(p => p.trim()).filter(p => p);
-            return `<div class="skill-bubble">${cleanInterest}</div>`;
-          }).join('');
-          console.log('[Data] Centres d\'intérêt chargés depuis l\'API:', data.interests.length);
-        } else {
-          // Si pas de données, garder le contenu statique (ne rien faire)
-          console.log('[Data] Pas de centres d\'intérêt dans l\'API, conservation du contenu statique');
-        }
-      }
+      // Competences - GARDER LE CONTENU STATIQUE (ne pas remplacer)
+      console.log('[Data] Compétences: conservation du contenu statique HTML');
 
-      // Formations - Charger dynamiquement depuis l'API
-      const formationsContainer = document.getElementById('formations-container');
-      if (formationsContainer) {
-        if (data.formations && Array.isArray(data.formations) && data.formations.length > 0) {
-          // Remplacer avec les données de l'API
-          formationsContainer.innerHTML = data.formations.map(f => {
-            const title = String(f.title || '').replace(/[<>]/g, '');
-            const school = String(f.school || '').replace(/[<>]/g, '');
-            const year = String(f.year || '').replace(/[<>]/g, '');
-            const location = String(f.location || '').replace(/[<>]/g, '');
-            const description = String(f.description || '').replace(/[<>]/g, '');
-            return `
-      <article class="timeline-item visible" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
-        <span class="dot" aria-hidden="true"></span>
-        <div class="card glass gradient-border">
-          <div class="card-header">
-            <span class="icon svg anim" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3l10 5-10 5L2 8l10-5zm0 7l6.5-3.25V15c0 2.9-4.33 4-6.5 4s-6.5-1.1-6.5-4V6.75L12 10z" fill="currentColor"/>
-              </svg>
-            </span>
-            <h3>${title}${school ? ' — ' + school : ''}</h3>
-            ${location ? `<span class="tag">${location}</span>` : ''}
-          </div>
-          ${year ? `<p class="date">${year}</p>` : ''}
-          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
-        </div>
-      </article>`;
-          }).join('');
-          console.log('[Data] Formations chargées depuis l\'API:', data.formations.length);
-        } else {
-          // Si pas de données, garder le contenu statique (ne rien faire)
-          console.log('[Data] Pas de formations dans l\'API, conservation du contenu statique');
-        }
-      }
+      // Centres d'interet - GARDER LE CONTENU STATIQUE (ne pas remplacer)
+      console.log('[Data] Centres d\'intérêt: conservation du contenu statique HTML');
 
-      // Experiences - Ne PAS remplacer le contenu statique, il reste toujours visible
-      // Le contenu statique des expériences dans le HTML est conservé par défaut
-      if (data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
-        console.log('[Data] Expériences dynamiques disponibles mais le contenu statique est conservé');
-        // On ne remplace pas le contenu statique car il est déjà complet dans le HTML
-        // Si vous voulez ajouter des expériences dynamiques en plus, décommentez ci-dessous :
-        /*
-        const timelineContainer = document.getElementById('timeline-container');
-        if (timelineContainer) {
-          const newExperiences = data.experiences.map(exp => {
-            const title = String(exp.title || '').replace(/[<>]/g, '');
-            const description = String(exp.description || '').replace(/[<>]/g, '');
-            const date = String(exp.date || '').replace(/[<>]/g, '');
-            return `
-      <article class="timeline-item" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
-        <span class="dot" aria-hidden="true"></span>
-        <div class="card glass gradient-border">
-          <div class="card-header">
-            <h3>${title}</h3>
-          </div>
-          ${date ? `<p class="date">${date}</p>` : ''}
-          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
-        </div>
-      </article>`;
-          }).join('');
-          timelineContainer.insertAdjacentHTML('beforeend', newExperiences);
-        }
-        */
-      } else {
-        console.log('[Data] Pas d\'expériences dynamiques, utilisation du contenu statique');
-      }
+      // Formations - GARDER LE CONTENU STATIQUE (ne pas remplacer)
+      console.log('[Data] Formations: conservation du contenu statique HTML');
+
+      // Experiences - GARDER LE CONTENU STATIQUE (ne pas remplacer)
+      console.log('[Data] Expériences: conservation du contenu statique HTML');
     } catch (e) {
       // Gestion d'erreur améliorée
       if (e.name === 'AbortError' || e.name === 'TimeoutError') {
