@@ -252,7 +252,22 @@
       }
     }
   </style>
-  <script>eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2F1dGgtY2hlY2snLHtjcmVkZW50aWFsczonaW5jbHVkZSd9KS50aGVuKHI9PnIuanNvbigpKS50aGVuKGQ9PntpZighZC5hdXRoZW50aWNhdGVkKXdpbmRvdy5sb2NhdGlvbi5yZXBsYWNlKCcvJyk7ZWxzZSBkb2N1bWVudC5ib2R5LnN0eWxlLnZpc2liaWxpdHk9J3Zpc2libGUnO30pLmNhdGNoKCgpPT53aW5kb3cubG9jYXRpb24ucmVwbGFjZSgnLycpKTs='));document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='u'))e.preventDefault();});</script>
+  <script>
+    fetch('/.netlify/functions/api/auth-check', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        console.log('Auth check response:', d);
+        if (d.authenticated) {
+          document.body.style.visibility = 'visible';
+        } else {
+          window.location.replace('/');
+        }
+      })
+      .catch(err => {
+        console.error('Auth check error:', err);
+        window.location.replace('/');
+      });
+  </script>
 </head>
 <body>
   <div class="bg-animated"></div>

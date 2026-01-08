@@ -5,7 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Console Admin — CV Viktor Morel</title>
   <style>body{visibility:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none}</style>
-  <script>var _0x1=false;eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2FkbWluL2NoZWNrJyx7Y3JlZGVudGlhbHM6J2luY2x1ZGUnfSkudGhlbihyPT57aWYoIXIub2spdGhyb3cgbmV3IEVycm9yKCk7cmV0dXJuIHIuanNvbigpO30pLnRoZW4oZD0+e2lmKCFkLmlzQWRtaW4pd2luZG93LmxvY2F0aW9uLnJlcGxhY2UoJy8nKTtlbHNle18weDE9dHJ1ZTtkb2N1bWVudC5ib2R5LnN0eWxlLnZpc2liaWxpdHk9J3Zpc2libGUnO319KS5jYXRjaCgoKT0+d2luZG93LmxvY2F0aW9uLnJlcGxhY2UoJy8nKSk7'));document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='u'))e.preventDefault();});</script>
+  <script>
+    var isAdminUser = false;
+    fetch('/.netlify/functions/api/admin/check', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        console.log('Admin check response:', d);
+        if (d.isAdmin) {
+          isAdminUser = true;
+          document.body.style.visibility = 'visible';
+        } else {
+          window.location.replace('/');
+        }
+      })
+      .catch(err => {
+        console.error('Admin check error:', err);
+        window.location.replace('/');
+      });
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

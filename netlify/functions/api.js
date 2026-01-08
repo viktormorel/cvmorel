@@ -422,46 +422,43 @@ app.post(["/verify-2fa", "/.netlify/functions/api/verify-2fa"], (req, res) => {
     }
 
     // Vérifier le code email d'abord
+    // Vérifier le code email d'abord
     if (req.session.emailCode && req.session.emailCodeExpiry && Date.now() < req.session.emailCodeExpiry) {
       if (req.session.emailCode === token) {
         req.session.twoFA = true;
         setAuthCookie(res, req.user);
         delete req.session.emailCode;
         delete req.session.emailCodeExpiry;
-        // Rediriger vers le menu de choix
-        const redirectTo = req.session.redirectAfter2FA || "/menu-choice.html";
-        delete req.session.redirectAfter2FA;
-        return res.redirect(redirectTo);
+        // Forcer redirection vers menu-choice.html
+        return res.redirect("/menu-choice.html");
       }
     }
 
     // Sinon vérifier le TOTP
-    const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
+    const secret = process.env.TOTP_SECRET || req.session.twoFASecret;
     if (!secret) {
       console.error("Secret 2FA manquant pour l'utilisateur:", req.user?.emails?.[0]?.value);
       return res.status(500).send("<h2>Erreur serveur : secret 2FA manquant.</h2><a href='/login-2fa.html'>Retour</a>");
     }
-    
+
     let verified = false;
     try {
       verified = speakeasy.totp.verify({
         secret,
         encoding: "base32",
         token: token,
-        window: 1
+        window: 2
       });
     } catch (verifyErr) {
       console.error("Erreur vérification TOTP:", verifyErr);
       return res.status(500).send("<h2>Erreur lors de la vérification.</h2><a href='/login-2fa.html'>Retour</a>");
     }
-    
+
     if (verified) {
       req.session.twoFA = true;
       setAuthCookie(res, req.user);
-      // Rediriger vers le menu de choix
-      const redirectTo = req.session.redirectAfter2FA || "/menu-choice.html";
-      delete req.session.redirectAfter2FA;
-      return res.redirect(redirectTo);
+      // Forcer redirection vers menu-choice.html
+      return res.redirect("/menu-choice.html");
     }
 
     res.status(400).send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
@@ -595,14 +592,13 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
         delete req.session.emailCodeExpiry;
         console.log("Code email vérifié avec succès pour:", req.user?.emails?.[0]?.value);
         // Rediriger vers le menu de choix
-        const redirectTo = req.session.redirectAfter2FA || "/menu-choice.html";
-        delete req.session.redirectAfter2FA;
-        return res.json({ valid: true, redirect: redirectTo });
+        // Forcer redirection vers menu-choice.html
+        return res.json({ valid: true, redirect: "/menu-choice.html" });
       }
     }
 
     // Sinon vérifier le TOTP
-    const secret = req.session.twoFASecret || process.env.TWOFA_SECRET;
+    const secret = process.env.TOTP_SECRET || req.session.twoFASecret;
     if (!secret) {
       console.error("Secret 2FA manquant pour l'utilisateur:", req.user?.emails?.[0]?.value);
       return res.status(500).json({ valid: false, error: "secret missing" });
@@ -610,7 +606,7 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
 
     let verified = false;
     try {
-      verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 1 });
+      verified = speakeasy.totp.verify({ secret, encoding: "base32", token, window: 2 });
     } catch (verifyErr) {
       console.error("Erreur vérification TOTP:", verifyErr);
       return res.status(500).json({ valid: false, error: "Erreur lors de la vérification" });
@@ -620,10 +616,8 @@ app.post(["/api/2fa/verify", "/.netlify/functions/api/2fa/verify"], (req, res) =
       req.session.twoFA = true;
       setAuthCookie(res, req.user);
       console.log("Code TOTP vérifié avec succès pour:", req.user?.emails?.[0]?.value);
-      // Rediriger vers le menu de choix
-      const redirectTo = req.session.redirectAfter2FA || "/menu-choice.html";
-      delete req.session.redirectAfter2FA;
-      return res.json({ valid: true, redirect: redirectTo });
+      // Forcer redirection vers menu-choice.html
+      return res.json({ valid: true, redirect: "/menu-choice.html" });
     }
 
     console.log("Code invalide pour:", req.user?.emails?.[0]?.value);
