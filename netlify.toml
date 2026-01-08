@@ -118,32 +118,22 @@
   status = 200
 
 # ============================================
-# PROTECTION DES PAGES SENSIBLES
-# force = true pour ignorer le fichier physique
+# PAGES PROTEGEES - servies directement (auth verifiee par JS)
 # ============================================
 [[redirects]]
-  from = "/admin"
-  to = "/"
-  status = 302
-  force = true
+  from = "/menu-choice.html"
+  to = "/menu-choice.html"
+  status = 200
 
 [[redirects]]
   from = "/admin.html"
-  to = "/"
-  status = 302
-  force = true
+  to = "/admin.html"
+  status = 200
 
 [[redirects]]
   from = "/download.html"
-  to = "/"
-  status = 302
-  force = true
-
-[[redirects]]
-  from = "/setup-2fa.html"
-  to = "/"
-  status = 302
-  force = true
+  to = "/download.html"
+  status = 200
 
 # Pages qui nécessitent le flow OAuth
 [[redirects]]
