@@ -31,6 +31,7 @@ const DEFAULT_DATA = {
     "Reseaux sociaux - TikTok, Instagram, YouTube"
   ],
   experiences: [],
+  formations: [],
   contact: {
     email: "viktormorel@mailo.com",
     phone: "06.14.09.93.55",
@@ -156,6 +157,7 @@ async function loadSiteData() {
       if (!data.skills) data.skills = DEFAULT_DATA.skills || [];
       if (!data.interests) data.interests = DEFAULT_DATA.interests || [];
       if (!data.experiences) data.experiences = DEFAULT_DATA.experiences || [];
+      if (!data.formations) data.formations = DEFAULT_DATA.formations || [];
       if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
       inMemoryData = data;
       console.log("Données chargées depuis Netlify Blobs");
@@ -314,6 +316,7 @@ app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-dat
       skills: Array.isArray(data.skills) ? data.skills : [],
       interests: Array.isArray(data.interests) ? data.interests : [],
       experiences: Array.isArray(data.experiences) ? data.experiences : [],
+      formations: Array.isArray(data.formations) ? data.formations : [],
       contact: data.contact && typeof data.contact === 'object' ? data.contact : {}
     });
   } catch (err) {
@@ -323,6 +326,7 @@ app.get(["/public-data", "/api/public-data", "/.netlify/functions/api/public-dat
       skills: DEFAULT_DATA.skills || [],
       interests: DEFAULT_DATA.interests || [],
       experiences: DEFAULT_DATA.experiences || [],
+      formations: DEFAULT_DATA.formations || [],
       contact: DEFAULT_DATA.contact || {}
     });
   }
@@ -676,6 +680,7 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
       skills: Array.isArray(req.body.skills) ? req.body.skills : [],
       interests: Array.isArray(req.body.interests) ? req.body.interests : [],
       experiences: Array.isArray(req.body.experiences) ? req.body.experiences : [],
+      formations: Array.isArray(req.body.formations) ? req.body.formations : [],
       contact: req.body.contact && typeof req.body.contact === 'object' ? req.body.contact : {},
       logins: Array.isArray(req.body.logins) ? req.body.logins : [],
       stats: req.body.stats && typeof req.body.stats === 'object' ? req.body.stats : {}

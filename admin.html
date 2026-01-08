@@ -981,6 +981,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
           Experiences
         </button>
+        <button class="menu-item" onclick="showTab('formations')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Formations
+        </button>
         <button class="menu-item" onclick="showTab('contact')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           Contact
@@ -1107,6 +1111,47 @@
           <button class="btn btn-primary btn-full" onclick="addExperience()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Ajouter une experience
+          </button>
+        </div>
+      </div>
+
+      <!-- Formations -->
+      <div id="tab-formations" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              </div>
+              Gerer les Formations
+            </h2>
+          </div>
+          <ul class="item-list" id="formations-list"></ul>
+          <div class="form-group">
+            <label class="form-label">Diplome / Formation</label>
+            <input type="text" id="formation-title" class="form-input" placeholder="Ex: Bac Pro SN">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Etablissement</label>
+            <input type="text" id="formation-school" class="form-input" placeholder="Ex: Lycee Jean Moulin">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Annee</label>
+              <input type="text" id="formation-year" class="form-input" placeholder="Ex: 2024-2027">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lieu</label>
+              <input type="text" id="formation-location" class="form-input" placeholder="Ex: Lyon">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description (optionnel)</label>
+            <textarea id="formation-description" class="form-input" placeholder="Details sur la formation..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="addFormation()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une formation
           </button>
         </div>
       </div>
@@ -1297,6 +1342,7 @@
       skills: [],
       interests: [],
       experiences: [],
+      formations: [],
       contact: { email: '', phone: '', linkedin: '' }
     };
 
@@ -1347,6 +1393,7 @@
       renderSkills();
       renderInterests();
       renderExperiences();
+      renderFormations();
       renderContact();
     }
 
@@ -1396,6 +1443,23 @@
           <div class="item-actions">
             <button class="btn btn-primary btn-sm" onclick="editExperience(${i})">Modifier</button>
             <button class="btn btn-danger btn-sm" onclick="deleteExperience(${i})">Supprimer</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function renderFormations() {
+      const list = document.getElementById('formations-list');
+      if (!siteData.formations || siteData.formations.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Aucune formation ajoutee</p></div>';
+        return;
+      }
+      list.innerHTML = siteData.formations.map((f, i) => `
+        <li style="animation-delay: ${i * 0.05}s">
+          <span><strong>${escapeHtml(f.title)}</strong> — ${escapeHtml(f.school)}${f.year ? ' (' + escapeHtml(f.year) + ')' : ''}</span>
+          <div class="item-actions">
+            <button class="btn btn-primary btn-sm" onclick="editFormation(${i})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteFormation(${i})">Supprimer</button>
           </div>
         </li>
       `).join('');
@@ -1459,6 +1523,28 @@
       }
     }
 
+    function addFormation() {
+      const title = document.getElementById('formation-title').value.trim();
+      const school = document.getElementById('formation-school').value.trim();
+      const year = document.getElementById('formation-year').value.trim();
+      const location = document.getElementById('formation-location').value.trim();
+      const description = document.getElementById('formation-description').value.trim();
+
+      if (title && school) {
+        siteData.formations = siteData.formations || [];
+        siteData.formations.push({ title, school, year, location, description });
+        document.getElementById('formation-title').value = '';
+        document.getElementById('formation-school').value = '';
+        document.getElementById('formation-year').value = '';
+        document.getElementById('formation-location').value = '';
+        document.getElementById('formation-description').value = '';
+        renderFormations();
+        showToast('Formation ajoutee', 'success');
+      } else {
+        showToast('Diplome et etablissement requis', 'error');
+      }
+    }
+
     // Delete functions
     function deleteSkill(index) {
       siteData.skills.splice(index, 1);
@@ -1476,6 +1562,12 @@
       siteData.experiences.splice(index, 1);
       renderExperiences();
       showToast('Experience supprimee', 'info');
+    }
+
+    function deleteFormation(index) {
+      siteData.formations.splice(index, 1);
+      renderFormations();
+      showToast('Formation supprimee', 'info');
     }
 
     // Modal
@@ -1546,6 +1638,34 @@
       `);
     }
 
+    function editFormation(index) {
+      currentEditType = 'formation';
+      currentEditIndex = index;
+      const f = siteData.formations[index];
+      openModal("Modifier la formation", `
+        <div class="form-group">
+          <label class="form-label">Diplome / Formation</label>
+          <input type="text" id="edit-formation-title" class="form-input" value="${escapeHtml(f.title || '')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Etablissement</label>
+          <input type="text" id="edit-formation-school" class="form-input" value="${escapeHtml(f.school || '')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Annee</label>
+          <input type="text" id="edit-formation-year" class="form-input" value="${escapeHtml(f.year || '')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lieu</label>
+          <input type="text" id="edit-formation-location" class="form-input" value="${escapeHtml(f.location || '')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="edit-formation-description" class="form-input">${escapeHtml(f.description || '')}</textarea>
+        </div>
+      `);
+    }
+
     function confirmEdit() {
       if (currentEditType === 'skill') {
         const newValue = document.getElementById('edit-skill').value.trim();
@@ -1571,6 +1691,17 @@
           siteData.experiences[currentEditIndex] = { title, company, tag, date, description };
           renderExperiences();
           showToast('Experience modifiee', 'success');
+        }
+      } else if (currentEditType === 'formation') {
+        const title = document.getElementById('edit-formation-title').value.trim();
+        const school = document.getElementById('edit-formation-school').value.trim();
+        const year = document.getElementById('edit-formation-year').value.trim();
+        const location = document.getElementById('edit-formation-location').value.trim();
+        const description = document.getElementById('edit-formation-description').value.trim();
+        if (title && school) {
+          siteData.formations[currentEditIndex] = { title, school, year, location, description };
+          renderFormations();
+          showToast('Formation modifiee', 'success');
         }
       }
       closeModal();
