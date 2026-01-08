@@ -6,17 +6,15 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import speakeasy from "speakeasy";
 import session from "express-session";
 import QRCode from "qrcode";
-import fs from "fs";
-import path from "path";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import { getStore } from "@netlify/blobs";
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "jwt-secret-key";
 
-// Config GitHub pour persistance
-const GITHUB_OWNER = "viktormorel";
-const GITHUB_REPO = "cvmorel";
-const DATA_FILE_PATH = "data/site-data.json";
+// Config Netlify Blobs pour persistance
+const BLOB_STORE_NAME = "cv-data";
+const BLOB_KEY = "site-data";
 
 const DEFAULT_DATA = {
   skills: [
@@ -42,9 +40,8 @@ const DEFAULT_DATA = {
 
 // Cache en mémoire
 let inMemoryData = null;
-let lastGitHubSha = null;
 
-// Gestion des connexions (utilise le même fichier GitHub)
+// Gestion des connexions (utilise Netlify Blobs)
 async function loadLogins() {
   const data = await loadSiteData();
   return data.logins || [];
@@ -128,108 +125,47 @@ async function getStats() {
   return data.stats || { visits: 0, lastVisits: [] };
 }
 
-// Charger les données depuis GitHub
+// Charger les données depuis Netlify Blobs
 async function loadSiteData() {
   if (inMemoryData) {
     return inMemoryData;
   }
 
-  const token = process.env.GITHUB_TOKEN;
-  if (token) {
-    try {
-      const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
-      const response = await fetch(url, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "User-Agent": "CV-Admin"
-        }
-      });
+  try {
+    const store = getStore(BLOB_STORE_NAME);
+    const data = await store.get(BLOB_KEY, { type: "json" });
 
-      if (response.ok) {
-        const fileData = await response.json();
-        lastGitHubSha = fileData.sha;
-        const content = Buffer.from(fileData.content, "base64").toString("utf-8");
-        let data;
-        try {
-          data = JSON.parse(content);
-        } catch (parseErr) {
-          console.error("Erreur parsing JSON:", parseErr);
-          // Si le JSON est invalide, utiliser les données par défaut
-          inMemoryData = { ...DEFAULT_DATA };
-          return inMemoryData;
-        }
-        // S'assurer que les données ont la structure attendue
-        if (!data.skills) data.skills = DEFAULT_DATA.skills || [];
-        if (!data.interests) data.interests = DEFAULT_DATA.interests || [];
-        if (!data.experiences) data.experiences = DEFAULT_DATA.experiences || [];
-        if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
-        inMemoryData = data;
-        return data;
-      } else {
-        console.warn("GitHub API response not OK:", response.status);
-      }
-    } catch (err) {
-      console.error("Erreur lecture site-data.json:", err);
+    if (data) {
+      // S'assurer que les données ont la structure attendue
+      if (!data.skills) data.skills = DEFAULT_DATA.skills || [];
+      if (!data.interests) data.interests = DEFAULT_DATA.interests || [];
+      if (!data.experiences) data.experiences = DEFAULT_DATA.experiences || [];
+      if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
+      inMemoryData = data;
+      console.log("Données chargées depuis Netlify Blobs");
+      return data;
+    } else {
+      console.log("Aucune donnée trouvée dans Blobs, utilisation des données par défaut");
     }
+  } catch (err) {
+    console.error("Erreur lecture Netlify Blobs:", err);
   }
+
   // Toujours retourner des données valides (par défaut si nécessaire)
   inMemoryData = { ...DEFAULT_DATA };
   return inMemoryData;
 }
 
-// Sauvegarder les données sur GitHub
+// Sauvegarder les données sur Netlify Blobs
 async function saveSiteData(data) {
   inMemoryData = data;
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    console.error("GITHUB_TOKEN non configuré - données en mémoire uniquement");
-    return;
-  }
 
   try {
-    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
-
-    if (!lastGitHubSha) {
-      const getResponse = await fetch(url, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "User-Agent": "CV-Admin"
-        }
-      });
-      if (getResponse.ok) {
-        const fileData = await getResponse.json();
-        lastGitHubSha = fileData.sha;
-      }
-    }
-
-    const content = Buffer.from(JSON.stringify(data, null, 2)).toString("base64");
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github.v3+json",
-        "User-Agent": "CV-Admin",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: "Update site data from admin panel",
-        content: content,
-        sha: lastGitHubSha
-      })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      lastGitHubSha = result.content.sha;
-      console.log("Données sauvegardées sur GitHub");
-    } else {
-      const error = await response.text();
-      console.error("Erreur sauvegarde GitHub:", response.status, error);
-    }
+    const store = getStore(BLOB_STORE_NAME);
+    await store.setJSON(BLOB_KEY, data);
+    console.log("Données sauvegardées sur Netlify Blobs");
   } catch (err) {
-    console.error("Erreur sauvegarde:", err);
+    console.error("Erreur sauvegarde Netlify Blobs:", err);
   }
 }
 
