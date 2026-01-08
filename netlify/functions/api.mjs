@@ -501,7 +501,7 @@ app.post("/verify-2fa", (req, res) => {
   });
   if (verified) {
     req.session.twoFA = true;
-    return res.redirect("/download.html");
+    return res.redirect("/menu-choice.html");
   }
   res.send("<h2>Code invalide, réessaie.</h2><a href='/login-2fa.html'>Retour</a>");
 });
@@ -552,7 +552,7 @@ app.post(["/api/2fa/verify", "/2fa/verify", "/.netlify/functions/api/2fa/verify"
     // Nettoyer le code email utilise
     delete req.session.emailCode;
     delete req.session.emailCodeExpiry;
-    return res.json({ valid: true, message: "Code valide", redirect: "/.netlify/functions/api/download-cv" });
+    return res.json({ valid: true, message: "Code valide", redirect: "/menu-choice.html" });
   }
   return res.json({ valid: false, error: "Code invalide" });
 });

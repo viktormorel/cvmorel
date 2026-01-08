@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Menu — CV Viktor Morel</title>
+  <style>body{visibility:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --bg-dark: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-dark);
+      overflow: hidden;
+    }
+
+    .bg-animated {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+
+    .bg-animated::before,
+    .bg-animated::after {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.5;
+      animation: float 15s ease-in-out infinite;
+    }
+
+    .bg-animated::before {
+      background: var(--primary);
+      top: -200px;
+      left: -200px;
+    }
+
+    .bg-animated::after {
+      background: var(--secondary);
+      bottom: -200px;
+      right: -200px;
+      animation-delay: -7s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(80px, 40px) scale(1.1); }
+      66% { transform: translate(-40px, 80px) scale(0.9); }
+    }
+
+    .menu-container {
+      text-align: center;
+      padding: 40px;
+      animation: slideUp 0.6s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient-1);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 2rem;
+      margin: 0 auto 24px;
+      box-shadow: 0 20px 50px rgba(99, 102, 241, 0.4);
+    }
+
+    .menu-title {
+      color: white;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .menu-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      margin-bottom: 48px;
+    }
+
+    .menu-choices {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .menu-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 280px;
+      text-decoration: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      transition: height 0.3s ease;
+    }
+
+    .menu-card-download::before {
+      background: var(--gradient-1);
+    }
+
+    .menu-card-admin::before {
+      background: var(--gradient-2);
+    }
+
+    .menu-card:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 0 35px 70px rgba(0, 0, 0, 0.3);
+    }
+
+    .menu-card:hover::before {
+      height: 100%;
+      opacity: 0.1;
+    }
+
+    .menu-card-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      color: white;
+    }
+
+    .menu-card-download .menu-card-icon {
+      background: var(--gradient-1);
+    }
+
+    .menu-card-admin .menu-card-icon {
+      background: var(--gradient-2);
+    }
+
+    .menu-card-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .menu-card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .menu-card-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .menu-footer {
+      margin-top: 48px;
+    }
+
+    .menu-footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .menu-footer a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transform: translateX(-4px);
+    }
+
+    .menu-footer a svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    @media (max-width: 640px) {
+      .menu-choices {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .menu-card {
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .menu-title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+  <script>eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2F1dGgtY2hlY2snLHtjcmVkZW50aWFsczonaW5jbHVkZSd9KS50aGVuKHI9PnIuanNvbigpKS50aGVuKGQ9PntpZighZC5hdXRoZW50aWNhdGVkKXdpbmRvdy5sb2NhdGlvbi5yZXBsYWNlKCcvJyk7ZWxzZSBkb2N1bWVudC5ib2R5LnN0eWxlLnZpc2liaWxpdHk9J3Zpc2libGUnO30pLmNhdGNoKCgpPT53aW5kb3cubG9jYXRpb24ucmVwbGFjZSgnLycpKTs='));document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='u'))e.preventDefault();});</script>
+</head>
+<body>
+  <div class="bg-animated"></div>
+
+  <div class="menu-container">
+    <div class="logo">VM</div>
+    <h1 class="menu-title">Authentification reussie</h1>
+    <p class="menu-subtitle">Que souhaitez-vous faire ?</p>
+
+    <div class="menu-choices">
+      <a href="/download.html" class="menu-card menu-card-download">
+        <div class="menu-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+        <h2 class="menu-card-title">Telecharger le CV</h2>
+        <p class="menu-card-desc">Accedez au telechargement du CV au format DOCX</p>
+      </a>
+
+      <a href="/admin.html" class="menu-card menu-card-admin">
+        <div class="menu-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <h2 class="menu-card-title">Console Admin</h2>
+        <p class="menu-card-desc">Gerez le contenu du CV, statistiques et connexions</p>
+      </a>
+    </div>
+
+    <div class="menu-footer">
+      <a href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Retour au site
+      </a>
+    </div>
+  </div>
+</body>
+</html>

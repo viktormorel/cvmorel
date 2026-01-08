@@ -6,513 +6,952 @@
   <title>Console Admin — CV Viktor Morel</title>
   <style>body{visibility:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none}</style>
   <script>var _0x1=false;eval(atob('ZmV0Y2goJy8ubmV0bGlmeS9mdW5jdGlvbnMvYXBpL2FkbWluL2NoZWNrJyx7Y3JlZGVudGlhbHM6J2luY2x1ZGUnfSkudGhlbihyPT57aWYoIXIub2spdGhyb3cgbmV3IEVycm9yKCk7cmV0dXJuIHIuanNvbigpO30pLnRoZW4oZD0+e2lmKCFkLmlzQWRtaW4pd2luZG93LmxvY2F0aW9uLnJlcGxhY2UoJy8nKTtlbHNle18weDE9dHJ1ZTtkb2N1bWVudC5ib2R5LnN0eWxlLnZpc2liaWxpdHk9J3Zpc2libGUnO319KS5jYXRjaCgoKT0+d2luZG93LmxvY2F0aW9uLnJlcGxhY2UoJy8nKSk7'));document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C'))||(e.ctrlKey&&e.key==='u'))e.preventDefault();});</script>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    .admin-container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 20px;
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-dark: #0f172a;
+      --bg-card: rgba(255,255,255,0.95);
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border: rgba(148,163,184,0.2);
+      --shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     }
-    .admin-header {
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      min-height: 100vh;
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* Animated Background */
+    .bg-animated {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      overflow: hidden;
+    }
+
+    .bg-animated::before,
+    .bg-animated::after {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .bg-animated::before {
+      background: var(--primary);
+      top: -200px;
+      left: -200px;
+    }
+
+    .bg-animated::after {
+      background: var(--secondary);
+      bottom: -200px;
+      right: -200px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(100px, 50px) scale(1.1); }
+      66% { transform: translate(-50px, 100px) scale(0.9); }
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .navbar-brand .logo {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .navbar-brand h1 {
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .navbar-brand span {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .navbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-nav {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-nav-outline {
+      background: transparent;
+      color: white;
+      border: 1px solid var(--border);
+    }
+
+    .btn-nav-outline:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-nav-primary {
+      background: var(--gradient-1);
+      color: white;
+    }
+
+    .btn-nav-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Layout */
+    .admin-layout {
+      display: flex;
+      padding-top: 70px;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      position: fixed;
+      left: 0;
+      top: 70px;
+      bottom: 0;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-section {
+      margin-bottom: 32px;
+    }
+
+    .sidebar-title {
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 0 16px;
+      margin-bottom: 12px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+      font-size: 0.95rem;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--gradient-1);
+      transform: scaleY(0);
+      transition: transform 0.25s ease;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.05);
+      color: white;
+      transform: translateX(4px);
+    }
+
+    .menu-item.active {
+      background: rgba(99, 102, 241, 0.15);
+      color: white;
+    }
+
+    .menu-item.active::before {
+      transform: scaleY(1);
+    }
+
+    .menu-item svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    .menu-item.active svg {
+      opacity: 1;
+    }
+
+    .menu-badge {
+      margin-left: auto;
+      background: var(--gradient-2);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      min-width: 28px;
       text-align: center;
-      margin-bottom: 30px;
     }
-    .admin-header h1 {
-      color: #ffffff;
-      margin-bottom: 8px;
-      font-size: 2.2rem;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 32px;
+      min-height: calc(100vh - 70px);
     }
-    .admin-header p {
-      color: rgba(255,255,255,0.85);
-      font-size: 1.05rem;
-    }
-    .admin-section {
-      background: rgba(255,255,255,0.98);
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
       border-radius: 20px;
       padding: 28px;
       margin-bottom: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-      border: 1px solid rgba(255,255,255,0.5);
-      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.1);
+      animation: slideUp 0.5s ease;
     }
-    .admin-section h2 {
-      color: #1f2430;
-      margin: 0 0 24px;
-      font-size: 1.4rem;
-      border-bottom: 3px solid transparent;
-      border-image: linear-gradient(90deg, #6a11cb, #2575fc) 1;
-      padding-bottom: 12px;
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
     }
-    .form-group {
-      margin-bottom: 16px;
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .form-group label {
+
+    .card-title-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .card-title-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
       display: block;
-      color: #5a6376;
-      margin-bottom: 6px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
       font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .form-group input,
-    .form-group textarea {
+
+    .form-input {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #dfe3eb;
-      border-radius: 8px;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
       font-size: 1rem;
-      color: #1f2430;
-      box-sizing: border-box;
+      color: var(--text-primary);
+      background: rgba(248, 250, 252, 0.8);
+      transition: all 0.3s ease;
+      font-family: inherit;
     }
-    .form-group textarea {
-      min-height: 100px;
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      background: white;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    textarea.form-input {
+      min-height: 120px;
       resize: vertical;
     }
-    .form-group input:focus,
-    .form-group textarea:focus {
-      outline: none;
-      border-color: #6a11cb;
-      box-shadow: 0 0 0 3px rgba(106,17,203,0.2);
-    }
+
+    /* Item List */
     .item-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 20px;
+      margin: 0 0 24px;
     }
+
     .item-list li {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
-      background: linear-gradient(135deg, #f8f9fc 0%, #eef2ff 100%);
-      border-radius: 12px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(106,17,203,0.1);
-      transition: all 0.25s ease;
-    }
-    .item-list li:hover {
-      transform: translateX(4px);
-      box-shadow: 0 4px 15px rgba(106,17,203,0.1);
-      border-color: rgba(106,17,203,0.2);
-    }
-    .item-list li span {
-      color: #1f2430;
-      font-weight: 500;
-    }
-    .btn-small {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-small:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .btn-edit {
-      background: linear-gradient(135deg, #2575fc, #6a11cb);
-      color: white;
-    }
-    .btn-edit:hover {
-      box-shadow: 0 4px 15px rgba(37,117,252,0.4);
-    }
-    .btn-delete {
-      background: linear-gradient(135deg, #ff4757, #ff6b81);
-      color: white;
-      margin-left: 8px;
-    }
-    .btn-delete:hover {
-      box-shadow: 0 4px 15px rgba(255,71,87,0.4);
-    }
-    .btn-add {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      width: 100%;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-add:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(106,17,203,0.4);
-    }
-    .btn-save {
-      background: linear-gradient(135deg, #3ddc97, #00b894);
-      color: white;
-      padding: 16px 32px;
-      border: none;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       border-radius: 14px;
-      cursor: pointer;
-      font-size: 1.15rem;
-      font-weight: 700;
-      width: 100%;
-      margin-top: 24px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      animation: slideIn 0.3s ease;
     }
-    .btn-save:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(61,220,151,0.4);
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
-    .message {
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      display: none;
+
+    .item-list li:hover {
+      transform: translateX(6px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      border-color: var(--primary);
     }
-    .message.success {
-      background: #d4edda;
-      color: #155724;
-      display: block;
-    }
-    .message.error {
-      background: #f8d7da;
-      color: #721c24;
-      display: block;
-    }
-    .admin-container {
-      padding-top: 80px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-      background: rgba(255,255,255,0.1);
-      padding: 8px;
-      border-radius: 16px;
-      backdrop-filter: blur(10px);
-    }
-    .tab-btn {
-      padding: 12px 20px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.8);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .item-list li span {
+      color: var(--text-primary);
       font-weight: 500;
       font-size: 0.95rem;
+    }
+
+    .item-actions {
       display: flex;
-      align-items: center;
       gap: 8px;
     }
-    .tab-btn:hover {
-      background: rgba(255,255,255,0.15);
+
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    .btn-primary {
+      background: var(--gradient-1);
       color: white;
-      transform: translateY(-2px);
     }
-    .tab-btn.active {
-      background: white;
-      color: #6a11cb;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      transform: translateY(-2px);
+
+    .btn-primary:hover {
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
     }
-    .tab-btn svg {
-      width: 18px;
-      height: 18px;
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
     }
-    .tab-content {
-      display: none;
+
+    .btn-danger:hover {
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
     }
-    .tab-content.active {
-      display: block;
+
+    .btn-success {
+      background: var(--gradient-4);
+      color: #065f46;
     }
-    /* Modal d'edition */
+
+    .btn-success:hover {
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-lg {
+      padding: 16px 28px;
+      font-size: 1rem;
+      border-radius: 14px;
+    }
+
+    .btn-save {
+      background: var(--gradient-4);
+      color: #065f46;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 18px 32px;
+      border-radius: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 24px;
+    }
+
+    .btn-save:hover {
+      box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      padding: 28px;
+      border-radius: 18px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .stat-card-1 { background: var(--gradient-1); }
+    .stat-card-2 { background: var(--gradient-3); }
+    .stat-card-3 { background: var(--gradient-2); }
+    .stat-card-4 { background: var(--gradient-4); color: #065f46; }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    .stat-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      opacity: 0.3;
+    }
+
+    .stat-icon svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 200px;
+      gap: 12px;
+      padding-top: 20px;
+    }
+
+    .chart-bar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .chart-bar {
+      width: 100%;
+      max-width: 50px;
+      background: var(--gradient-1);
+      border-radius: 8px 8px 0 0;
+      transition: all 0.5s ease;
+      position: relative;
+    }
+
+    .chart-bar:hover {
+      transform: scaleY(1.05);
+      box-shadow: 0 -8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .chart-bar-value {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .chart-bar-label {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Login List */
+    .login-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .login-item:hover {
+      transform: translateX(6px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .login-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .login-avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .login-info {
+      flex: 1;
+    }
+
+    .login-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .login-email {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .login-date {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-align: right;
+    }
+
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
-    }
-    .modal-overlay.active {
-      display: flex;
-    }
-    .modal {
-      background: white;
-      border-radius: 16px;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .modal h3 {
-      color: #1f2430;
-      margin: 0 0 20px;
-      font-size: 1.4rem;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .btn-cancel {
-      background: #e0e0e0;
-      color: #333;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      flex: 1;
-    }
-    .btn-confirm {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      flex: 1;
-    }
-    .btn-cancel:hover, .btn-confirm:hover {
-      transform: translateY(-2px);
-    }
-    /* Navbar specifique pour admin */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      z-index: 999;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      backdrop-filter: blur(10px);
-    }
-    .navbar ul {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .navbar ul li {
-      margin: 0;
-    }
-    .navbar ul li a {
-      color: rgba(255,255,255,0.9);
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      display: block;
-    }
-    .navbar ul li a:hover {
-      background: rgba(255,255,255,0.15);
-      color: white;
-      transform: translateY(-1px);
-    }
-    .navbar ul li a.nav-download {
-      background: rgba(255,255,255,0.2);
-      font-weight: 600;
-    }
-    .navbar ul li a.nav-download:hover {
-      background: rgba(255,255,255,0.3);
-    }
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .back-to-cv {
-      color: white !important;
-      text-decoration: none !important;
-      padding: 8px 16px !important;
-      background: rgba(255,255,255,0.2) !important;
-      border-radius: 8px !important;
-      font-size: 0.9rem !important;
-      transition: all 0.2s ease !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 6px !important;
-    }
-    .back-to-cv:hover {
-      background: rgba(255,255,255,0.3) !important;
-      transform: translateX(-2px) !important;
+      z-index: 2000;
+      padding: 20px;
     }
 
-    /* Menu sidebar */
-    .admin-layout {
+    .modal-overlay.active {
       display: flex;
-      min-height: 100vh;
-      padding-top: 60px;
+      animation: fadeIn 0.2s ease;
     }
-    .sidebar {
-      width: 280px;
-      background: rgba(255,255,255,0.98);
-      border-radius: 0 24px 24px 0;
-      padding: 24px 16px;
-      box-shadow: 4px 0 30px rgba(0,0,0,0.1);
-      position: fixed;
-      left: 0;
-      top: 60px;
-      bottom: 0;
+
+    .modal {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 85vh;
       overflow-y: auto;
-      z-index: 100;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+      animation: modalSlide 0.3s ease;
     }
-    .sidebar-header {
-      text-align: center;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #eef2ff;
-      margin-bottom: 20px;
+
+    @keyframes modalSlide {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
-    .sidebar-header h2 {
-      color: #1f2430;
-      font-size: 1.3rem;
-      margin: 0 0 4px;
-    }
-    .sidebar-header p {
-      color: #5a6376;
-      font-size: 0.85rem;
-      margin: 0;
-    }
-    .menu-section {
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 24px;
     }
-    .menu-section-title {
-      color: #5a6376;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-      padding-left: 12px;
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
     }
-    .menu-item {
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 90px;
+      right: 24px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      padding: 16px 24px;
+      border-radius: 14px;
+      color: white;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      margin-bottom: 6px;
-      color: #5a6376;
-      font-weight: 500;
-      border: none;
-      background: transparent;
-      width: 100%;
-      text-align: left;
-      font-size: 0.95rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      animation: toastSlide 0.4s ease;
+      min-width: 300px;
     }
-    .menu-item:hover {
-      background: linear-gradient(135deg, #f8f9fc 0%, #eef2ff 100%);
-      color: #6a11cb;
-      transform: translateX(4px);
+
+    @keyframes toastSlide {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
-    .menu-item.active {
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      color: white;
-      box-shadow: 0 4px 15px rgba(106,17,203,0.3);
-    }
-    .menu-item svg {
-      width: 20px;
-      height: 20px;
+
+    .toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+    .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .toast-info { background: var(--gradient-1); }
+
+    .toast svg {
+      width: 22px;
+      height: 22px;
       flex-shrink: 0;
     }
-    .menu-item .badge {
-      margin-left: auto;
-      background: #ff4757;
-      color: white;
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 10px;
+
+    /* Loading Spinner */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-    .menu-item.active .badge {
-      background: rgba(255,255,255,0.3);
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .main-content {
-      flex: 1;
-      margin-left: 280px;
-      padding: 30px;
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-secondary);
     }
-    .admin-container {
-      padding-top: 20px;
-      max-width: 100%;
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
     }
 
     /* Responsive */
     @media (max-width: 900px) {
       .sidebar {
+        transform: translateX(-100%);
         width: 100%;
-        position: relative;
-        top: 0;
-        border-radius: 0;
-        padding: 16px;
+        max-width: 300px;
       }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
       .main-content {
         margin-left: 0;
+        padding: 20px;
       }
-      .admin-layout {
-        flex-direction: column;
+
+      .navbar-brand span {
+        display: none;
       }
+
+      .btn-menu-toggle {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 901px) {
+      .btn-menu-toggle {
+        display: none;
+      }
+    }
+
+    .btn-menu-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
-<body class="centered-layout">
-  <!-- Navigation -->
-  <nav class="navbar" role="navigation" aria-label="Navigation">
-    <ul>
-      <li><a href="/#about">À propos</a></li>
-      <li><a href="/#experience">Expérience</a></li>
-      <li><a href="/#skills">Compétences</a></li>
-      <li><a href="/#projects">Centres d'intérêt</a></li>
-      <li><a href="/#education">Formation</a></li>
-      <li><a href="/#contact">Contact</a></li>
-      <li><a href="/.netlify/functions/api/auth/google" class="nav-download">Télécharger CV</a></li>
-    </ul>
-    <div class="nav-actions">
-      <a href="/" class="back-to-cv" style="color:white;text-decoration:none;padding:8px 16px;background:rgba(255,255,255,0.2);border-radius:8px;font-size:0.9rem;">← Retour au CV</a>
+<body>
+  <div class="bg-animated"></div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <button class="btn-menu-toggle" onclick="toggleSidebar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="logo">VM</div>
+      <div>
+        <h1>Console Admin</h1>
+        <span>Gestion du CV Viktor Morel</span>
+      </div>
+    </div>
+    <div class="navbar-actions">
+      <a href="/download.html" class="btn-nav btn-nav-outline">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CV
+      </a>
+      <a href="/" class="btn-nav btn-nav-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Retour au site
+      </a>
     </div>
   </nav>
 
   <div class="admin-layout">
-    <!-- Sidebar Menu -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h2>Console Admin</h2>
-        <p>Gestion du CV</p>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-section-title">Contenu</div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Contenu</div>
         <button class="menu-item active" onclick="showTab('skills')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           Competences
@@ -531,27 +970,27 @@
         </button>
       </div>
 
-      <div class="menu-section">
-        <div class="menu-section-title">Statistiques</div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Statistiques</div>
         <button class="menu-item" onclick="showTab('stats')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           Visites
-          <span class="badge" id="visits-badge">-</span>
+          <span class="menu-badge" id="visits-badge">-</span>
         </button>
         <button class="menu-item" onclick="showTab('logins')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Connexions
-          <span class="badge" id="logins-badge">-</span>
+          <span class="menu-badge" id="logins-badge">-</span>
         </button>
       </div>
 
-      <div class="menu-section">
-        <div class="menu-section-title">Navigation</div>
-        <a href="/" class="menu-item" style="text-decoration:none;">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Navigation</div>
+        <a href="/" class="menu-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Retour au CV
         </a>
-        <a href="/.netlify/functions/api/auth/google" class="menu-item" style="text-decoration:none;">
+        <a href="/download.html" class="menu-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Telecharger CV
         </a>
@@ -560,147 +999,249 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <div class="admin-container">
-        <div id="message" class="message"></div>
-
-    <!-- Competences -->
-    <div id="tab-skills" class="tab-content active">
-      <div class="admin-section">
-        <h2>Gerer les Competences</h2>
-        <ul class="item-list" id="skills-list"></ul>
-        <div class="form-group">
-          <label>Nouvelle competence</label>
-          <input type="text" id="new-skill" placeholder="Ex: Python, Reseaux, etc.">
-        </div>
-        <button class="btn-add" onclick="addSkill()">Ajouter une competence</button>
-      </div>
-    </div>
-
-    <!-- Centres d'interet -->
-    <div id="tab-interests" class="tab-content">
-      <div class="admin-section">
-        <h2>Gerer les Centres d'interet</h2>
-        <ul class="item-list" id="interests-list"></ul>
-        <div class="form-group">
-          <label>Nouveau centre d'interet</label>
-          <input type="text" id="new-interest" placeholder="Ex: Sport, Musique, etc.">
-        </div>
-        <button class="btn-add" onclick="addInterest()">Ajouter un centre d'interet</button>
-      </div>
-    </div>
-
-    <!-- Experiences -->
-    <div id="tab-experience" class="tab-content">
-      <div class="admin-section">
-        <h2>Gerer les Experiences</h2>
-        <ul class="item-list" id="experience-list"></ul>
-        <div class="form-group">
-          <label>Titre du poste/stage</label>
-          <input type="text" id="exp-title" placeholder="Ex: Stage developpeur">
-        </div>
-        <div class="form-group">
-          <label>Entreprise</label>
-          <input type="text" id="exp-company" placeholder="Ex: France Televisions">
-        </div>
-        <div class="form-group">
-          <label>Tag/Categorie</label>
-          <input type="text" id="exp-tag" placeholder="Ex: Audiovisuel">
-        </div>
-        <div class="form-group">
-          <label>Date</label>
-          <input type="text" id="exp-date" placeholder="Ex: Janvier 2025">
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea id="exp-description" placeholder="Description du poste..."></textarea>
-        </div>
-        <button class="btn-add" onclick="addExperience()">Ajouter une experience</button>
-      </div>
-    </div>
-
-    <!-- Contact -->
-    <div id="tab-contact" class="tab-content">
-      <div class="admin-section">
-        <h2>Informations de Contact</h2>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="contact-email" placeholder="votre@email.com">
-        </div>
-        <div class="form-group">
-          <label>Telephone</label>
-          <input type="tel" id="contact-phone" placeholder="06.XX.XX.XX.XX">
-        </div>
-        <div class="form-group">
-          <label>LinkedIn</label>
-          <input type="text" id="contact-linkedin" placeholder="Votre profil LinkedIn">
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div id="tab-stats" class="tab-content">
-      <div class="admin-section">
-        <h2>Statistiques de visites</h2>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
-          <div style="flex:1;min-width:200px;text-align:center;padding:24px;background:linear-gradient(135deg,#6a11cb,#2575fc);border-radius:16px;color:white;">
-            <div style="font-size:2.5rem;font-weight:700;" id="total-visits">-</div>
-            <div style="font-size:0.9rem;opacity:0.9;">Visites totales</div>
+      <!-- Skills -->
+      <div id="tab-skills" class="tab-content active">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              Gerer les Competences
+            </h2>
           </div>
-          <div style="flex:1;min-width:200px;text-align:center;padding:24px;background:linear-gradient(135deg,#2575fc,#6a11cb);border-radius:16px;color:white;">
-            <div style="font-size:2.5rem;font-weight:700;" id="today-visits">-</div>
-            <div style="font-size:0.9rem;opacity:0.9;">Aujourd'hui</div>
+          <ul class="item-list" id="skills-list"></ul>
+          <div class="form-group">
+            <label class="form-label">Nouvelle competence</label>
+            <input type="text" id="new-skill" class="form-input" placeholder="Ex: Python, Reseaux, Cybersecurite...">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="addSkill()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une competence
+          </button>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div id="tab-interests" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-2)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              Centres d'interet
+            </h2>
+          </div>
+          <ul class="item-list" id="interests-list"></ul>
+          <div class="form-group">
+            <label class="form-label">Nouveau centre d'interet</label>
+            <input type="text" id="new-interest" class="form-input" placeholder="Ex: Sport, Musique, Gaming...">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="addInterest()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un centre d'interet
+          </button>
+        </div>
+      </div>
+
+      <!-- Experiences -->
+      <div id="tab-experience" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-3)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              </div>
+              Gerer les Experiences
+            </h2>
+          </div>
+          <ul class="item-list" id="experience-list"></ul>
+          <div class="form-group">
+            <label class="form-label">Titre du poste/stage</label>
+            <input type="text" id="exp-title" class="form-input" placeholder="Ex: Stage developpeur">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Entreprise</label>
+            <input type="text" id="exp-company" class="form-input" placeholder="Ex: France Televisions">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Tag/Categorie</label>
+              <input type="text" id="exp-tag" class="form-input" placeholder="Ex: Audiovisuel">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="text" id="exp-date" class="form-input" placeholder="Ex: Janvier 2025">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="exp-description" class="form-input" placeholder="Description du poste..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="addExperience()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une experience
+          </button>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div id="tab-contact" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-4)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              Informations de Contact
+            </h2>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="contact-email" class="form-input" placeholder="votre@email.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telephone</label>
+            <input type="tel" id="contact-phone" class="form-input" placeholder="06.XX.XX.XX.XX">
+          </div>
+          <div class="form-group">
+            <label class="form-label">LinkedIn</label>
+            <input type="text" id="contact-linkedin" class="form-input" placeholder="Votre profil LinkedIn">
           </div>
         </div>
-        <button class="btn-add" onclick="loadStats()" style="background:linear-gradient(135deg,#2575fc,#6a11cb);">Actualiser les stats</button>
       </div>
-    </div>
 
-    <!-- Connexions -->
-    <div id="tab-logins" class="tab-content">
-      <div class="admin-section">
-        <h2>Historique des Connexions</h2>
-        <p style="color:#5a6376;margin-bottom:16px;">Liste des utilisateurs qui se sont connectes via Google OAuth</p>
-        <div id="logins-list" style="max-height:400px;overflow-y:auto;">
-          <p style="color:#888;">Chargement...</p>
+      <!-- Stats -->
+      <div id="tab-stats" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-1)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              Statistiques de visites
+            </h2>
+            <button class="btn btn-primary btn-sm" onclick="loadStats()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Actualiser
+            </button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card stat-card-1">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="stat-value" id="total-visits">-</div>
+              <div class="stat-label">Visites totales</div>
+            </div>
+            <div class="stat-card stat-card-2">
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="stat-value" id="today-visits">-</div>
+              <div class="stat-label">Aujourd'hui</div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <h3 style="margin-bottom: 20px; color: var(--text-primary); font-size: 1rem;">Visites des 7 derniers jours</h3>
+            <div class="chart-bars" id="chart-bars">
+              <!-- Bars will be generated dynamically -->
+            </div>
+          </div>
         </div>
-        <button class="btn-add" onclick="loadLogins()" style="margin-top:16px;background:linear-gradient(135deg,#2575fc,#6a11cb);">Actualiser</button>
       </div>
-    </div>
 
-    <button class="btn-save" onclick="saveAll()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Sauvegarder les modifications
-    </button>
+      <!-- Logins -->
+      <div id="tab-logins" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <div class="card-title-icon" style="background: var(--gradient-2)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              Historique des Connexions
+            </h2>
+            <button class="btn btn-primary btn-sm" onclick="loadLogins()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Actualiser
+            </button>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+            Liste des utilisateurs qui se sont connectes via Google OAuth
+          </p>
+          <div id="logins-list">
+            <div class="empty-state">
+              <div class="spinner" style="margin: 0 auto 16px; border-color: var(--border); border-top-color: var(--primary);"></div>
+              <p>Chargement des connexions...</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Save Button -->
+      <button class="btn btn-save btn-full" onclick="saveAll()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder les modifications
+      </button>
     </main>
   </div>
 
-  <!-- Modal d'edition -->
+  <!-- Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
-      <h3 id="modalTitle">Modifier</h3>
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Modifier</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div id="modalContent"></div>
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-        <button class="btn-confirm" onclick="confirmEdit()">Enregistrer</button>
+        <button class="btn" style="background: var(--border); color: var(--text-primary);" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="confirmEdit()">Enregistrer</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Donnees du site (chargees depuis le serveur)
+    // Data
     let siteData = {
       skills: [],
       interests: [],
       experiences: [],
-      contact: {
-        email: '',
-        phone: '',
-        linkedin: ''
-      }
+      contact: { email: '', phone: '', linkedin: '' }
     };
 
-    // Charger les donnees au demarrage
+    // Toast notifications
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      const icons = {
+        success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+        error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+      };
+
+      toast.innerHTML = `${icons[type] || icons.info}<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'toastSlide 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Toggle sidebar (mobile)
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Load data
     async function loadData() {
       try {
         const response = await fetch('/.netlify/functions/api/admin/data', { credentials: 'include' });
@@ -708,17 +1249,15 @@
           siteData = await response.json();
           renderAll();
         } else if (response.status === 403) {
-          // Rediriger vers la page d'accueil si non autorisé
           window.location.replace('/');
-        } else {
-          console.error('Erreur chargement données:', response.status);
         }
       } catch (err) {
         console.error('Erreur chargement:', err);
+        showToast('Erreur de chargement des donnees', 'error');
       }
     }
 
-    // Afficher les donnees
+    // Render functions
     function renderAll() {
       renderSkills();
       renderInterests();
@@ -728,12 +1267,16 @@
 
     function renderSkills() {
       const list = document.getElementById('skills-list');
+      if (!siteData.skills || siteData.skills.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Aucune competence ajoutee</p></div>';
+        return;
+      }
       list.innerHTML = siteData.skills.map((skill, i) => `
-        <li>
-          <span>${skill}</span>
-          <div>
-            <button class="btn-small btn-edit" onclick="editSkill(${i})">Modifier</button>
-            <button class="btn-small btn-delete" onclick="deleteSkill(${i})">Supprimer</button>
+        <li style="animation-delay: ${i * 0.05}s">
+          <span>${escapeHtml(skill)}</span>
+          <div class="item-actions">
+            <button class="btn btn-primary btn-sm" onclick="editSkill(${i})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSkill(${i})">Supprimer</button>
           </div>
         </li>
       `).join('');
@@ -741,12 +1284,16 @@
 
     function renderInterests() {
       const list = document.getElementById('interests-list');
+      if (!siteData.interests || siteData.interests.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Aucun centre d\'interet ajoute</p></div>';
+        return;
+      }
       list.innerHTML = siteData.interests.map((interest, i) => `
-        <li>
-          <span>${interest}</span>
-          <div>
-            <button class="btn-small btn-edit" onclick="editInterest(${i})">Modifier</button>
-            <button class="btn-small btn-delete" onclick="deleteInterest(${i})">Supprimer</button>
+        <li style="animation-delay: ${i * 0.05}s">
+          <span>${escapeHtml(interest)}</span>
+          <div class="item-actions">
+            <button class="btn btn-primary btn-sm" onclick="editInterest(${i})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteInterest(${i})">Supprimer</button>
           </div>
         </li>
       `).join('');
@@ -754,39 +1301,54 @@
 
     function renderExperiences() {
       const list = document.getElementById('experience-list');
+      if (!siteData.experiences || siteData.experiences.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Aucune experience ajoutee</p></div>';
+        return;
+      }
       list.innerHTML = siteData.experiences.map((exp, i) => `
-        <li>
-          <span><strong>${exp.title}</strong> - ${exp.company}</span>
-          <div>
-            <button class="btn-small btn-edit" onclick="editExperience(${i})">Modifier</button>
-            <button class="btn-small btn-delete" onclick="deleteExperience(${i})">Supprimer</button>
+        <li style="animation-delay: ${i * 0.05}s">
+          <span><strong>${escapeHtml(exp.title)}</strong> — ${escapeHtml(exp.company)}</span>
+          <div class="item-actions">
+            <button class="btn btn-primary btn-sm" onclick="editExperience(${i})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteExperience(${i})">Supprimer</button>
           </div>
         </li>
       `).join('');
     }
 
     function renderContact() {
-      document.getElementById('contact-email').value = siteData.contact.email || '';
-      document.getElementById('contact-phone').value = siteData.contact.phone || '';
-      document.getElementById('contact-linkedin').value = siteData.contact.linkedin || '';
+      document.getElementById('contact-email').value = siteData.contact?.email || '';
+      document.getElementById('contact-phone').value = siteData.contact?.phone || '';
+      document.getElementById('contact-linkedin').value = siteData.contact?.linkedin || '';
     }
 
-    // Ajouter des elements
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Add functions
     function addSkill() {
       const input = document.getElementById('new-skill');
       if (input.value.trim()) {
+        siteData.skills = siteData.skills || [];
         siteData.skills.push(input.value.trim());
         input.value = '';
         renderSkills();
+        showToast('Competence ajoutee', 'success');
       }
     }
 
     function addInterest() {
       const input = document.getElementById('new-interest');
       if (input.value.trim()) {
+        siteData.interests = siteData.interests || [];
         siteData.interests.push(input.value.trim());
         input.value = '';
         renderInterests();
+        showToast('Centre d\'interet ajoute', 'success');
       }
     }
 
@@ -798,6 +1360,7 @@
       const description = document.getElementById('exp-description').value.trim();
 
       if (title && company) {
+        siteData.experiences = siteData.experiences || [];
         siteData.experiences.push({ title, company, tag, date, description });
         document.getElementById('exp-title').value = '';
         document.getElementById('exp-company').value = '';
@@ -805,26 +1368,32 @@
         document.getElementById('exp-date').value = '';
         document.getElementById('exp-description').value = '';
         renderExperiences();
+        showToast('Experience ajoutee', 'success');
+      } else {
+        showToast('Titre et entreprise requis', 'error');
       }
     }
 
-    // Supprimer des elements
+    // Delete functions
     function deleteSkill(index) {
       siteData.skills.splice(index, 1);
       renderSkills();
+      showToast('Competence supprimee', 'info');
     }
 
     function deleteInterest(index) {
       siteData.interests.splice(index, 1);
       renderInterests();
+      showToast('Centre d\'interet supprime', 'info');
     }
 
     function deleteExperience(index) {
       siteData.experiences.splice(index, 1);
       renderExperiences();
+      showToast('Experience supprimee', 'info');
     }
 
-    // Modal d'edition
+    // Modal
     let currentEditType = null;
     let currentEditIndex = null;
 
@@ -846,8 +1415,8 @@
       const skill = siteData.skills[index];
       openModal('Modifier la competence', `
         <div class="form-group">
-          <label>Competence</label>
-          <input type="text" id="edit-skill" value="${skill}" placeholder="Ex: Python, Reseaux, etc.">
+          <label class="form-label">Competence</label>
+          <input type="text" id="edit-skill" class="form-input" value="${escapeHtml(skill)}">
         </div>
       `);
     }
@@ -858,8 +1427,8 @@
       const interest = siteData.interests[index];
       openModal("Modifier le centre d'interet", `
         <div class="form-group">
-          <label>Centre d'interet</label>
-          <input type="text" id="edit-interest" value="${interest}" placeholder="Ex: Sport, Musique, etc.">
+          <label class="form-label">Centre d'interet</label>
+          <input type="text" id="edit-interest" class="form-input" value="${escapeHtml(interest)}">
         </div>
       `);
     }
@@ -870,24 +1439,24 @@
       const exp = siteData.experiences[index];
       openModal("Modifier l'experience", `
         <div class="form-group">
-          <label>Titre du poste/stage</label>
-          <input type="text" id="edit-exp-title" value="${exp.title || ''}" placeholder="Ex: Stage developpeur">
+          <label class="form-label">Titre du poste/stage</label>
+          <input type="text" id="edit-exp-title" class="form-input" value="${escapeHtml(exp.title || '')}">
         </div>
         <div class="form-group">
-          <label>Entreprise</label>
-          <input type="text" id="edit-exp-company" value="${exp.company || ''}" placeholder="Ex: France Televisions">
+          <label class="form-label">Entreprise</label>
+          <input type="text" id="edit-exp-company" class="form-input" value="${escapeHtml(exp.company || '')}">
         </div>
         <div class="form-group">
-          <label>Tag/Categorie</label>
-          <input type="text" id="edit-exp-tag" value="${exp.tag || ''}" placeholder="Ex: Audiovisuel">
+          <label class="form-label">Tag/Categorie</label>
+          <input type="text" id="edit-exp-tag" class="form-input" value="${escapeHtml(exp.tag || '')}">
         </div>
         <div class="form-group">
-          <label>Date</label>
-          <input type="text" id="edit-exp-date" value="${exp.date || ''}" placeholder="Ex: Janvier 2025">
+          <label class="form-label">Date</label>
+          <input type="text" id="edit-exp-date" class="form-input" value="${escapeHtml(exp.date || '')}">
         </div>
         <div class="form-group">
-          <label>Description</label>
-          <textarea id="edit-exp-description" placeholder="Description du poste...">${exp.description || ''}</textarea>
+          <label class="form-label">Description</label>
+          <textarea id="edit-exp-description" class="form-input">${escapeHtml(exp.description || '')}</textarea>
         </div>
       `);
     }
@@ -898,12 +1467,14 @@
         if (newValue) {
           siteData.skills[currentEditIndex] = newValue;
           renderSkills();
+          showToast('Competence modifiee', 'success');
         }
       } else if (currentEditType === 'interest') {
         const newValue = document.getElementById('edit-interest').value.trim();
         if (newValue) {
           siteData.interests[currentEditIndex] = newValue;
           renderInterests();
+          showToast('Centre d\'interet modifie', 'success');
         }
       } else if (currentEditType === 'experience') {
         const title = document.getElementById('edit-exp-title').value.trim();
@@ -914,24 +1485,25 @@
         if (title && company) {
           siteData.experiences[currentEditIndex] = { title, company, tag, date, description };
           renderExperiences();
+          showToast('Experience modifiee', 'success');
         }
       }
       closeModal();
     }
 
-    // Fermer le modal en cliquant a l'exterieur
+    // Close modal on outside click
     document.getElementById('editModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
 
-    // Sauvegarder
+    // Save
     async function saveAll() {
-      // Recuperer les infos de contact
-      siteData.contact.email = document.getElementById('contact-email').value.trim();
-      siteData.contact.phone = document.getElementById('contact-phone').value.trim();
-      siteData.contact.linkedin = document.getElementById('contact-linkedin').value.trim();
+      siteData.contact = {
+        email: document.getElementById('contact-email').value.trim(),
+        phone: document.getElementById('contact-phone').value.trim(),
+        linkedin: document.getElementById('contact-linkedin').value.trim()
+      };
 
-      const messageEl = document.getElementById('message');
       try {
         const response = await fetch('/.netlify/functions/api/admin/save', {
           method: 'POST',
@@ -941,39 +1513,21 @@
         });
 
         if (response.ok) {
-          messageEl.textContent = 'Modifications sauvegardees avec succes !';
-          messageEl.className = 'message success';
+          showToast('Modifications sauvegardees avec succes !', 'success');
         } else if (response.status === 403) {
-          messageEl.textContent = 'Session expirée. Redirection...';
-          messageEl.className = 'message error';
+          showToast('Session expiree. Redirection...', 'error');
           setTimeout(() => window.location.replace('/'), 2000);
-          return;
         } else {
-          const errorText = await response.text();
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { error: `Erreur ${response.status}` };
-          }
-          messageEl.textContent = 'Erreur: ' + (errorData.error || 'Erreur lors de la sauvegarde');
-          messageEl.className = 'message error';
+          const errorData = await response.json().catch(() => ({}));
+          showToast(errorData.error || 'Erreur lors de la sauvegarde', 'error');
         }
-
-        setTimeout(() => {
-          messageEl.className = 'message';
-        }, 3000);
       } catch (err) {
         console.error('Erreur sauvegarde:', err);
-        messageEl.textContent = 'Erreur reseau: ' + (err.message || 'Erreur de connexion');
-        messageEl.className = 'message error';
-        setTimeout(() => {
-          messageEl.className = 'message';
-        }, 3000);
+        showToast('Erreur reseau', 'error');
       }
     }
 
-    // Gestion des onglets
+    // Tab navigation
     function showTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
@@ -981,9 +1535,13 @@
       if (event && event.target) {
         event.target.closest('.menu-item').classList.add('active');
       }
+      // Close sidebar on mobile
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
     }
 
-    // Charger les stats
+    // Stats
     async function loadStats() {
       try {
         const response = await fetch('/.netlify/functions/api/admin/stats', { credentials: 'include' });
@@ -992,72 +1550,94 @@
           const totalVisits = stats.visits || 0;
           document.getElementById('total-visits').textContent = totalVisits;
           document.getElementById('visits-badge').textContent = totalVisits;
+
           const today = new Date().toISOString().split('T')[0];
           const todayStats = stats.lastVisits?.find(v => v.date === today);
           document.getElementById('today-visits').textContent = todayStats?.count || 0;
-        } else {
-          document.getElementById('total-visits').textContent = 0;
-          document.getElementById('today-visits').textContent = 0;
-          document.getElementById('visits-badge').textContent = '0';
+
+          // Render chart
+          renderChart(stats.lastVisits || []);
         }
       } catch (err) {
         console.error('Erreur chargement stats:', err);
-        document.getElementById('total-visits').textContent = 0;
-        document.getElementById('today-visits').textContent = 0;
-        document.getElementById('visits-badge').textContent = '0';
       }
     }
 
-    // Charger les connexions avec compteur
+    function renderChart(visits) {
+      const container = document.getElementById('chart-bars');
+      const last7 = visits.slice(0, 7).reverse();
+      const maxCount = Math.max(...last7.map(v => v.count), 1);
+
+      container.innerHTML = last7.map(v => {
+        const height = (v.count / maxCount) * 160;
+        const date = new Date(v.date);
+        const dayName = date.toLocaleDateString('fr-FR', { weekday: 'short' });
+        return `
+          <div class="chart-bar-wrapper">
+            <div class="chart-bar" style="height: ${height}px;">
+              <span class="chart-bar-value">${v.count}</span>
+            </div>
+            <span class="chart-bar-label">${dayName}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Logins
     async function loadLogins() {
       const container = document.getElementById('logins-list');
-      container.innerHTML = '<p style="color:#888;">Chargement...</p>';
       try {
         const response = await fetch('/.netlify/functions/api/admin/logins', { credentials: 'include' });
         if (response.ok) {
           const logins = await response.json();
           document.getElementById('logins-badge').textContent = logins.length || 0;
+
           if (!logins || logins.length === 0) {
-            container.innerHTML = '<p style="color:#888;">Aucune connexion enregistree.</p>';
+            container.innerHTML = '<div class="empty-state"><p>Aucune connexion enregistree</p></div>';
           } else {
-            container.innerHTML = '<ul class="item-list">' + logins.map(login => `
-              <li style="flex-direction:column;align-items:flex-start;gap:4px;padding:12px;">
-                <div style="display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap;">
-                  ${login.photo ? `<img src="${login.photo}" alt="" style="width:36px;height:36px;border-radius:50%;">` : ''}
-                  <div style="flex:1;min-width:200px;">
-                    <strong style="color:#1f2430;">${login.name || 'Utilisateur'}</strong>
-                    <span style="color:#5a6376;font-size:0.9rem;margin-left:8px;">${login.email || ''}</span>
-                  </div>
-                  <small style="color:#888;white-space:nowrap;">${login.date ? new Date(login.date).toLocaleString('fr-FR') : ''}</small>
+            container.innerHTML = logins.map(login => `
+              <div class="login-item">
+                ${login.photo
+                  ? `<img src="${login.photo}" alt="" class="login-avatar">`
+                  : `<div class="login-avatar-placeholder">${(login.name || 'U')[0]}</div>`
+                }
+                <div class="login-info">
+                  <div class="login-name">${escapeHtml(login.name || 'Utilisateur')}</div>
+                  <div class="login-email">${escapeHtml(login.email || '')}</div>
                 </div>
-              </li>
-            `).join('') + '</ul>';
+                <div class="login-date">${login.date ? new Date(login.date).toLocaleString('fr-FR') : ''}</div>
+              </div>
+            `).join('');
           }
         } else if (response.status === 403) {
-          // Si 403, rediriger vers la page d'accueil car l'utilisateur n'est plus autorisé
-          document.getElementById('logins-badge').textContent = '-';
-          container.innerHTML = '<p style="color:#ff4757;">Session expirée. Redirection...</p>';
+          container.innerHTML = '<div class="empty-state"><p style="color: var(--danger);">Session expiree</p></div>';
           setTimeout(() => window.location.replace('/'), 2000);
-        } else {
-          const errorText = await response.text();
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { error: `Erreur ${response.status}` };
-          }
-          document.getElementById('logins-badge').textContent = '-';
-          container.innerHTML = `<p style="color:#ff4757;">Erreur: ${errorData.error || 'Erreur lors du chargement'}</p>`;
         }
       } catch (err) {
         console.error('Erreur chargement connexions:', err);
-        document.getElementById('logins-badge').textContent = '-';
-        container.innerHTML = '<p style="color:#ff4757;">Erreur reseau: ' + (err.message || 'Erreur de connexion') + '</p>';
+        container.innerHTML = '<div class="empty-state"><p style="color: var(--danger);">Erreur reseau</p></div>';
       }
     }
 
     // Init
     eval(atob('aWYodHlwZW9mIF8weDEhPT0ndW5kZWZpbmVkJyl7dmFyIF8weDI9c2V0SW50ZXJ2YWwoZnVuY3Rpb24oKXtpZihfMHgxKXtjbGVhckludGVydmFsKF8weDIpO2xvYWREYXRhKCk7bG9hZExvZ2lucygpO2xvYWRTdGF0cygpO319LDUwKTt9'));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveAll();
+      }
+    });
+
+    // Enter key to add items
+    document.getElementById('new-skill').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addSkill();
+    });
+    document.getElementById('new-interest').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addInterest();
+    });
   </script>
 </body>
 </html>
