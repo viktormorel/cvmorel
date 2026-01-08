@@ -601,12 +601,20 @@ body.centered-layout{
 }
 .timeline-item {
   position: relative; width: 50%; padding: 20px 24px;
-  opacity: 0; transform: translateY(40px) translateZ(0);
-  transition: opacity .5s cubic-bezier(0.4,0,0.2,1), transform .5s cubic-bezier(0.4,0,0.2,1);
+  opacity: 0; transform: translateY(30px) translateZ(0);
+  transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: opacity, transform;
   cursor: pointer;
 }
 .timeline-item.visible { opacity: 1; transform: translateY(0) translateZ(0); }
+/* Stagger animation pour timeline items */
+.timeline-item:nth-child(1) { transition-delay: 0s; }
+.timeline-item:nth-child(2) { transition-delay: 0.1s; }
+.timeline-item:nth-child(3) { transition-delay: 0.2s; }
+.timeline-item:nth-child(4) { transition-delay: 0.3s; }
+.timeline-item:nth-child(5) { transition-delay: 0.4s; }
+.timeline-item:nth-child(6) { transition-delay: 0.5s; }
 
 /* Micro-interaction au survol des timeline items */
 .timeline-item .card {
@@ -766,15 +774,28 @@ body.centered-layout{
   transition-duration: 0.1s;
 }
 
-.skill-bubble:nth-child(odd) { animation: floatBubble 4s ease-in-out infinite; }
-.skill-bubble:nth-child(even) { animation: floatBubble 4s ease-in-out infinite 0.5s; }
+.skill-bubble:nth-child(odd) { animation: floatBubble 5s ease-in-out infinite; }
+.skill-bubble:nth-child(even) { animation: floatBubble 5s ease-in-out infinite 0.5s; }
 .skill-bubble {
   contain: layout style;
   will-change: transform;
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+/* Stagger pour skill bubbles */
+.skill-bubble:nth-child(1) { animation-delay: 0s; }
+.skill-bubble:nth-child(2) { animation-delay: 0.08s; }
+.skill-bubble:nth-child(3) { animation-delay: 0.16s; }
+.skill-bubble:nth-child(4) { animation-delay: 0.24s; }
+.skill-bubble:nth-child(5) { animation-delay: 0.32s; }
+.skill-bubble:nth-child(6) { animation-delay: 0.4s; }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes floatBubble {
   0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -4px, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
 }
 
 /* Projects (centres d’intérêt) */

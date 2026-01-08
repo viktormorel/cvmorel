@@ -30,8 +30,17 @@ const DEFAULT_DATA = {
     "Gaming en reseau",
     "Reseaux sociaux - TikTok, Instagram, YouTube"
   ],
-  experiences: [],
-  formations: [],
+  experiences: [
+    { title: "Stage de Terminale CIEL", company: "", tag: "Decouverte metiers du numerique", date: "1er-19 dec. 2025 / 5-23 janv. 2026", description: "Objectif : decouverte des metiers du numerique, observation et participation aux activites techniques." },
+    { title: "France Televisions", company: "Stage de 3e", tag: "Audiovisuel", date: "1 semaine", description: "Decouverte de l'entreprise et du secteur audiovisuel. Observation des metiers de production." },
+    { title: "INGEMART", company: "Bureau d'etude VRD", tag: "Voirie & reseaux divers", date: "3 semaines (seconde)", description: "Participation aux plans d'amenagement, decouverte du bureau d'etude. Lecture de plans et DAO." },
+    { title: "Restos du Coeur", company: "Chantier d'insertion", tag: "Renovation et demantelement IT", date: "3 semaines (seconde)", description: "Renovation d'ordinateurs et demantelement de materiel informatique. Tri et remise en etat." },
+    { title: "Restos du Coeur", company: "Chantier d'insertion", tag: "Approfondissement IT", date: "Stage de premiere", description: "Approfondissement des connaissances et competences techniques. Diagnostics materiels." },
+    { title: "Palan Informatique", company: "Plaisir", tag: "Diagnostics & reparations", date: "Stage de premiere", description: "Diagnostic, reparation et relation clientele. Tests materiels et logiciels." }
+  ],
+  formations: [
+    { title: "Terminale CIEL", school: "Lycee pro Jean Moulin", year: "En cours", location: "Le Chesnay (78)", description: "Bac pro Cybersecurite, Informatique et Reseaux Electroniques." }
+  ],
   contact: {
     email: "viktormorel@mailo.com",
     phone: "06.14.09.93.55",
