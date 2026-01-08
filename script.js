@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // NAVBAR SCROLL EFFECT
   // ============================================
-  const navbar1 = document.querySelector('.navbar');
+  const navbar = document.querySelector('.navbar');
   let ticking = false;
 
   const updateNavbar = () => {
@@ -311,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
-  const navbar2 = document.querySelector('.navbar');
 
   if (hamburger && navLinks && navbar) {
     hamburger.addEventListener('click', () => {
