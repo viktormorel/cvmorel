@@ -157,22 +157,90 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // ============================================
-      // POLITIQUE DE DONNEES : LE CONTENU STATIQUE EST PRIORITAIRE
-      // On ne remplace JAMAIS le contenu statique du HTML
-      // Les données de l'API ne sont utilisées que pour les contacts
+      // CHARGEMENT DYNAMIQUE DEPUIS L'API
+      // Remplace le contenu statique par les données de l'admin
       // ============================================
 
-      // Competences - GARDER LE CONTENU STATIQUE (ne pas remplacer)
-      console.log('[Data] Compétences: conservation du contenu statique HTML');
+      // Competences
+      const skillsContainer = document.getElementById('skills-container');
+      if (skillsContainer && data.skills && Array.isArray(data.skills) && data.skills.length > 0) {
+        skillsContainer.innerHTML = data.skills.map(skill =>
+          `<div class="skill-bubble">${String(skill).replace(/[<>]/g, '')}</div>`
+        ).join('');
+        skillsContainer.querySelectorAll('.skill-bubble').forEach((bubble, index) => {
+          bubble.style.animationDelay = `${index * 0.1}s`;
+        });
+        console.log('[Data] Compétences chargées:', data.skills.length);
+      }
 
-      // Centres d'interet - GARDER LE CONTENU STATIQUE (ne pas remplacer)
-      console.log('[Data] Centres d\'intérêt: conservation du contenu statique HTML');
+      // Centres d'interet
+      const interestsContainer = document.getElementById('interests-container');
+      if (interestsContainer && data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
+        interestsContainer.innerHTML = data.interests.map(interest =>
+          `<div class="skill-bubble">${String(interest).replace(/[<>]/g, '')}</div>`
+        ).join('');
+        console.log('[Data] Centres d\'intérêt chargés:', data.interests.length);
+      }
 
-      // Formations - GARDER LE CONTENU STATIQUE (ne pas remplacer)
-      console.log('[Data] Formations: conservation du contenu statique HTML');
+      // Formations
+      const formationsContainer = document.getElementById('formations-container');
+      if (formationsContainer && data.formations && Array.isArray(data.formations) && data.formations.length > 0) {
+        formationsContainer.innerHTML = data.formations.map(f => {
+          const title = String(f.title || '').replace(/[<>]/g, '');
+          const school = String(f.school || '').replace(/[<>]/g, '');
+          const year = String(f.year || '').replace(/[<>]/g, '');
+          const location = String(f.location || '').replace(/[<>]/g, '');
+          const description = String(f.description || '').replace(/[<>]/g, '');
+          return `
+      <article class="timeline-item visible" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3l10 5-10 5L2 8l10-5zm0 7l6.5-3.25V15c0 2.9-4.33 4-6.5 4s-6.5-1.1-6.5-4V6.75L12 10z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>${title}${school ? ' — ' + school : ''}</h3>
+            ${location ? `<span class="tag">${location}</span>` : ''}
+          </div>
+          ${year ? `<p class="date">${year}</p>` : ''}
+          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
+        </div>
+      </article>`;
+        }).join('');
+        console.log('[Data] Formations chargées:', data.formations.length);
+      }
 
-      // Experiences - GARDER LE CONTENU STATIQUE (ne pas remplacer)
-      console.log('[Data] Expériences: conservation du contenu statique HTML');
+      // Experiences
+      const timelineContainer = document.getElementById('timeline-container');
+      if (timelineContainer && data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
+        timelineContainer.innerHTML = data.experiences.map(exp => {
+          const title = String(exp.title || '').replace(/[<>]/g, '');
+          const company = String(exp.company || '').replace(/[<>]/g, '');
+          const tag = String(exp.tag || '').replace(/[<>]/g, '');
+          const date = String(exp.date || '').replace(/[<>]/g, '');
+          const description = String(exp.description || '').replace(/[<>]/g, '');
+          return `
+      <article class="timeline-item visible" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M6 7V6a3 3 0 013-3h6a3 3 0 013 3v1h1a2 2 0 012 2v9a3 3 0 01-3 3H6a3 3 0 01-3-3V9a2 2 0 012-2h1zm2 0h8V6a1 1 0 00-1-1H9a1 1 0 00-1 1v1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>${title}${company ? ' — ' + company : ''}</h3>
+            ${tag ? `<span class="tag">${tag}</span>` : ''}
+          </div>
+          ${date ? `<p class="date">${date}</p>` : ''}
+          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
+        </div>
+      </article>`;
+        }).join('');
+        console.log('[Data] Expériences chargées:', data.experiences.length);
+      }
     } catch (e) {
       // Gestion d'erreur améliorée
       if (e.name === 'AbortError' || e.name === 'TimeoutError') {
