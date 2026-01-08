@@ -194,6 +194,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // Formations - Charger dynamiquement depuis l'API
+      const formationsContainer = document.getElementById('formations-container');
+      if (formationsContainer) {
+        if (data.formations && Array.isArray(data.formations) && data.formations.length > 0) {
+          // Remplacer avec les données de l'API
+          formationsContainer.innerHTML = data.formations.map(f => {
+            const title = String(f.title || '').replace(/[<>]/g, '');
+            const school = String(f.school || '').replace(/[<>]/g, '');
+            const year = String(f.year || '').replace(/[<>]/g, '');
+            const location = String(f.location || '').replace(/[<>]/g, '');
+            const description = String(f.description || '').replace(/[<>]/g, '');
+            return `
+      <article class="timeline-item visible" role="listitem" onclick="toggleBubble(this)" aria-expanded="false" tabindex="0">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="card glass gradient-border">
+          <div class="card-header">
+            <span class="icon svg anim" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3l10 5-10 5L2 8l10-5zm0 7l6.5-3.25V15c0 2.9-4.33 4-6.5 4s-6.5-1.1-6.5-4V6.75L12 10z" fill="currentColor"/>
+              </svg>
+            </span>
+            <h3>${title}${school ? ' — ' + school : ''}</h3>
+            ${location ? `<span class="tag">${location}</span>` : ''}
+          </div>
+          ${year ? `<p class="date">${year}</p>` : ''}
+          ${description ? `<div class="bubble-content"><p>${description}</p></div>` : ''}
+        </div>
+      </article>`;
+          }).join('');
+          console.log('[Data] Formations chargées depuis l\'API:', data.formations.length);
+        } else {
+          // Si pas de données, garder le contenu statique (ne rien faire)
+          console.log('[Data] Pas de formations dans l\'API, conservation du contenu statique');
+        }
+      }
+
       // Experiences - Ne PAS remplacer le contenu statique, il reste toujours visible
       // Le contenu statique des expériences dans le HTML est conservé par défaut
       if (data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
