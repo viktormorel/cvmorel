@@ -1016,73 +1016,9 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req,
   }
 });
 
-// Route Admin - servir admin.html de manière sécurisée
-app.get(["/admin", "/.netlify/functions/api/admin"], ensureAdmin, async (req, res) => {
-  try {
-    // Sur Netlify, les fichiers sont dans le répertoire de déploiement
-    // Essayer plusieurs chemins possibles pour admin.html
-    const possiblePaths = [
-      path.join(process.cwd(), "admin.html"),
-      path.join(process.cwd(), "..", "admin.html"),
-      path.join(process.cwd(), "..", "..", "admin.html"),
-      "/var/task/admin.html",
-      path.join(__dirname, "..", "..", "admin.html"),
-      path.join(__dirname, "..", "admin.html")
-    ];
-    
-    let adminContent = null;
-    for (const adminPath of possiblePaths) {
-      try {
-        if (fs.existsSync(adminPath)) {
-          adminContent = fs.readFileSync(adminPath, "utf8");
-          console.log("admin.html trouvé à:", adminPath);
-          break;
-        }
-      } catch (err) {
-        // Continuer avec le prochain chemin
-        continue;
-      }
-    }
-    
-    if (adminContent) {
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.send(adminContent);
-    } else {
-      // Si le fichier n'est pas trouvé, essayer de le charger depuis GitHub ou servir une version basique
-      console.error("admin.html non trouvé, chemins testés:", possiblePaths);
-      console.error("process.cwd():", process.cwd());
-      console.error("__dirname:", __dirname);
-      
-      // Fallback : charger depuis GitHub si disponible
-      const token = process.env.GITHUB_TOKEN;
-      if (token) {
-        try {
-          const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/admin.html`;
-          const response = await fetch(url, {
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Accept": "application/vnd.github.v3+json",
-              "User-Agent": "CV-Admin"
-            }
-          });
-          if (response.ok) {
-            const fileData = await response.json();
-            adminContent = Buffer.from(fileData.content, "base64").toString("utf-8");
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.send(adminContent);
-            return;
-          }
-        } catch (err) {
-          console.error("Erreur chargement depuis GitHub:", err);
-        }
-      }
-      
-      res.status(404).send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Admin introuvable</title></head><body><h1>Page admin introuvable</h1><p>Le fichier admin.html n'a pas pu être chargé.</p><p><a href="/">Retour au CV</a></p></body></html>`);
-    }
-  } catch (err) {
-    console.error("Erreur chargement admin.html:", err);
-    res.status(500).send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erreur</title></head><body><h1>Erreur serveur</h1><p>${err.message}</p><p><a href="/">Retour au CV</a></p></body></html>`);
-  }
+// Route Admin - rediriger vers admin.html (fichier statique servi par Netlify CDN)
+app.get(["/admin", "/.netlify/functions/api/admin"], ensureAdmin, (req, res) => {
+  return res.redirect("/admin.html");
 });
 
 // Formulaire de contact - envoie vers Discord (webhook protégé côté serveur)
