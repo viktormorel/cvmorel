@@ -992,7 +992,8 @@ app.get(["/download-cv", "/.netlify/functions/api/download-cv"], (req, res) => {
 // Route pour télécharger le fichier CV (protégée par auth)
 app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], (req, res) => {
   try {
-    if (!req.isAuthenticated() || req.session.twoFA !== true) {
+    const hasAuth = (req.isAuthenticated() && req.session.twoFA === true) || (req.jwtUser && req.jwtUser.twoFA);
+    if (!hasAuth) {
       return res.status(401).json({ error: "Non autorisé" });
     }
     // Rediriger vers le fichier statique
