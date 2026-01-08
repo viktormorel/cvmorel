@@ -1636,8 +1636,15 @@
       }
     }
 
-    // Init
-    eval(atob('aWYodHlwZW9mIF8weDEhPT0ndW5kZWZpbmVkJyl7dmFyIF8weDI9c2V0SW50ZXJ2YWwoZnVuY3Rpb24oKXtpZihfMHgxKXtjbGVhckludGVydmFsKF8weDIpO2xvYWREYXRhKCk7bG9hZExvZ2lucygpO2xvYWRTdGF0cygpO319LDUwKTt9'));
+    // Init - attend que isAdminUser soit true
+    var initCheck = setInterval(function() {
+      if (isAdminUser) {
+        clearInterval(initCheck);
+        loadData();
+        loadLogins();
+        loadStats();
+      }
+    }, 100);
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
