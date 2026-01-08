@@ -35,6 +35,22 @@ const DEFAULT_DATA = {
     email: "viktormorel@mailo.com",
     phone: "06.14.09.93.55",
     linkedin: "viktormorel"
+  },
+  logins: [
+    { name: "Vahé Vik", email: "vikvahe@gmail.com", photo: "https://lh3.googleusercontent.com/a/ACg8ocLkWCI13o5eJ7reEki7Es1XxBqXIGdcOwl9Q39ZwtfSNqCWarQT=s96-c", date: "2026-01-06T11:04:13.852Z" },
+    { name: "Xx Xx", email: "abricotpomme1234@gmail.com", photo: "https://lh3.googleusercontent.com/a/ACg8ocJcfbXrBn5AlNnFH6QxLqzAKvuhVJ0FtIfypnzgIC9WuMbXEQ=s96-c", date: "2026-01-03T16:11:12.258Z" }
+  ],
+  stats: {
+    visits: 68,
+    lastVisits: [
+      { date: "2026-01-06", count: 11 },
+      { date: "2026-01-05", count: 4 },
+      { date: "2026-01-03", count: 7 },
+      { date: "2025-12-28", count: 3 },
+      { date: "2025-12-23", count: 2 },
+      { date: "2025-12-19", count: 24 },
+      { date: "2025-12-18", count: 17 }
+    ]
   }
 };
 
@@ -145,7 +161,11 @@ async function loadSiteData() {
       console.log("Données chargées depuis Netlify Blobs");
       return data;
     } else {
-      console.log("Aucune donnée trouvée dans Blobs, utilisation des données par défaut");
+      console.log("Aucune donnée trouvée dans Blobs, initialisation avec données par défaut");
+      // Sauvegarder les données par défaut dans Blobs pour la première fois
+      await store.setJSON(BLOB_KEY, DEFAULT_DATA);
+      inMemoryData = { ...DEFAULT_DATA };
+      return inMemoryData;
     }
   } catch (err) {
     console.error("Erreur lecture Netlify Blobs:", err);
