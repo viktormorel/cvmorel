@@ -1409,6 +1409,12 @@ app.get(["/admin-console", "/secure/admin", "/.netlify/functions/api/admin-conso
   return res.redirect("/admin.html");
 });
 
+// Redirection /admin vers /admin.html
+app.get(["/admin", "/.netlify/functions/api/admin"], (req, res) => {
+  if (!req.isAuthenticated() || req.session.twoFA !== true || !isAdmin(req)) return res.redirect("/");
+  return res.redirect("/admin.html");
+});
+
 // Console admin securisee - Design premium avec animations
 app.get(["/admin-console", "/secure/admin", "/.netlify/functions/api/admin-console"], (req, res) => {
   if (!req.isAuthenticated() || req.session.twoFA !== true || !isAdmin(req)) {
