@@ -64,9 +64,6 @@ const DEFAULT_DATA = {
   }
 };
 
-// Cache en mémoire
-let inMemoryData = null;
-
 // Gestion des connexions (utilise Netlify Blobs)
 async function loadLogins() {
   const data = await loadSiteData();
@@ -152,11 +149,8 @@ async function getStats() {
 }
 
 // Charger les données depuis Netlify Blobs
+// IMPORTANT: Toujours lire depuis Blobs pour avoir les données à jour
 async function loadSiteData() {
-  if (inMemoryData) {
-    return inMemoryData;
-  }
-
   try {
     const store = getStore(BLOB_STORE_NAME);
     const data = await store.get(BLOB_KEY, { type: "json" });
@@ -169,35 +163,31 @@ async function loadSiteData() {
       if (!data.experiences || data.experiences.length === 0) data.experiences = DEFAULT_DATA.experiences || [];
       if (!data.formations || data.formations.length === 0) data.formations = DEFAULT_DATA.formations || [];
       if (!data.contact) data.contact = DEFAULT_DATA.contact || {};
-      inMemoryData = data;
       console.log("Données chargées depuis Netlify Blobs");
       return data;
     } else {
       console.log("Aucune donnée trouvée dans Blobs, initialisation avec données par défaut");
       // Sauvegarder les données par défaut dans Blobs pour la première fois
       await store.setJSON(BLOB_KEY, DEFAULT_DATA);
-      inMemoryData = { ...DEFAULT_DATA };
-      return inMemoryData;
+      return { ...DEFAULT_DATA };
     }
   } catch (err) {
     console.error("Erreur lecture Netlify Blobs:", err);
   }
 
   // Toujours retourner des données valides (par défaut si nécessaire)
-  inMemoryData = { ...DEFAULT_DATA };
-  return inMemoryData;
+  return { ...DEFAULT_DATA };
 }
 
 // Sauvegarder les données sur Netlify Blobs
 async function saveSiteData(data) {
-  inMemoryData = data;
-
   try {
     const store = getStore(BLOB_STORE_NAME);
     await store.setJSON(BLOB_KEY, data);
     console.log("Données sauvegardées sur Netlify Blobs");
   } catch (err) {
     console.error("Erreur sauvegarde Netlify Blobs:", err);
+    throw err; // Propager l'erreur pour informer l'appelant
   }
 }
 
