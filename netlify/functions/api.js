@@ -16,15 +16,23 @@ const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "jwt-
 const BLOB_STORE_NAME = "cv-data";
 const BLOB_KEY = "site-data";
 
-// Helper pour obtenir le store avec config explicite si nécessaire
+// Helper pour obtenir le store avec config explicite
 function getBlobStore() {
-  // En production sur Netlify, getStore fonctionne automatiquement
-  // En cas d'erreur, on utilise les variables d'environnement
-  return getStore({
-    name: BLOB_STORE_NAME,
-    siteID: process.env.SITE_ID || process.env.NETLIFY_SITE_ID,
-    token: process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_ACCESS_TOKEN
-  });
+  // Netlify fournit automatiquement ces variables en production
+  const siteID = process.env.SITE_ID; // Variable auto fournie par Netlify
+  const token = process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_ACCESS_TOKEN;
+
+  // Si on a les credentials, utiliser config explicite
+  if (siteID && token) {
+    return getStore({
+      name: BLOB_STORE_NAME,
+      siteID: siteID,
+      token: token
+    });
+  }
+
+  // Sinon, laisser Netlify gérer automatiquement (contexte de déploiement)
+  return getStore(BLOB_STORE_NAME);
 }
 
 const DEFAULT_DATA = {
