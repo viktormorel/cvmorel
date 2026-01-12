@@ -329,20 +329,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const navLinks = document.getElementById('navLinks');
 
   if (hamburger && navLinks) {
+    let touchHandled = false;
+
     // Fonction pour toggle le menu
-    const toggleMenu = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const toggleMenu = () => {
       hamburger.classList.toggle('active');
       navLinks.classList.toggle('open');
       const isOpen = navLinks.classList.contains('open');
       hamburger.setAttribute('aria-expanded', isOpen);
-      hamburger.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
     };
 
-    // Ecouter click et touchend pour mobile
-    hamburger.addEventListener('click', toggleMenu);
-    hamburger.addEventListener('touchend', toggleMenu, { passive: false });
+    // Touch pour mobile - empêche le double event
+    hamburger.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      touchHandled = true;
+      toggleMenu();
+    }, { passive: false });
+
+    // Click pour desktop (ignoré si touch déjà géré)
+    hamburger.addEventListener('click', (e) => {
+      if (touchHandled) {
+        touchHandled = false;
+        return;
+      }
+      e.preventDefault();
+      toggleMenu();
+    });
 
     // Fermer le menu quand on clique sur un lien
     navLinks.querySelectorAll('.nav-link').forEach(link => {
@@ -350,7 +362,6 @@ document.addEventListener("DOMContentLoaded", () => {
         hamburger.classList.remove('active');
         navLinks.classList.remove('open');
         hamburger.setAttribute('aria-expanded', 'false');
-        hamburger.setAttribute('aria-label', 'Ouvrir le menu');
       });
     });
 

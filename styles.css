@@ -352,8 +352,8 @@ body.centered-layout{
   /* Menu cache par defaut sur mobile */
   .nav-links {
     display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 60px;
     left: 0;
     right: 0;
     flex-direction: column;
@@ -364,12 +364,13 @@ body.centered-layout{
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
-    animation: slideDown 0.3s ease;
+    z-index: 1000;
   }
 
   /* Menu ouvert */
   .nav-links.open {
     display: flex;
+    animation: slideDown 0.2s ease;
   }
 
   @keyframes slideDown {
