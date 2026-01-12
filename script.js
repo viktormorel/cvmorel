@@ -328,15 +328,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
 
-  if (hamburger && navLinks && navbar) {
-    hamburger.addEventListener('click', () => {
+  if (hamburger && navLinks) {
+    // Fonction pour toggle le menu
+    const toggleMenu = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       hamburger.classList.toggle('active');
       navLinks.classList.toggle('open');
       const isOpen = navLinks.classList.contains('open');
       hamburger.setAttribute('aria-expanded', isOpen);
       hamburger.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
-    });
+    };
 
+    // Ecouter click et touchend pour mobile
+    hamburger.addEventListener('click', toggleMenu);
+    hamburger.addEventListener('touchend', toggleMenu, { passive: false });
+
+    // Fermer le menu quand on clique sur un lien
     navLinks.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', () => {
         hamburger.classList.remove('active');
@@ -346,8 +354,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    // Fermer le menu quand on clique en dehors
     document.addEventListener('click', (e) => {
-      if (!navbar.contains(e.target) && navLinks.classList.contains('open')) {
+      if (!hamburger.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('open')) {
         hamburger.classList.remove('active');
         navLinks.classList.remove('open');
         hamburger.setAttribute('aria-expanded', 'false');
