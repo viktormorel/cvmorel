@@ -16,6 +16,17 @@ const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "jwt-
 const BLOB_STORE_NAME = "cv-data";
 const BLOB_KEY = "site-data";
 
+// Helper pour obtenir le store avec config explicite si nécessaire
+function getBlobStore() {
+  // En production sur Netlify, getStore fonctionne automatiquement
+  // En cas d'erreur, on utilise les variables d'environnement
+  return getStore({
+    name: BLOB_STORE_NAME,
+    siteID: process.env.SITE_ID || process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_ACCESS_TOKEN
+  });
+}
+
 const DEFAULT_DATA = {
   skills: [
     "Anglais (LV)",
@@ -152,7 +163,7 @@ async function getStats() {
 // IMPORTANT: Toujours lire depuis Blobs pour avoir les données à jour
 async function loadSiteData() {
   try {
-    const store = getStore(BLOB_STORE_NAME);
+    const store = getBlobStore();
     const data = await store.get(BLOB_KEY, { type: "json" });
 
     if (data) {
@@ -182,7 +193,7 @@ async function loadSiteData() {
 // Sauvegarder les données sur Netlify Blobs
 async function saveSiteData(data) {
   try {
-    const store = getStore(BLOB_STORE_NAME);
+    const store = getBlobStore();
     await store.setJSON(BLOB_KEY, data);
     console.log("Données sauvegardées sur Netlify Blobs");
   } catch (err) {
@@ -739,7 +750,7 @@ app.post(["/api/admin/upload-cv", "/admin/upload-cv", "/.netlify/functions/api/a
     }
 
     // Store CV in Netlify Blobs
-    const store = getStore(BLOB_STORE_NAME);
+    const store = getBlobStore();
     await store.set("cv-file", fileBuffer, {
       metadata: {
         filename: filename,
@@ -1068,7 +1079,7 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], async
 
     // Try to get CV from Netlify Blobs first
     try {
-      const store = getStore(BLOB_STORE_NAME);
+      const store = getBlobStore();
       const cvData = await store.get("cv-file", { type: "arrayBuffer" });
 
       if (cvData) {
