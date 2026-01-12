@@ -675,15 +675,18 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
       return res.status(400).json({ error: "Données invalides" });
     }
 
-    // Validation de la structure des données
+    // Charger les données existantes pour préserver logins/stats
+    const existingData = await loadSiteData();
+
+    // Fusionner avec les nouvelles données (préserver logins et stats existants)
     const data = {
-      skills: Array.isArray(req.body.skills) ? req.body.skills : [],
-      interests: Array.isArray(req.body.interests) ? req.body.interests : [],
-      experiences: Array.isArray(req.body.experiences) ? req.body.experiences : [],
-      formations: Array.isArray(req.body.formations) ? req.body.formations : [],
-      contact: req.body.contact && typeof req.body.contact === 'object' ? req.body.contact : {},
-      logins: Array.isArray(req.body.logins) ? req.body.logins : [],
-      stats: req.body.stats && typeof req.body.stats === 'object' ? req.body.stats : {}
+      skills: Array.isArray(req.body.skills) ? req.body.skills : existingData.skills || [],
+      interests: Array.isArray(req.body.interests) ? req.body.interests : existingData.interests || [],
+      experiences: Array.isArray(req.body.experiences) ? req.body.experiences : existingData.experiences || [],
+      formations: Array.isArray(req.body.formations) ? req.body.formations : existingData.formations || [],
+      contact: req.body.contact && typeof req.body.contact === 'object' ? req.body.contact : existingData.contact || {},
+      logins: existingData.logins || [],
+      stats: existingData.stats || {}
     };
 
     // Validation des champs contact
@@ -702,7 +705,7 @@ app.post(["/api/admin/save", "/admin/save", "/.netlify/functions/api/admin/save"
     res.json({ success: true });
   } catch (err) {
     console.error("Erreur sauvegarde admin:", err);
-    res.status(500).json({ error: "Erreur sauvegarde" });
+    res.status(500).json({ error: "Erreur sauvegarde: " + (err.message || "inconnue") });
   }
 });
 
