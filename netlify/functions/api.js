@@ -1186,8 +1186,36 @@ app.get(["/download-letter/file", "/.netlify/functions/api/download-letter/file"
       console.log("Letter not found in Blobs:", blobErr.message);
     }
 
-    // No letter uploaded yet
-    res.status(404).json({ error: "Aucune lettre de motivation disponible pour le moment" });
+    // No letter uploaded yet - fallback to CV download
+    console.log("Lettre non disponible, redirection vers le CV...");
+
+    // Try to get CV from Netlify Blobs as fallback
+    try {
+      const store = getBlobStore();
+      const cvData = await store.get("cv-file", { type: "arrayBuffer" });
+
+      if (cvData) {
+        // Get metadata to retrieve original filename
+        const metadata = await store.getMetadata("cv-file");
+        const filename = metadata?.metadata?.filename || "cv-viktor-morel.docx";
+
+        // Determine content type based on extension
+        const isPdf = filename.toLowerCase().endsWith('.pdf');
+        const contentType = isPdf
+          ? "application/pdf"
+          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+        res.setHeader("Content-Type", contentType);
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.setHeader("Cache-Control", "no-store");
+        return res.send(Buffer.from(cvData));
+      }
+    } catch (cvErr) {
+      console.log("CV also not found in Blobs:", cvErr.message);
+    }
+
+    // If no CV either, redirect to static CV file
+    return res.redirect("/cv-viktor-morel.docx");
   } catch (err) {
     console.error("Erreur téléchargement Lettre:", err);
     res.status(500).json({ error: "Erreur serveur" });
