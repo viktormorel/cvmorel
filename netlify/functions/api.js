@@ -775,6 +775,47 @@ app.post(["/api/admin/upload-cv", "/admin/upload-cv", "/.netlify/functions/api/a
   }
 });
 
+// Admin: Upload Lettre de motivation
+app.post(["/api/admin/upload-letter", "/admin/upload-letter", "/.netlify/functions/api/admin/upload-letter"], ensureAdmin, async (req, res) => {
+  try {
+    const { filename, data } = req.body;
+
+    if (!filename || !data) {
+      return res.status(400).json({ error: "Fichier manquant" });
+    }
+
+    // Validate file extension
+    if (!filename.match(/\.(docx|doc|pdf)$/i)) {
+      return res.status(400).json({ error: "Format invalide. Utilise .docx, .doc ou .pdf" });
+    }
+
+    // Extract base64 data (remove data:...;base64, prefix)
+    const base64Data = data.replace(/^data:[^;]+;base64,/, "");
+    const fileBuffer = Buffer.from(base64Data, "base64");
+
+    // Validate file size (max 10MB)
+    if (fileBuffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({ error: "Fichier trop volumineux (max 10 Mo)" });
+    }
+
+    // Store Letter in Netlify Blobs
+    const store = getBlobStore();
+    await store.set("letter-file", fileBuffer, {
+      metadata: {
+        filename: filename,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: req.jwtUser?.email || req.user?.emails?.[0]?.value || "admin"
+      }
+    });
+
+    console.log("Lettre uploaded successfully:", filename, "by", req.jwtUser?.email || req.user?.emails?.[0]?.value);
+    res.json({ success: true, message: "Lettre de motivation mise a jour avec succes" });
+  } catch (err) {
+    console.error("Erreur upload Lettre:", err);
+    res.status(500).json({ error: "Erreur lors de l'upload" });
+  }
+});
+
 // Admin: historique des connexions
 app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, async (req, res) => {
   try {
@@ -1108,6 +1149,47 @@ app.get(["/download-cv/file", "/.netlify/functions/api/download-cv/file"], async
     res.redirect("/cv-viktor-morel.docx");
   } catch (err) {
     console.error("Erreur téléchargement CV:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Route pour télécharger la Lettre de Motivation (protégée par auth)
+app.get(["/download-letter/file", "/.netlify/functions/api/download-letter/file"], async (req, res) => {
+  try {
+    const hasAuth = (req.isAuthenticated() && req.session.twoFA === true) || (req.jwtUser && req.jwtUser.twoFA);
+    if (!hasAuth) {
+      return res.status(401).json({ error: "Non autorisé" });
+    }
+
+    // Try to get Letter from Netlify Blobs
+    try {
+      const store = getBlobStore();
+      const letterData = await store.get("letter-file", { type: "arrayBuffer" });
+
+      if (letterData) {
+        // Get metadata to retrieve original filename
+        const metadata = await store.getMetadata("letter-file");
+        const filename = metadata?.metadata?.filename || "lettre-motivation-viktor-morel.docx";
+
+        // Determine content type based on extension
+        const isPdf = filename.toLowerCase().endsWith('.pdf');
+        const contentType = isPdf
+          ? "application/pdf"
+          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+        res.setHeader("Content-Type", contentType);
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.setHeader("Cache-Control", "no-store");
+        return res.send(Buffer.from(letterData));
+      }
+    } catch (blobErr) {
+      console.log("Letter not found in Blobs:", blobErr.message);
+    }
+
+    // No letter uploaded yet
+    res.status(404).json({ error: "Aucune lettre de motivation disponible pour le moment" });
+  } catch (err) {
+    console.error("Erreur téléchargement Lettre:", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });

@@ -1311,6 +1311,70 @@
         </div>
       </div>
 
+      <!-- Lettre de Motivation Upload Card -->
+      <div class="card" id="letterCard">
+        <div class="card-header">
+          <div class="card-icon" style="background: var(--gradient-3);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Lettre de Motivation</h2>
+            <p class="card-subtitle">Mets a jour ta lettre de motivation (DOCX, DOC ou PDF)</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="letter-drop-zone" class="upload-zone">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" style="margin-bottom: 12px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <p style="color: var(--text-primary); font-weight: 600; font-size: 1.1rem; margin-bottom: 8px;">Glisse ta lettre ici</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">ou clique pour selectionner (DOCX, DOC, PDF)</p>
+            <input type="file" id="letter-file-input" accept=".docx,.doc,.pdf" style="display: none;">
+          </div>
+
+          <div id="letter-file-preview" style="display: none; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 14px; border: 1px solid rgba(6, 182, 212, 0.2);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <div style="flex: 1;">
+                <p id="letter-file-name" style="font-weight: 600; color: var(--text-primary);"></p>
+                <p id="letter-file-size" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="clearLetterFileSelection()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button id="upload-letter-btn" class="btn btn-full btn-lg" style="margin-top: 20px; display: none; background: var(--gradient-3); color: white;" onclick="uploadLetter()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Envoyer la lettre de motivation
+          </button>
+
+          <div id="letter-upload-progress" style="display: none; margin-top: 20px;">
+            <div style="background: var(--border); border-radius: 8px; height: 8px; overflow: hidden;">
+              <div id="letter-progress-bar" style="background: var(--gradient-3); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="letter-upload-status" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px; text-align: center;">Envoi en cours...</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Save Button -->
       <button class="btn btn-save btn-full" onclick="saveAll()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -1996,6 +2060,124 @@
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
       });
+    }
+
+    // =============================================
+    // LETTER UPLOAD FUNCTIONALITY
+    // =============================================
+    let selectedLetterFile = null;
+    const letterDropZone = document.getElementById('letter-drop-zone');
+    const letterFileInput = document.getElementById('letter-file-input');
+
+    if (letterDropZone && letterFileInput) {
+      letterDropZone.addEventListener('click', () => letterFileInput.click());
+
+      letterDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        letterDropZone.style.borderColor = 'var(--accent)';
+        letterDropZone.style.background = 'rgba(6, 182, 212, 0.1)';
+      });
+
+      letterDropZone.addEventListener('dragleave', () => {
+        letterDropZone.style.borderColor = 'var(--border)';
+        letterDropZone.style.background = 'transparent';
+      });
+
+      letterDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        letterDropZone.style.borderColor = 'var(--border)';
+        letterDropZone.style.background = 'transparent';
+        const file = e.dataTransfer.files[0];
+        if (file) handleLetterFile(file);
+      });
+
+      letterFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleLetterFile(file);
+      });
+    }
+
+    function handleLetterFile(file) {
+      // Validate file type
+      if (!file.name.match(/\.(docx|doc|pdf)$/i)) {
+        showToast('Format invalide. Utilise un fichier .docx, .doc ou .pdf', 'error');
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('Fichier trop volumineux (max 10 Mo)', 'error');
+        return;
+      }
+
+      selectedLetterFile = file;
+      document.getElementById('letter-file-name').textContent = file.name;
+      document.getElementById('letter-file-size').textContent = formatFileSize(file.size);
+      document.getElementById('letter-file-preview').style.display = 'block';
+      document.getElementById('upload-letter-btn').style.display = 'flex';
+      letterDropZone.style.display = 'none';
+    }
+
+    function clearLetterFileSelection() {
+      selectedLetterFile = null;
+      letterFileInput.value = '';
+      document.getElementById('letter-file-preview').style.display = 'none';
+      document.getElementById('upload-letter-btn').style.display = 'none';
+      document.getElementById('letter-upload-progress').style.display = 'none';
+      letterDropZone.style.display = 'block';
+    }
+
+    async function uploadLetter() {
+      if (!selectedLetterFile) {
+        showToast('Selectionne un fichier d\'abord', 'error');
+        return;
+      }
+
+      const uploadBtn = document.getElementById('upload-letter-btn');
+      const progressDiv = document.getElementById('letter-upload-progress');
+      const progressBar = document.getElementById('letter-progress-bar');
+      const statusText = document.getElementById('letter-upload-status');
+
+      uploadBtn.style.display = 'none';
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      statusText.textContent = 'Preparation...';
+
+      try {
+        // Convert file to base64
+        const base64 = await fileToBase64(selectedLetterFile);
+        progressBar.style.width = '30%';
+        statusText.textContent = 'Envoi en cours...';
+
+        const response = await fetch('/.netlify/functions/api/admin/upload-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            filename: selectedLetterFile.name,
+            data: base64
+          })
+        });
+
+        progressBar.style.width = '90%';
+
+        if (response.ok) {
+          progressBar.style.width = '100%';
+          statusText.textContent = 'Lettre mise a jour avec succes !';
+          showToast('Lettre de motivation mise a jour !', 'success');
+          setTimeout(() => {
+            clearLetterFileSelection();
+          }, 2000);
+        } else {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Erreur lors de l\'upload');
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        showToast(err.message || 'Erreur lors de l\'upload', 'error');
+        progressDiv.style.display = 'none';
+        uploadBtn.style.display = 'flex';
+      }
     }
   </script>
 </body>
