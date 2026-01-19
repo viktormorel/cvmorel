@@ -301,26 +301,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // NAVBAR SCROLL EFFECT
   // ============================================
   const navbar = document.querySelector('.navbar');
-  let ticking = false;
 
-  const updateNavbar = () => {
-    const scrollY = window.scrollY;
-    if (navbar) {
-      if (scrollY > 50) {
+  if (navbar) {
+    let ticking = false;
+
+    const updateNavbar = () => {
+      if (window.scrollY > 50) {
         navbar.classList.add('scrolled');
       } else {
         navbar.classList.remove('scrolled');
       }
-    }
-    ticking = false;
-  };
+      ticking = false;
+    };
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(updateNavbar);
-      ticking = true;
-    }
-  }, { passive: true });
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(updateNavbar);
+        ticking = true;
+      }
+    }, { passive: true });
+  }
 
   // ============================================
   // MENU HAMBURGER MOBILE
@@ -375,23 +375,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Smooth scroll navbar - optimisé avec passive où possible
-  if (navbar) {
-    document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
-      a.addEventListener('click', e => {
-        const href = a.getAttribute('href');
-        if (href && href.startsWith('#')) {
-          e.preventDefault();
-          const target = document.querySelector(href);
-          if (target) {
-            const navbarHeight = navbar ? navbar.offsetHeight : 66;
-            const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight;
-            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
-          }
+  // Smooth scroll navbar
+  const navbarEl = document.querySelector('.navbar');
+  document.querySelectorAll('.navbar .nav-link, .navbar a').forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const navbarHeight = navbarEl ? navbarEl.offsetHeight : 66;
+          const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight;
+          window.scrollTo({ top: targetPosition, behavior: 'smooth' });
         }
-      });
+      }
     });
-  }
+  });
 
   // ============================================
   // LAZY LOADING IMAGES
