@@ -163,4 +163,10 @@
   to = "/.netlify/functions/api/download-cv/file"
   status = 200
 
+# Téléchargement Lettre de motivation - protégé par fonction
+[[redirects]]
+  from = "/download-letter/file"
+  to = "/.netlify/functions/api/download-letter/file"
+  status = 200
+
 
