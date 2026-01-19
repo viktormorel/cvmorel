@@ -1,4 +1,4 @@
-// netlify/functions/api.js - morelviktor.netlify.app
+// netlify/functions/api.js - viktorvahecvmorel.netlify.app
 import serverless from "serverless-http";
 import express from "express";
 import passport from "passport";
@@ -295,7 +295,7 @@ app.use((req, res, next) => {
 
 const CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
-  "https://morelviktor.netlify.app/.netlify/functions/api/auth/google/callback";
+  "https://viktorvahecvmorel.netlify.app/.netlify/functions/api/auth/google/callback";
 
 passport.use(
   new GoogleStrategy(
