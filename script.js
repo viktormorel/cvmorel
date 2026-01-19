@@ -695,4 +695,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
   }
 
+  // ============================================
+  // PARTICULES FLOTTANTES SUBTILES
+  // ============================================
+  const particlesContainer = document.getElementById('floatingParticles');
+  if (particlesContainer) {
+    // Creer seulement 15 particules pour rester subtil
+    for (let i = 0; i < 15; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'floating-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 25 + 's';
+      particle.style.animationDuration = (20 + Math.random() * 15) + 's';
+
+      const size = 2 + Math.random() * 2;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+
+      particlesContainer.appendChild(particle);
+    }
+  }
+
 });

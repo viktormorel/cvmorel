@@ -1,4 +1,4 @@
-/* CV Viktor Morel - v3.0 - Ultra performance */
+/* CV Viktor Morel - v3.1 - Ultra performance + Effets futuristes */
 :root {
   --bg: linear-gradient(180deg,#eef2ff 0%, #f7fbff 100%);
   --surface: #0f1724;
@@ -12,6 +12,8 @@
   --accent: #3ddc97;
   --glass: rgba(255,255,255,0.06);
   --radius-lg: 18px;
+  --glow-primary: rgba(106, 17, 203, 0.4);
+  --glow-accent: rgba(61, 220, 151, 0.4);
 }
 
 @media (prefers-color-scheme: light) {
@@ -1107,4 +1109,237 @@ footer { padding: 34px 0; color: #5a6376; background: #eef2ff; }
 [data-theme="dark"] .reading-progress {
   background: linear-gradient(90deg, #4ade80, #3b82f6, #8b5cf6);
   box-shadow: 0 0 10px rgba(74, 222, 128, 0.5), 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* ============================================
+   EFFETS FUTURISTES SUBTILS (arriere-plan)
+   ============================================ */
+
+/* Particules flottantes */
+.floating-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: floatParticle 25s linear infinite;
+}
+
+@keyframes floatParticle {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+}
+
+/* Lignes de circuit subtiles */
+.circuit-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  overflow: hidden;
+}
+
+.circuit-line-h {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: circuitH 12s linear infinite;
+}
+
+.circuit-line-h:nth-child(1) { top: 20%; width: 150px; left: -150px; animation-delay: 0s; }
+.circuit-line-h:nth-child(2) { top: 45%; width: 120px; left: -120px; animation-delay: 3s; }
+.circuit-line-h:nth-child(3) { top: 70%; width: 180px; left: -180px; animation-delay: 6s; }
+.circuit-line-h:nth-child(4) { top: 85%; width: 100px; left: -100px; animation-delay: 9s; }
+
+@keyframes circuitH {
+  0% { transform: translateX(0); opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { transform: translateX(calc(100vw + 200px)); opacity: 0; }
+}
+
+/* Glow subtil sur le hero */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(106, 17, 203, 0.1) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  animation: heroGlow 8s ease-in-out infinite;
+}
+
+@keyframes heroGlow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Scan line tres subtile */
+.scan-effect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  z-index: 1;
+  animation: scanEffect 6s linear infinite;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@keyframes scanEffect {
+  0% { top: -1px; }
+  100% { top: 100%; }
+}
+
+/* Amelioration des cartes avec glow au hover */
+.card.glass:hover {
+  box-shadow: 0 16px 40px rgba(106,17,203,0.35), 0 0 30px rgba(106, 17, 203, 0.15);
+}
+
+.contact-card:hover {
+  box-shadow: 0 12px 28px rgba(106,17,203,0.35), 0 0 25px rgba(106, 17, 203, 0.12);
+}
+
+.skill-bubble:hover {
+  box-shadow: 0 14px 28px rgba(106,17,203,0.35), 0 0 20px rgba(106, 17, 203, 0.15);
+}
+
+/* Glow sur le bouton principal */
+.btn.primary {
+  box-shadow: 0 10px 30px rgba(106,17,203,0.25), 0 0 20px rgba(106, 17, 203, 0.1);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 20px 40px rgba(106,17,203,0.35), 0 0 40px rgba(106, 17, 203, 0.2);
+}
+
+/* Glow sur l'avatar */
+.avatar {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 30px rgba(106, 17, 203, 0.2);
+}
+
+.avatar:hover {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 50px rgba(106, 17, 203, 0.3);
+}
+
+/* Timeline dots avec glow ameliore */
+.timeline-item .dot {
+  box-shadow: 0 0 12px var(--accent), 0 0 25px rgba(61, 220, 151, 0.4);
+}
+
+.timeline-item:hover .dot {
+  box-shadow: 0 0 18px var(--accent), 0 0 40px rgba(61, 220, 151, 0.5);
+}
+
+/* ============================================
+   MODE JOUR (LIGHT) - Effets subtils et elegants
+   ============================================ */
+[data-theme="light"] .floating-particle,
+body:not([data-theme="dark"]) .floating-particle {
+  background: #6a11cb;
+  opacity: 0.25;
+}
+
+[data-theme="light"] .circuit-bg,
+body:not([data-theme="dark"]) .circuit-bg {
+  opacity: 0.12;
+}
+
+[data-theme="light"] .circuit-line-h,
+body:not([data-theme="dark"]) .circuit-line-h {
+  background: linear-gradient(90deg, transparent, #6a11cb, transparent);
+}
+
+[data-theme="light"] .scan-effect,
+body:not([data-theme="dark"]) .scan-effect {
+  background: linear-gradient(90deg, transparent, #3ddc97, transparent);
+  opacity: 0.25;
+}
+
+[data-theme="light"] .hero::after,
+body:not([data-theme="dark"]) .hero::after {
+  background: radial-gradient(circle, rgba(106, 17, 203, 0.08) 0%, transparent 70%);
+}
+
+/* ============================================
+   MODE NUIT (DARK) - Effets plus prononces et lumineux
+   ============================================ */
+[data-theme="dark"] .floating-particle {
+  background: #8b5cf6;
+  opacity: 0.5;
+  box-shadow: 0 0 6px currentColor;
+}
+
+[data-theme="dark"] .circuit-bg {
+  opacity: 0.25;
+}
+
+[data-theme="dark"] .circuit-line-h {
+  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+}
+
+[data-theme="dark"] .hero::after {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .scan-effect {
+  background: linear-gradient(90deg, transparent, #4ade80, transparent);
+  opacity: 0.5;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+}
+
+/* Dark mode - glow ameliore sur les elements */
+[data-theme="dark"] .card.glass:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.25);
+}
+
+[data-theme="dark"] .contact-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="dark"] .skill-bubble:hover {
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5), 0 0 25px rgba(139, 92, 246, 0.25);
+}
+
+[data-theme="dark"] .btn.primary {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px rgba(139, 92, 246, 0.3);
+}
+
+[data-theme="dark"] .btn.primary:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 50px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="dark"] .avatar {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
+}
+
+[data-theme="dark"] .avatar:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="dark"] .timeline-item .dot {
+  box-shadow: 0 0 15px #4ade80, 0 0 35px rgba(74, 222, 128, 0.5);
+}
+
+[data-theme="dark"] .timeline-item:hover .dot {
+  box-shadow: 0 0 20px #4ade80, 0 0 50px rgba(74, 222, 128, 0.6);
 }
