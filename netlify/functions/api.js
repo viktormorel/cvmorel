@@ -816,6 +816,113 @@ app.post(["/api/admin/upload-letter", "/admin/upload-letter", "/.netlify/functio
   }
 });
 
+// Admin: Upload Photo de profil
+app.post(["/api/admin/upload-photo", "/admin/upload-photo", "/.netlify/functions/api/admin/upload-photo"], ensureAdmin, async (req, res) => {
+  try {
+    const { filename, data } = req.body;
+
+    if (!filename || !data) {
+      return res.status(400).json({ error: "Fichier manquant" });
+    }
+
+    // Validate file extension
+    if (!filename.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+      return res.status(400).json({ error: "Format invalide. Utilise .jpg, .png, .webp ou .gif" });
+    }
+
+    // Extract base64 data (remove data:...;base64, prefix)
+    const base64Data = data.replace(/^data:[^;]+;base64,/, "");
+    const fileBuffer = Buffer.from(base64Data, "base64");
+
+    // Validate file size (max 5MB)
+    if (fileBuffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ error: "Image trop volumineuse (max 5 Mo)" });
+    }
+
+    // Store Photo in Netlify Blobs
+    const store = getBlobStore();
+    await store.set("profile-photo", fileBuffer, {
+      metadata: {
+        filename: filename,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: req.jwtUser?.email || req.user?.emails?.[0]?.value || "admin"
+      }
+    });
+
+    console.log("Photo profil uploaded successfully:", filename, "by", req.jwtUser?.email || req.user?.emails?.[0]?.value);
+    res.json({ success: true, message: "Photo de profil mise a jour avec succes" });
+  } catch (err) {
+    console.error("Erreur upload Photo:", err);
+    res.status(500).json({ error: "Erreur lors de l'upload" });
+  }
+});
+
+// Admin: Update Hero Text (sous-titre)
+app.post(["/api/admin/update-hero-text", "/admin/update-hero-text", "/.netlify/functions/api/admin/update-hero-text"], ensureAdmin, async (req, res) => {
+  try {
+    const { heroText } = req.body;
+
+    if (typeof heroText !== "string") {
+      return res.status(400).json({ error: "Texte manquant" });
+    }
+
+    // Limit text length
+    if (heroText.length > 200) {
+      return res.status(400).json({ error: "Texte trop long (max 200 caracteres)" });
+    }
+
+    // Load current data and update heroText
+    const data = await loadSiteData();
+    data.heroText = heroText;
+    await saveSiteData(data);
+
+    console.log("Hero text updated to:", heroText);
+    res.json({ success: true, message: "Texte mis a jour avec succes" });
+  } catch (err) {
+    console.error("Erreur update hero text:", err);
+    res.status(500).json({ error: "Erreur lors de la mise a jour" });
+  }
+});
+
+// Public: Get profile photo
+app.get(["/api/profile-photo", "/profile-photo", "/.netlify/functions/api/profile-photo"], async (req, res) => {
+  try {
+    const store = getBlobStore();
+    const photoData = await store.get("profile-photo", { type: "arrayBuffer" });
+
+    if (!photoData) {
+      return res.status(404).json({ error: "Photo non trouvee" });
+    }
+
+    const metadata = await store.getMetadata("profile-photo");
+    const filename = metadata?.metadata?.filename || "profile.jpg";
+
+    // Determine content type
+    let contentType = "image/jpeg";
+    if (filename.match(/\.png$/i)) contentType = "image/png";
+    else if (filename.match(/\.webp$/i)) contentType = "image/webp";
+    else if (filename.match(/\.gif$/i)) contentType = "image/gif";
+
+    res.set("Content-Type", contentType);
+    res.set("Cache-Control", "public, max-age=3600"); // Cache 1h
+    res.send(Buffer.from(photoData));
+  } catch (err) {
+    console.error("Erreur get profile photo:", err);
+    res.status(404).json({ error: "Photo non disponible" });
+  }
+});
+
+// Public: Get hero text
+app.get(["/api/hero-text", "/hero-text", "/.netlify/functions/api/hero-text"], async (req, res) => {
+  try {
+    const data = await loadSiteData();
+    res.json({ heroText: data.heroText || "Terminale CIEL • Bac pro Cybersecurite, Informatique et Reseaux Electroniques" });
+  } catch (err) {
+    console.error("Erreur get hero text:", err);
+    res.json({ heroText: "Terminale CIEL • Bac pro Cybersecurite, Informatique et Reseaux Electroniques" });
+  }
+});
+
 // Admin: historique des connexions
 app.get(["/api/admin/logins", "/admin/logins", "/.netlify/functions/api/admin/logins"], ensureAdmin, async (req, res) => {
   try {

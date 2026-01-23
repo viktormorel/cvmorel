@@ -1375,6 +1375,100 @@
         </div>
       </div>
 
+      <!-- Photo de Profil Upload Card -->
+      <div class="card" id="photoCard">
+        <div class="card-header">
+          <div class="card-icon" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Photo de Profil</h2>
+            <p class="card-subtitle">Change ta photo de profil (JPG, PNG, WebP)</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Preview actuelle -->
+          <div id="current-photo-preview" style="text-align: center; margin-bottom: 20px;">
+            <img id="current-photo-img" src="/api/profile-photo" alt="Photo actuelle" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);" onerror="this.src='avatar.webp'">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Photo actuelle</p>
+          </div>
+
+          <div id="photo-drop-zone" class="upload-zone" style="border: 2px dashed var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; transition: all 0.3s; cursor: pointer; background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="1.5" style="margin-bottom: 12px;">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p style="color: var(--text-primary); font-weight: 600; font-size: 1rem; margin-bottom: 8px;">Glisse ton image ici</p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">ou clique pour selectionner (JPG, PNG, WebP - max 5 Mo)</p>
+            <input type="file" id="photo-file-input" accept=".jpg,.jpeg,.png,.webp,.gif" style="display: none;">
+          </div>
+
+          <div id="photo-file-preview" style="display: none; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%); border-radius: 14px; border: 1px solid rgba(236, 72, 153, 0.2);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img id="photo-preview-img" src="" alt="Apercu" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ec4899;">
+              <div style="flex: 1;">
+                <p id="photo-file-name" style="font-weight: 600; color: var(--text-primary);"></p>
+                <p id="photo-file-size" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="clearPhotoFileSelection()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button id="upload-photo-btn" class="btn btn-full btn-lg" style="margin-top: 20px; display: none; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white;" onclick="uploadPhoto()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Envoyer la nouvelle photo
+          </button>
+
+          <div id="photo-upload-progress" style="display: none; margin-top: 20px;">
+            <div style="background: var(--border); border-radius: 8px; height: 8px; overflow: hidden;">
+              <div id="photo-progress-bar" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="photo-upload-status" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px; text-align: center;">Envoi en cours...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Text Card -->
+      <div class="card" id="heroTextCard">
+        <div class="card-header">
+          <div class="card-icon" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Texte sous le nom</h2>
+            <p class="card-subtitle">Modifie le texte affiche sous "Viktor Morel"</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <label style="display: block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px; font-weight: 500;">Texte actuel :</label>
+          <textarea id="hero-text-input" style="width: 100%; min-height: 80px; padding: 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; font-family: inherit; resize: vertical; transition: border-color 0.3s; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);" placeholder="Ex: Terminale CIEL • Bac pro Cybersecurite..."></textarea>
+          <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 8px;">Maximum 200 caracteres</p>
+
+          <button id="save-hero-text-btn" class="btn btn-full btn-lg" style="margin-top: 16px; background: linear-gradient(135deg, #14b8a6, #06b6d4); color: white;" onclick="saveHeroText()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Sauvegarder le texte
+          </button>
+        </div>
+      </div>
+
       <!-- Save Button -->
       <button class="btn btn-save btn-full" onclick="saveAll()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -2178,6 +2272,186 @@
         progressDiv.style.display = 'none';
         uploadBtn.style.display = 'flex';
       }
+    }
+
+    // ============================================
+    // PHOTO DE PROFIL
+    // ============================================
+    let selectedPhotoFile = null;
+    const photoDropZone = document.getElementById('photo-drop-zone');
+    const photoFileInput = document.getElementById('photo-file-input');
+
+    if (photoDropZone && photoFileInput) {
+      photoDropZone.addEventListener('click', () => photoFileInput.click());
+      photoDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        photoDropZone.style.borderColor = '#ec4899';
+        photoDropZone.style.background = 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)';
+      });
+      photoDropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        photoDropZone.style.borderColor = 'var(--border)';
+        photoDropZone.style.background = 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)';
+      });
+      photoDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        photoDropZone.style.borderColor = 'var(--border)';
+        photoDropZone.style.background = 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%)';
+        if (e.dataTransfer.files.length > 0) {
+          handlePhotoFileSelection(e.dataTransfer.files[0]);
+        }
+      });
+      photoFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handlePhotoFileSelection(e.target.files[0]);
+        }
+      });
+    }
+
+    function handlePhotoFileSelection(file) {
+      if (!file.name.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+        showToast('Format invalide. Utilise JPG, PNG, WebP ou GIF', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image trop volumineuse (max 5 Mo)', 'error');
+        return;
+      }
+      selectedPhotoFile = file;
+      document.getElementById('photo-file-name').textContent = file.name;
+      document.getElementById('photo-file-size').textContent = formatFileSize(file.size);
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('photo-preview-img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      document.getElementById('photo-file-preview').style.display = 'block';
+      document.getElementById('upload-photo-btn').style.display = 'flex';
+      photoDropZone.style.display = 'none';
+    }
+
+    function clearPhotoFileSelection() {
+      selectedPhotoFile = null;
+      photoFileInput.value = '';
+      document.getElementById('photo-file-preview').style.display = 'none';
+      document.getElementById('upload-photo-btn').style.display = 'none';
+      document.getElementById('photo-upload-progress').style.display = 'none';
+      photoDropZone.style.display = 'block';
+    }
+
+    async function uploadPhoto() {
+      if (!selectedPhotoFile) {
+        showToast('Selectionne une image d\'abord', 'error');
+        return;
+      }
+
+      const uploadBtn = document.getElementById('upload-photo-btn');
+      const progressDiv = document.getElementById('photo-upload-progress');
+      const progressBar = document.getElementById('photo-progress-bar');
+      const statusText = document.getElementById('photo-upload-status');
+
+      uploadBtn.style.display = 'none';
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      statusText.textContent = 'Preparation...';
+
+      try {
+        const base64 = await fileToBase64(selectedPhotoFile);
+        progressBar.style.width = '30%';
+        statusText.textContent = 'Envoi en cours...';
+
+        const response = await fetch('/.netlify/functions/api/admin/upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            filename: selectedPhotoFile.name,
+            data: base64
+          })
+        });
+
+        progressBar.style.width = '90%';
+
+        if (response.ok) {
+          progressBar.style.width = '100%';
+          statusText.textContent = 'Photo mise a jour avec succes !';
+          showToast('Photo de profil mise a jour !', 'success');
+          // Refresh the preview
+          document.getElementById('current-photo-img').src = '/api/profile-photo?' + Date.now();
+          setTimeout(() => {
+            clearPhotoFileSelection();
+          }, 2000);
+        } else {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Erreur lors de l\'upload');
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        showToast(err.message || 'Erreur lors de l\'upload', 'error');
+        progressDiv.style.display = 'none';
+        uploadBtn.style.display = 'flex';
+      }
+    }
+
+    // ============================================
+    // HERO TEXT (Texte sous le nom)
+    // ============================================
+    const heroTextInput = document.getElementById('hero-text-input');
+
+    // Load current hero text on page load
+    async function loadHeroText() {
+      try {
+        const response = await fetch('/api/hero-text');
+        const data = await response.json();
+        if (heroTextInput && data.heroText) {
+          heroTextInput.value = data.heroText;
+        }
+      } catch (err) {
+        console.error('Error loading hero text:', err);
+      }
+    }
+
+    async function saveHeroText() {
+      const heroText = heroTextInput.value.trim();
+      if (heroText.length > 200) {
+        showToast('Texte trop long (max 200 caracteres)', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('save-hero-text-btn');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0;"></div> Sauvegarde...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/.netlify/functions/api/admin/update-hero-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ heroText })
+        });
+
+        if (response.ok) {
+          showToast('Texte mis a jour avec succes !', 'success');
+        } else {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Erreur lors de la sauvegarde');
+        }
+      } catch (err) {
+        console.error('Save error:', err);
+        showToast(err.message || 'Erreur lors de la sauvegarde', 'error');
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      }
+    }
+
+    // Load hero text when page loads
+    if (heroTextInput) {
+      loadHeroText();
     }
   </script>
 </body>

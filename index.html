@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Preload de la font critique pour eviter FOIT -->
-  <link rel="preload" href="https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXo.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Font preconnect suffit - preload supprime pour eviter warning -->
+  <!-- Les fonts sont chargees via Google Fonts avec display=swap -->
 
   <!-- Preload des ressources critiques -->
   <link rel="preload" href="styles.css?v=3.1" as="style">
@@ -77,13 +77,13 @@
   <!-- Hero -->
   <header class="hero" id="hero" data-parallax>
     <div class="hero-bg" aria-hidden="true"></div>
-    <!-- Image optimisee WebP avec fallback JPG -->
+    <!-- Image de profil (chargee dynamiquement si disponible) -->
     <picture>
       <source srcset="avatar.webp" type="image/webp">
-      <img src="WhatsApp Image 2025-10-18 à 17.43.59_9444101c.jpg" alt="Photo de profil de Viktor Morel" class="avatar" loading="eager" decoding="async" fetchpriority="high" width="168" height="168" />
+      <img id="profile-photo" src="avatar.webp" alt="Photo de profil de Viktor Morel" class="avatar" loading="eager" decoding="async" fetchpriority="high" width="168" height="168" onerror="this.src='avatar.webp'" />
     </picture>
     <h1>Viktor Morel</h1>
-    <p>Terminale CIEL • Bac pro Cybersécurité, Informatique et Réseaux Électroniques</p>
+    <p id="hero-subtitle">Terminale CIEL • Bac pro Cybersécurité, Informatique et Réseaux Électroniques</p>
   <div class="hero-actions"></div>
 </header>
 

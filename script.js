@@ -716,4 +716,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ============================================
+  // CHARGEMENT DYNAMIQUE PHOTO ET TEXTE HERO
+  // ============================================
+  // Charger la photo de profil personnalisee si disponible
+  const profilePhoto = document.getElementById('profile-photo');
+  if (profilePhoto) {
+    const customPhotoUrl = '/api/profile-photo';
+    // Tester si la photo custom existe
+    fetch(customPhotoUrl, { method: 'HEAD' })
+      .then(res => {
+        if (res.ok) {
+          profilePhoto.src = customPhotoUrl;
+        }
+      })
+      .catch(() => {
+        // Garder l'image par defaut
+      });
+  }
+
+  // Charger le texte hero personnalise si disponible
+  const heroSubtitle = document.getElementById('hero-subtitle');
+  if (heroSubtitle) {
+    fetch('/api/hero-text')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.heroText) {
+          heroSubtitle.textContent = data.heroText;
+        }
+      })
+      .catch(() => {
+        // Garder le texte par defaut
+      });
+  }
+
 });
